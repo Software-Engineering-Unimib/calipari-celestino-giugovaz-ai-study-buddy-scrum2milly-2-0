@@ -190,3 +190,11 @@ buildNumber.properties
 .project
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
+
+
+#Per garantire la configurazione dell'API key
+application.properties
+application-local.properties
+
+#SOLUZIONE MOMENTANEA:
+spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration

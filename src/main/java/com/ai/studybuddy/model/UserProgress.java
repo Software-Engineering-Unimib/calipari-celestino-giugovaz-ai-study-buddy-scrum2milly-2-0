@@ -10,7 +10,6 @@ import java.util.UUID;
 public class UserProgress {
 
 
-    public class StudentProgress {
 
         @Id
         @GeneratedValue(strategy = GenerationType.UUID)
@@ -34,10 +33,10 @@ public class UserProgress {
 
         // Livello calcolato automaticamente
         @Enumerated(EnumType.STRING)
-        private DifficultyLevel masteryLevel = DifficultyLevel.PRINCIPIANTE;
+            private DifficultyLevel masteryLevel = DifficultyLevel.PRINCIPIANTE;
 
         private Integer totalStudyMinutes = 0;
 
         // Ultima attività su questo argomento
         private LocalDateTime lastActivityAt;
-}
+    }
