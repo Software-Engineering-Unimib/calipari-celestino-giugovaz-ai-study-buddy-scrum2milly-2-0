@@ -1,12 +1,14 @@
 package com.ai.studybuddy.controller.login;
 
+import com.ai.studybuddy.util.Const;
 import com.ai.studybuddy.dto.auth.LoginRequest;
 import com.ai.studybuddy.dto.auth.LoginResponse;
 import com.ai.studybuddy.dto.auth.RegisterRequest;
 import com.ai.studybuddy.dto.auth.RegisterResponse;
 import com.ai.studybuddy.model.User;
 import com.ai.studybuddy.config.security.JwtUtils;
-import com.ai.studybuddy.service.UserService;
+import com.ai.studybuddy.service.impl.UserService;
+import com.ai.studybuddy.util.Const;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,14 +42,12 @@ public class AuthController {
     public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
         logger.info("Tentativo registrazione per email: {}", request.getEmail());
 
-        // Verifica email già esistente
         if (userService.existsByEmail(request.getEmail())) {
             return ResponseEntity
                     .status(HttpStatus.CONFLICT)
-                    .body(new RegisterResponse(false, "Email già registrata", null));
+                    .body(new RegisterResponse(false, Const.EMAIL_EXISTS, null));
         }
 
-        // Registra utente
         User user = userService.registerUser(
                 request.getFirstName(),
                 request.getLastName(),
@@ -59,7 +59,7 @@ public class AuthController {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(new RegisterResponse(true, "Registrazione completata!", user.getId().toString()));
+                .body(new RegisterResponse(true, Const.REGISTRATION_SUCCESS, user.getId().toString()));
     }
 
     // ==================== LOGIN ====================
@@ -69,23 +69,20 @@ public class AuthController {
         logger.info("Tentativo login per email: {}", request.getEmail());
 
         try {
-            // Autentica utente
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
             );
 
-            // Genera token JWT
             String token = jwtUtils.generateToken(request.getEmail());
 
-            // Recupera dati utente
             User user = userService.findByEmail(request.getEmail())
-                    .orElseThrow(() -> new BadCredentialsException("Utente non trovato"));
+                    .orElseThrow(() -> new BadCredentialsException(Const.USER_NOT_FOUND));
 
             logger.info("Login riuscito per: {}", request.getEmail());
 
             return ResponseEntity.ok(new LoginResponse(
                     true,
-                    "Login riuscito!",
+                    Const.LOGIN_SUCCESS,
                     token,
                     user.getId().toString(),
                     user.getFirstName(),
@@ -97,7 +94,7 @@ public class AuthController {
             logger.warn("Login fallito per: {}", request.getEmail());
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
-                    .body(new LoginResponse(false, "Email o password errati", null, null, null, null, null));
+                    .body(new LoginResponse(false, Const.INVALID_CREDENTIALS, null, null, null, null, null));
         }
     }
 
@@ -105,7 +102,6 @@ public class AuthController {
 
     @GetMapping("/verify")
     public ResponseEntity<String> verifyToken() {
-        // Se arriviamo qui, il token è valido (filtrato da JwtFilter)
-        return ResponseEntity.ok("Token valido");
+        return ResponseEntity.ok(Const.TOKEN_VALID);
     }
 }

@@ -1,4 +1,4 @@
-package com.ai.studybuddy.service;
+package com.ai.studybuddy.service.impl;
 
 import com.ai.studybuddy.model.User;
 
