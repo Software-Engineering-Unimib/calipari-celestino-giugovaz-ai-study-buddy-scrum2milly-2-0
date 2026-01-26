@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API Flashcards - Controller VERO</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #374151;
+            font-weight: 600;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-right: 10px;
+        }
+
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-success { background: #10B981; }
+        .btn-success:hover { background: #059669; }
+
+        .output {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            display: none;
+        }
+
+        .output.show {
+            display: block;
+        }
+
+        .output.error {
+            background: #fee2e2;
+            border-color: #fca5a5;
+            color: #991b1b;
+        }
+
+        .output.success {
+            background: #d1fae5;
+            border-color: #6ee7b7;
+            color: #065f46;
+        }
+
+        .note {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 12px;
+            margin-top: 15px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎴 Test Controller VERO - API REST</h1>
+
+        <!-- Crea Deck -->
+        <div class="card">
+            <h2>📦 POST - Crea Deck</h2>
+            <div class="note">
+                ⚠️ Questo usa il controller VERO con POST!<br>
+                Endpoint: <code>/api/flashcards/decks</code>
+            </div>
+
+            <div class="form-group">
+                <label>Nome Deck:</label>
+                <input type="text" id="deckName" value="Matematica - Algebra" placeholder="Nome del deck">
+            </div>
+
+            <div class="form-group">
+                <label>Descrizione:</label>
+                <textarea id="deckDescription" placeholder="Descrizione opzionale">Concetti base di algebra</textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Materia:</label>
+                <input type="text" id="deckSubject" value="Matematica" placeholder="es: Matematica">
+            </div>
+
+            <div class="form-group">
+                <label>Colore (hex):</label>
+                <input type="text" id="deckColor" value="#10B981" placeholder="#3B82F6">
+            </div>
+
+            <button class="btn btn-success" onclick="createDeck()">Crea Deck (POST)</button>
+            <button class="btn" onclick="listDecks()">Lista Decks (GET)</button>
+
+            <div id="deck-output" class="output"></div>
+        </div>
+
+        <!-- Crea Flashcard -->
+        <div class="card">
+            <h2>🎯 POST - Crea Flashcard</h2>
+            <div class="note">
+                Prima crea un deck sopra, poi copia il suo ID qui!
+            </div>
+
+            <div class="form-group">
+                <label>Deck ID:</label>
+                <input type="text" id="cardDeckId" placeholder="Incolla l'UUID del deck qui">
+            </div>
+
+            <div class="form-group">
+                <label>Fronte (Domanda):</label>
+                <input type="text" id="cardFront" value="Cos'è un'equazione?" placeholder="Domanda">
+            </div>
+
+            <div class="form-group">
+                <label>Retro (Risposta):</label>
+                <textarea id="cardBack" placeholder="Risposta">Un'uguaglianza tra due espressioni contenenti incognite</textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Difficoltà:</label>
+                <select id="cardDifficulty" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 6px;">
+                    <option value="INTERMEDIO">"Intermedio"</option>
+                    <option value="AVANZATO" selected>"AVANZATO"</option>
+                    <option value="INTERMEDIO">Principiante</option>
+                </select>
+            </div>
+
+            <button class="btn btn-success" onclick="createCard()">Crea Flashcard (POST)</button>
+            <button class="btn" onclick="listCards()">Lista Cards del Deck (GET)</button>
+
+            <div id="card-output" class="output"></div>
+        </div>
+
+        <!-- Registra Revisione -->
+        <div class="card">
+            <h2>✅ POST - Registra Revisione</h2>
+
+            <div class="form-group">
+                <label>Card ID:</label>
+                <input type="text" id="reviewCardId" placeholder="Incolla l'UUID della card">
+            </div>
+
+            <button class="btn btn-success" onclick="reviewCard(true)">✅ Corretta</button>
+            <button class="btn" onclick="reviewCard(false)" style="background: #ef4444;">❌ Errata</button>
+
+            <div id="review-output" class="output"></div>
+        </div>
+
+        <!-- Lista Tutti i Decks -->
+        <div class="card">
+            <h2>📋 GET - Tutti i Decks</h2>
+            <button class="btn" onclick="getAllDecks()">Carica Tutti i Decks</button>
+            <div id="all-decks-output" class="output"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api/flashcards';
+
+        function showOutput(elementId, content, isError = false) {
+            const element = document.getElementById(elementId);
+            element.className = 'output show ' + (isError ? 'error' : 'success');
+            element.textContent = content;
+        }
+
+        async function createDeck() {
+            try {
+                const response = await fetch(`${API_BASE}/decks`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: document.getElementById('deckName').value,
+                        description: document.getElementById('deckDescription').value,
+                        subject: document.getElementById('deckSubject').value,
+                        color: document.getElementById('deckColor').value,
+                        isPublic: false
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+                }
+
+                const deck = await response.json();
+                showOutput('deck-output', 
+                    `✅ Deck creato con successo!\n\n` +
+                    `ID: ${deck.id}\n` +
+                    `Nome: ${deck.name}\n` +
+                    `Materia: ${deck.subject}\n` +
+                    `Colore: ${deck.color}\n\n` +
+                    `📋 Copia questo ID per creare flashcards!`, 
+                    false
+                );
+
+                // Auto-fill card deck ID
+                document.getElementById('cardDeckId').value = deck.id;
+
+            } catch (error) {
+                showOutput('deck-output', `❌ ERRORE:\n${error.message}`, true);
+            }
+        }
+
+        async function listDecks() {
+            try {
+                const response = await fetch(`${API_BASE}/decks`);
+                const decks = await response.json();
+
+                if (decks.length === 0) {
+                    showOutput('deck-output', '📭 Nessun deck trovato.', false);
+                    return;
+                }
+
+                let output = `📚 DECKS TROVATI (${decks.length}):\n\n`;
+                decks.forEach((deck, i) => {
+                    output += `${i + 1}. ${deck.name}\n`;
+                    output += `   ID: ${deck.id}\n`;
+                    output += `   Materia: ${deck.subject || 'N/A'}\n`;
+                    output += `   Carte: ${deck.totalCards}\n\n`;
+                });
+
+                showOutput('deck-output', output, false);
+            } catch (error) {
+                showOutput('deck-output', `❌ ERRORE:\n${error.message}`, true);
+            }
+        }
+
+        async function createCard() {
+            const deckId = document.getElementById('cardDeckId').value.trim();
+            
+            if (!deckId) {
+                showOutput('card-output', '⚠️ Inserisci un Deck ID!', true);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/decks/${deckId}/cards`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        frontContent: document.getElementById('cardFront').value,
+                        backContent: document.getElementById('cardBack').value,
+                        difficultyLevel: document.getElementById('cardDifficulty').value,
+                        tags: ["test", "matematica"]
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+                }
+
+                const card = await response.json();
+                showOutput('card-output', 
+                    `✅ Flashcard creata!\n\n` +
+                    `ID: ${card.id}\n` +
+                    `Fronte: ${card.frontContent}\n` +
+                    `Retro: ${card.backContent}\n` +
+                    `Difficoltà: ${card.difficultyLevel}\n\n` +
+                    `📋 Copia questo ID per testarla!`,
+                    false
+                );
+
+                // Auto-fill review card ID
+                document.getElementById('reviewCardId').value = card.id;
+
+            } catch (error) {
+                showOutput('card-output', `❌ ERRORE:\n${error.message}`, true);
+            }
+        }
+
+        async function listCards() {
+            const deckId = document.getElementById('cardDeckId').value.trim();
+            
+            if (!deckId) {
+                showOutput('card-output', '⚠️ Inserisci un Deck ID!', true);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/decks/${deckId}/cards`);
+                const cards = await response.json();
+
+                if (cards.length === 0) {
+                    showOutput('card-output', '📭 Nessuna flashcard in questo deck.', false);
+                    return;
+                }
+
+                let output = `🎴 FLASHCARDS (${cards.length}):\n\n`;
+                cards.forEach((card, i) => {
+                    output += `${i + 1}. ${card.frontContent}\n`;
+                    output += `   Risposta: ${card.backContent}\n`;
+                    output += `   ID: ${card.id}\n`;
+                    output += `   Difficoltà: ${card.difficultyLevel}\n`;
+                    output += `   Revisioni: ${card.timesReviewed} (${card.timesCorrect} corrette)\n\n`;
+                });
+
+                showOutput('card-output', output, false);
+            } catch (error) {
+                showOutput('card-output', `❌ ERRORE:\n${error.message}`, true);
+            }
+        }
+
+        async function reviewCard(wasCorrect) {
+            const cardId = document.getElementById('reviewCardId').value.trim();
+            
+            if (!cardId) {
+                showOutput('review-output', '⚠️ Inserisci un Card ID!', true);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/${cardId}/review`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        wasCorrect: wasCorrect
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+                }
+
+                const card = await response.json();
+                const rate = card.timesReviewed > 0 
+                    ? (card.timesCorrect / card.timesReviewed * 100).toFixed(1) 
+                    : 0;
+
+                showOutput('review-output', 
+                    `${wasCorrect ? '✅' : '❌'} Revisione registrata!\n\n` +
+                    `Card: ${card.frontContent}\n` +
+                    `Revisioni totali: ${card.timesReviewed}\n` +
+                    `Risposte corrette: ${card.timesCorrect}\n` +
+                    `Tasso successo: ${rate}%`,
+                    false
+                );
+            } catch (error) {
+                showOutput('review-output', `❌ ERRORE:\n${error.message}`, true);
+            }
+        }
+
+        async function getAllDecks() {
+            try {
+                const response = await fetch(`${API_BASE}/decks`);
+                const decks = await response.json();
+
+                if (decks.length === 0) {
+                    showOutput('all-decks-output', '📭 Nessun deck trovato.', false);
+                    return;
+                }
+
+                let output = `📚 TUTTI I DECKS (${decks.length}):\n\n`;
+                decks.forEach((deck, i) => {
+                    output += `${i + 1}. ${deck.name}\n`;
+                    output += `   ID: ${deck.id}\n`;
+                    output += `   Materia: ${deck.subject || 'N/A'}\n`;
+                    output += `   Carte: ${deck.totalCards}\n`;
+                    output += `   Masterizzate: ${deck.cardsMastered}\n`;
+                    output += `   Creato: ${new Date(deck.createdAt).toLocaleString('it-IT')}\n\n`;
+                });
+
+                showOutput('all-decks-output', output, false);
+            } catch (error) {
+                showOutput('all-decks-output', `❌ ERRORE:\n${error.message}`, true);
+            }
+        }
+    </script>
+</body>
+</html>
