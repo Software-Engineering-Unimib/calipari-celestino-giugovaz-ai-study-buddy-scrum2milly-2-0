@@ -34,7 +34,6 @@ public class User {
     @Column(name = "education_level")
     private EducationLevel educationLevel;
 
-    // ==================== PROFILO ====================
 
     @Column(name = "avatar_url", length = 500)
     private String avatarUrl;  // URL immagine su Supabase Storage
@@ -50,9 +49,6 @@ public class User {
 
     @Column(name = "streak_days")
     private Integer streakDays = 0;
-
-    @Column(name = "email_verified")
-    private Boolean emailVerified = false;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -153,15 +149,6 @@ public class User {
     public void setStreakDays(Integer streakDays) {
         this.streakDays = streakDays;
     }
-
-    public Boolean getEmailVerified() {
-        return emailVerified;
-    }
-
-    public void setEmailVerified(Boolean emailVerified) {
-        this.emailVerified = emailVerified;
-    }
-
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
