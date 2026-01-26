@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz - AI Study Buddy</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+<!-- Mobile Menu Button -->
+<button class="mobile-menu-btn" id="mobileMenuBtn">
+    <i class="bi bi-list"></i>
+</button>
+
+<!-- Sidebar Overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+    <a href="index.html" class="sidebar-logo">
+        <i class="bi bi-mortarboard-fill"></i>
+        <h1>AI Study Buddy</h1>
+    </a>
+
+    <nav class="sidebar-nav">
+        <div class="nav-section-title">Studio</div>
+        <a href="spiegazioni.html" class="nav-item">
+            <i class="bi bi-chat-dots"></i>
+            <span>Spiegazioni AI</span>
+        </a>
+        <a href="quiz.html" class="nav-item active">
+            <i class="bi bi-patch-question"></i>
+            <span>Quiz</span>
+        </a>
+        <a href="flashcards.html" class="nav-item">
+            <i class="bi bi-stack"></i>
+            <span>Flashcards</span>
+        </a>
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="user-info">
+            <div class="user-avatar" id="userAvatar">MC</div>
+            <div class="user-details">
+                <div class="user-name" id="userName">Mario Calipari</div>
+                <div class="user-level">Livello 5</div>
+            </div>
+        </div>
+    </div>
+</aside>
+
+<!-- Main Content -->
+<main class="main-content">
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="bi bi-patch-question text-primary me-2"></i>
+            Quiz AI
+        </h1>
+        <p class="page-subtitle">Genera quiz personalizzati su qualsiasi argomento</p>
+    </div>
+
+    <div id="alertContainer"></div>
+
+    <div class="quiz-container">
+        <!-- Quiz Setup -->
+        <div id="quizSetup" class="quiz-setup">
+            <h3 class="card-title mb-4">Configura il tuo Quiz</h3>
+
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    <label class="form-label">Argomento</label>
+                    <input
+                            type="text"
+                            class="form-control"
+                            id="quizTopic"
+                            placeholder="es. Seconda Guerra Mondiale, Derivate, Programmazione Java..."
+                    >
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Numero domande</label>
+                    <select class="form-control form-select" id="numQuestions">
+                        <option value="5" selected>5 domande</option>
+                        <option value="10">10 domande</option>
+                        <option value="15">15 domande</option>
+                        <option value="20">20 domande</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Difficoltà</label>
+                    <select class="form-control form-select" id="quizDifficulty">
+                        <option value="facile">Facile</option>
+                        <option value="media" selected>Media</option>
+                        <option value="difficile">Difficile</option>
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end mb-3">
+                    <button class="btn btn-primary btn-lg w-100" id="generateBtn" onclick="generateQuiz()">
+                        <i class="bi bi-magic me-2"></i>
+                        <span id="generateBtnText">Genera Quiz</span>
+                        <span id="generateBtnSpinner" class="d-none">
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                Generazione...
+                            </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz Questions (hidden initially) -->
+        <div id="quizQuestionsContainer" class="d-none">
+            <!-- Header -->
+            <div class="quiz-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-1" id="quizTitle">Quiz</h4>
+                        <span class="text-muted" id="quizInfo"></span>
+                    </div>
+                    <button class="btn btn-outline" onclick="resetQuiz()">
+                        <i class="bi bi-arrow-left me-1"></i>
+                        Nuovo Quiz
+                    </button>
+                </div>
+                <div class="quiz-progress">
+                    <div class="quiz-progress-bar">
+                        <div class="quiz-progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                    <div class="quiz-progress-text">
+                        <span id="progressText">Domanda 1 di 5</span>
+                        <span id="scoreText">Punteggio: 0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question Card -->
+            <div id="questionContainer"></div>
+
+            <!-- Navigation -->
+            <div class="d-flex justify-content-between">
+                <button class="btn btn-secondary" id="prevBtn" onclick="prevQuestion()" disabled>
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Precedente
+                </button>
+                <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()">
+                    Successiva
+                    <i class="bi bi-arrow-right ms-1"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Quiz Results (hidden initially) -->
+        <div id="quizResults" class="d-none">
+            <div class="quiz-question-card">
+                <div class="quiz-result">
+                    <div class="quiz-result-score" id="finalScore">0%</div>
+                    <div class="quiz-result-label" id="finalLabel">Complimenti!</div>
+
+                    <div class="row justify-content-center mb-4">
+                        <div class="col-auto">
+                            <div class="stat-card">
+                                <div class="card-icon success">
+                                    <i class="bi bi-check-lg"></i>
+                                </div>
+                                <div>
+                                    <div class="stat-value text-success" id="correctCount">0</div>
+                                    <div class="stat-label">Corrette</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="stat-card">
+                                <div class="card-icon" style="background: rgba(239, 68, 68, 0.2); color: var(--danger-color);">
+                                    <i class="bi bi-x-lg"></i>
+                                </div>
+                                <div>
+                                    <div class="stat-value text-danger" id="incorrectCount">0</div>
+                                    <div class="stat-label">Sbagliate</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-3 justify-content-center">
+                        <button class="btn btn-outline" onclick="reviewAnswers()">
+                            <i class="bi bi-eye me-1"></i>
+                            Rivedi risposte
+                        </button>
+                        <button class="btn btn-primary" onclick="resetQuiz()">
+                            <i class="bi bi-arrow-repeat me-1"></i>
+                            Nuovo Quiz
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/app.js"></script>
+<script>
+    let quizData = [];
+    let currentQuestion = 0;
+    let userAnswers = [];
+    let score = 0;
+
+    // Generate Quiz
+    async function generateQuiz() {
+        const topic = document.getElementById('quizTopic').value.trim();
+        const numQuestions = document.getElementById('numQuestions').value;
+        const difficulty = document.getElementById('quizDifficulty').value;
+
+        if (!topic) {
+            showAlert('Inserisci un argomento per il quiz', 'error');
+            return;
+        }
+
+        const btn = document.getElementById('generateBtn');
+        const btnText = document.getElementById('generateBtnText');
+        const btnSpinner = document.getElementById('generateBtnSpinner');
+
+        btn.disabled = true;
+        btnText.classList.add('d-none');
+        btnSpinner.classList.remove('d-none');
+
+        try {
+            const response = await apiFetch(
+                `/ai/quiz?topic=${encodeURIComponent(topic)}&questions=${numQuestions}&difficulty=${encodeURIComponent(difficulty)}`
+            );
+
+            if (response.ok) {
+                const text = await response.text();
+
+                // Parse JSON from AI response
+                const cleaned = text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+                quizData = JSON.parse(cleaned);
+
+                if (quizData.length === 0) {
+                    throw new Error('Nessuna domanda generata');
+                }
+
+                // Initialize quiz state
+                currentQuestion = 0;
+                userAnswers = new Array(quizData.length).fill(null);
+                score = 0;
+
+                // Update UI
+                document.getElementById('quizTitle').textContent = `Quiz: ${topic}`;
+                document.getElementById('quizInfo').textContent = `${quizData.length} domande • Difficoltà: ${difficulty}`;
+
+                // Show quiz
+                document.getElementById('quizSetup').classList.add('d-none');
+                document.getElementById('quizQuestionsContainer').classList.remove('d-none');
+
+                renderQuestion();
+            } else {
+                const error = await response.text();
+                showAlert(getErrorMessage(error), 'error');
+            }
+        } catch (error) {
+            console.error('Errore:', error);
+            showAlert('Errore nella generazione del quiz. Riprova.', 'error');
+        } finally {
+            btn.disabled = false;
+            btnText.classList.remove('d-none');
+            btnSpinner.classList.add('d-none');
+        }
+    }
+
+    // Render current question
+    function renderQuestion() {
+        const q = quizData[currentQuestion];
+        const container = document.getElementById('questionContainer');
+        const letters = ['A', 'B', 'C', 'D'];
+
+        let optionsHtml = '';
+        q.options.forEach((option, index) => {
+            const isSelected = userAnswers[currentQuestion] === letters[index];
+            optionsHtml += `
+                <div class="quiz-option ${isSelected ? 'selected' : ''}" onclick="selectOption('${letters[index]}')">
+                    <div class="quiz-option-letter">${letters[index]}</div>
+                    <div class="quiz-option-text">${option}</div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = `
+            <div class="quiz-question-card">
+                <div class="quiz-question-number">Domanda ${currentQuestion + 1}</div>
+                <div class="quiz-question-text">${q.question}</div>
+                <div class="quiz-options">
+                    ${optionsHtml}
+                </div>
+            </div>
+        `;
+
+        updateProgress();
+        updateNavigation();
+    }
+
+    // Select option
+    function selectOption(letter) {
+        userAnswers[currentQuestion] = letter;
+        renderQuestion();
+    }
+
+    // Update progress bar
+    function updateProgress() {
+        const progress = ((currentQuestion + 1) / quizData.length) * 100;
+        document.getElementById('progressFill').style.width = `${progress}%`;
+        document.getElementById('progressText').textContent = `Domanda ${currentQuestion + 1} di ${quizData.length}`;
+
+        const answered = userAnswers.filter(a => a !== null).length;
+        document.getElementById('scoreText').textContent = `Risposte: ${answered}/${quizData.length}`;
+    }
+
+    // Update navigation buttons
+    function updateNavigation() {
+        document.getElementById('prevBtn').disabled = currentQuestion === 0;
+
+        const nextBtn = document.getElementById('nextBtn');
+        if (currentQuestion === quizData.length - 1) {
+            nextBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i> Termina Quiz';
+            nextBtn.onclick = finishQuiz;
+        } else {
+            nextBtn.innerHTML = 'Successiva <i class="bi bi-arrow-right ms-1"></i>';
+            nextBtn.onclick = nextQuestion;
+        }
+    }
+
+    // Navigation
+    function prevQuestion() {
+        if (currentQuestion > 0) {
+            currentQuestion--;
+            renderQuestion();
+        }
+    }
+
+    function nextQuestion() {
+        if (currentQuestion < quizData.length - 1) {
+            currentQuestion++;
+            renderQuestion();
+        }
+    }
+
+    // Finish quiz
+    function finishQuiz() {
+        // Calculate score - confronta la lettera con il valore corretto
+        score = 0;
+        const letters = ['A', 'B', 'C', 'D'];
+
+        quizData.forEach((q, index) => {
+            const userLetter = userAnswers[index];
+            if (userLetter) {
+                const userAnswerIndex = letters.indexOf(userLetter);
+                const userAnswerText = q.options[userAnswerIndex];
+                // Confronta con il testo della risposta corretta
+                if (userAnswerText === q.correct) {
+                    score++;
+                }
+            }
+        });
+
+        const percentage = Math.round((score / quizData.length) * 100);
+
+        // Update results
+        document.getElementById('finalScore').textContent = `${percentage}%`;
+        document.getElementById('correctCount').textContent = score;
+        document.getElementById('incorrectCount').textContent = quizData.length - score;
+
+        // Set label based on score
+        let label = 'Puoi fare di meglio!';
+        if (percentage >= 90) label = 'Eccellente! 🎉';
+        else if (percentage >= 70) label = 'Ottimo lavoro! 👏';
+        else if (percentage >= 50) label = 'Buon risultato! 💪';
+        document.getElementById('finalLabel').textContent = label;
+
+        // Show results
+        document.getElementById('quizQuestionsContainer').classList.add('d-none');
+        document.getElementById('quizResults').classList.remove('d-none');
+    }
+
+    // Review answers
+    function reviewAnswers() {
+        document.getElementById('quizResults').classList.add('d-none');
+        document.getElementById('quizQuestionsContainer').classList.remove('d-none');
+        currentQuestion = 0;
+        renderQuestionReview();
+    }
+
+    // Render question in review mode
+    function renderQuestionReview() {
+        const q = quizData[currentQuestion];
+        const container = document.getElementById('questionContainer');
+        const letters = ['A', 'B', 'C', 'D'];
+
+        let optionsHtml = '';
+        q.options.forEach((option, index) => {
+            const letter = letters[index];
+            const isCorrect = option === q.correct;
+            const isUserAnswer = userAnswers[currentQuestion] === letter;
+
+            let className = '';
+            if (isCorrect) className = 'correct';
+            else if (isUserAnswer && !isCorrect) className = 'incorrect';
+
+            optionsHtml += `
+                <div class="quiz-option ${className}">
+                    <div class="quiz-option-letter">${letter}</div>
+                    <div class="quiz-option-text">
+                        ${option}
+                        ${isCorrect ? '<i class="bi bi-check-lg ms-2 text-success"></i>' : ''}
+                        ${isUserAnswer && !isCorrect ? '<i class="bi bi-x-lg ms-2 text-danger"></i>' : ''}
+                    </div>
+                </div>
+            `;
+        });
+
+        // Verifica se la risposta dell'utente è corretta
+        const userLetter = userAnswers[currentQuestion];
+        let isUserCorrect = false;
+        if (userLetter) {
+            const userAnswerIndex = letters.indexOf(userLetter);
+            isUserCorrect = q.options[userAnswerIndex] === q.correct;
+        }
+
+        container.innerHTML = `
+            <div class="quiz-question-card">
+                <div class="quiz-question-number">
+                    Domanda ${currentQuestion + 1}
+                    ${isUserCorrect ?
+                        '<span class="badge bg-success ms-2">Corretta</span>' :
+                        '<span class="badge bg-danger ms-2">Sbagliata</span>'}
+                </div>
+                <div class="quiz-question-text">${q.question}</div>
+                <div class="quiz-options">
+                    ${optionsHtml}
+                </div>
+            </div>
+        `;
+
+        updateProgress();
+
+        // Update navigation for review mode
+        document.getElementById('prevBtn').disabled = currentQuestion === 0;
+        const nextBtn = document.getElementById('nextBtn');
+        if (currentQuestion === quizData.length - 1) {
+            nextBtn.innerHTML = '<i class="bi bi-bar-chart me-1"></i> Torna ai risultati';
+            nextBtn.onclick = () => {
+                document.getElementById('quizQuestionsContainer').classList.add('d-none');
+                document.getElementById('quizResults').classList.remove('d-none');
+            };
+        } else {
+            nextBtn.innerHTML = 'Successiva <i class="bi bi-arrow-right ms-1"></i>';
+            nextBtn.onclick = () => {
+                currentQuestion++;
+                renderQuestionReview();
+            };
+        }
+
+        document.getElementById('prevBtn').onclick = () => {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                renderQuestionReview();
+            }
+        };
+    }
+
+    // Reset quiz
+    function resetQuiz() {
+        quizData = [];
+        currentQuestion = 0;
+        userAnswers = [];
+        score = 0;
+
+        document.getElementById('quizSetup').classList.remove('d-none');
+        document.getElementById('quizQuestionsContainer').classList.add('d-none');
+        document.getElementById('quizResults').classList.add('d-none');
+        document.getElementById('quizTopic').value = '';
+    }
+</script>
+</body>
+</html>

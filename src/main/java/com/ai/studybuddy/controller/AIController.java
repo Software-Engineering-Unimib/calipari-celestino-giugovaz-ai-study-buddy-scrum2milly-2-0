@@ -3,121 +3,109 @@ package com.ai.studybuddy.controller;
 import com.ai.studybuddy.dto.GenerateFlashcardsResponse;
 import com.ai.studybuddy.model.Flashcard;
 import com.ai.studybuddy.model.User;
-import com.ai.studybuddy.repository.UserRepository;
 import com.ai.studybuddy.service.AIService;
 import com.ai.studybuddy.service.FlashcardService;
+import com.ai.studybuddy.service.impl.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/ai")
 public class AIController {
-    
+
+    private static final Logger logger = LoggerFactory.getLogger(AIController.class);
+
     @Autowired
     private AIService aiService;
-    
-    @Autowired
-    private FlashcardService flashcardService;  // ← Usa solo questo
-    
-    @Autowired
-    private UserRepository userRepository;  // ← TEMPORANEO (finché non crei UserService)
 
-    // ← TEMPORANEO (finché non crei UserService)
-    private User getCurrentUser() {
-        return userRepository.findByEmail("demo@studybuddy.com")
-            .orElseGet(() -> {
-                User user = new User();
-                user.setFirstName("Demo");
-                user.setLastName("User");
-                user.setEmail("demo@studybuddy.com");
-                user.setPasswordHash("demo-hash");
-                return userRepository.save(user);
-            });
-    }
+    @Autowired
+    private FlashcardService flashcardService;
 
-    /**
-     * Test endpoint spiegazione
-     */
+    @Autowired
+    private UserService userService;
+
+    // ==================== EXPLANATION ====================
+
     @GetMapping("/explain")
     public ResponseEntity<String> getExplanation(
             @RequestParam String topic,
-            @RequestParam(defaultValue = "università") String level) {
+            @RequestParam(defaultValue = "università") String level,
+            Principal principal) {
+        User user = userService.getCurrentUser(principal);
+        logger.info("Richiesta spiegazione '{}' da utente: {}", topic, user.getEmail());
+
         String explanation = aiService.generateExplanation(topic, level);
         return ResponseEntity.ok(explanation);
     }
 
-    /**
-     * Test to verify if the problem is Spring Security or the API call
-     */
-    @GetMapping("/test")
-    public String test() {
-        return "Il server è attivo e il login funziona!";
-    }
+    // ==================== QUIZ ====================
 
-    /**
-     * Test endpoint quiz
-     */
     @GetMapping("/quiz")
     public ResponseEntity<String> generateQuiz(
             @RequestParam String topic,
             @RequestParam(defaultValue = "5") int questions,
-            @RequestParam(defaultValue = "media") String difficulty) {
+            @RequestParam(defaultValue = "media") String difficulty,
+            Principal principal) {
+        User user = userService.getCurrentUser(principal);
+        logger.info("Generazione quiz '{}' ({} domande) per utente: {}", topic, questions, user.getEmail());
+
         String quiz = aiService.generateQuiz(topic, questions, difficulty);
         return ResponseEntity.ok(quiz);
     }
 
-    /**
-     * Test endpoint flashcard
-     */
+    // ==================== FLASHCARDS ====================
+
     @GetMapping("/flashcards")
-    public ResponseEntity<String> generateFlashCards(
+    public ResponseEntity<String> generateFlashcards(
             @RequestParam String topic,
             @RequestParam(defaultValue = "10") int cards,
-            @RequestParam(defaultValue = "avanzato") String difficulty) {
+            @RequestParam(defaultValue = "avanzato") String difficulty,
+            Principal principal) {
+        User user = userService.getCurrentUser(principal);
+        logger.info("Generazione {} flashcard '{}' per utente: {}", cards, topic, user.getEmail());
+
         String flashcards = aiService.generateFlashCard(topic, cards, difficulty);
         return ResponseEntity.ok(flashcards);
     }
 
-
-    /**
-     * Genera E salva flashcard in un deck
-     * POST /api/ai/generate-and-save-flashcards
-     */
-    @PostMapping("/generate-and-save-flashcards")
+    @PostMapping("/flashcards/generate")
     public ResponseEntity<GenerateFlashcardsResponse> generateAndSaveFlashcards(
             @RequestParam UUID deckId,
             @RequestParam String topic,
             @RequestParam(defaultValue = "5") int numberOfCards,
-            @RequestParam(defaultValue = "MEDIUM") String difficulty) {
-        
-        try {
-            User user = getCurrentUser();
-            
-            List<Flashcard> createdCards = flashcardService.generateAndSaveFlashcards(
-                deckId, 
-                topic, 
-                numberOfCards, 
-                difficulty, 
+            @RequestParam(defaultValue = "MEDIUM") String difficulty,
+            Principal principal) {
+
+        User user = userService.getCurrentUser(principal);
+        logger.info("Generazione e salvataggio {} flashcard '{}' nel deck {} per utente: {}",
+                numberOfCards, topic, deckId, user.getEmail());
+
+        List<Flashcard> createdCards = flashcardService.generateAndSaveFlashcards(
+                deckId,
+                topic,
+                numberOfCards,
+                difficulty,
                 user
-            );
-            
-            return ResponseEntity.ok(new GenerateFlashcardsResponse(
+        );
+
+        return ResponseEntity.ok(new GenerateFlashcardsResponse(
                 true,
-                createdCards.size() + " flashcards generate e salvate!",
+                String.valueOf(createdCards.size()),
                 createdCards
-            ));
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(500).body(new GenerateFlashcardsResponse(
-                false,
-                "Errore: " + e.getMessage(),
-                null
-            ));
-        }
+        ));
+    }
+
+    // ==================== HEALTH CHECK ====================
+
+    @GetMapping("/health")
+    public ResponseEntity<String> healthCheck() {
+        return ResponseEntity.ok("OK");
     }
 }

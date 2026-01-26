@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Study Buddy</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+<!-- Mobile Menu Button -->
+<button class="mobile-menu-btn" id="mobileMenuBtn">
+  <i class="bi bi-list"></i>
+</button>
+
+<!-- Sidebar Overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <a href="index.html" class="sidebar-logo">
+    <i class="bi bi-mortarboard-fill"></i>
+    <h1>AI Study Buddy</h1>
+  </a>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Studio</div>
+    <a href="spiegazioni.html" class="nav-item">
+      <i class="bi bi-chat-dots"></i>
+      <span>Spiegazioni AI</span>
+    </a>
+    <a href="quiz.html" class="nav-item">
+      <i class="bi bi-patch-question"></i>
+      <span>Quiz</span>
+    </a>
+    <a href="flashcards.html" class="nav-item">
+      <i class="bi bi-stack"></i>
+      <span>Flashcards</span>
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <div class="user-avatar" id="userAvatar">MC</div>
+      <div class="user-details">
+        <div class="user-name" id="userName">Mario Calipari</div>
+        <div class="user-level">Livello 5</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- Main Content -->
+<main class="main-content">
+  <div class="page-header">
+    <h1 class="page-title">Benvenuto su AI Study Buddy! 👋</h1>
+    <p class="page-subtitle">Il tuo tutor personale basato sull'Intelligenza Artificiale</p>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="row mb-5">
+    <div class="col-md-4 mb-4">
+      <a href="spiegazioni.html" class="card text-decoration-none" style="height: 100%;">
+        <div class="d-flex align-items-start gap-3">
+          <div class="card-icon primary">
+            <i class="bi bi-chat-dots"></i>
+          </div>
+          <div>
+            <h3 class="card-title mb-2">Spiegazioni AI</h3>
+            <p class="text-muted mb-0">Chiedi spiegazioni su qualsiasi argomento e ricevi risposte personalizzate.</p>
+          </div>
+        </div>
+        <div class="mt-4">
+                        <span class="btn btn-primary">
+                            Inizia a chiedere
+                            <i class="bi bi-arrow-right ms-1"></i>
+                        </span>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-md-4 mb-4">
+      <a href="quiz.html" class="card text-decoration-none" style="height: 100%;">
+        <div class="d-flex align-items-start gap-3">
+          <div class="card-icon warning">
+            <i class="bi bi-patch-question"></i>
+          </div>
+          <div>
+            <h3 class="card-title mb-2">Quiz</h3>
+            <p class="text-muted mb-0">Genera quiz personalizzati per testare le tue conoscenze.</p>
+          </div>
+        </div>
+        <div class="mt-4">
+                        <span class="btn btn-primary">
+                            Genera un quiz
+                            <i class="bi bi-arrow-right ms-1"></i>
+                        </span>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-md-4 mb-4">
+      <a href="flashcards.html" class="card text-decoration-none" style="height: 100%;">
+        <div class="d-flex align-items-start gap-3">
+          <div class="card-icon success">
+            <i class="bi bi-stack"></i>
+          </div>
+          <div>
+            <h3 class="card-title mb-2">Flashcards</h3>
+            <p class="text-muted mb-0">Crea deck di flashcards con l'AI per memorizzare concetti.</p>
+          </div>
+        </div>
+        <div class="mt-4">
+                        <span class="btn btn-primary">
+                            Studia flashcards
+                            <i class="bi bi-arrow-right ms-1"></i>
+                        </span>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Features Section -->
+  <div class="card mb-4">
+    <h3 class="card-title mb-4">
+      <i class="bi bi-stars text-primary me-2"></i>
+      Come posso aiutarti?
+    </h3>
+
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <div class="d-flex gap-3 align-items-start">
+          <div class="card-icon primary" style="width: 40px; height: 40px; font-size: 1rem;">
+            <i class="bi bi-lightbulb"></i>
+          </div>
+          <div>
+            <h5 class="mb-1">Spiegazioni Personalizzate</h5>
+            <p class="text-muted mb-0" style="font-size: 0.875rem;">
+              Ricevi spiegazioni adattate al tuo livello di studio, con esempi pratici.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <div class="d-flex gap-3 align-items-start">
+          <div class="card-icon warning" style="width: 40px; height: 40px; font-size: 1rem;">
+            <i class="bi bi-clipboard-check"></i>
+          </div>
+          <div>
+            <h5 class="mb-1">Quiz Intelligenti</h5>
+            <p class="text-muted mb-0" style="font-size: 0.875rem;">
+              Genera quiz su misura per verificare la tua preparazione.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <div class="d-flex gap-3 align-items-start">
+          <div class="card-icon success" style="width: 40px; height: 40px; font-size: 1rem;">
+            <i class="bi bi-card-text"></i>
+          </div>
+          <div>
+            <h5 class="mb-1">Flashcards AI</h5>
+            <p class="text-muted mb-0" style="font-size: 0.875rem;">
+              Genera automaticamente flashcards da qualsiasi argomento.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <div class="d-flex gap-3 align-items-start">
+          <div class="card-icon" style="width: 40px; height: 40px; font-size: 1rem; background: rgba(236, 72, 153, 0.2); color: #ec4899;">
+            <i class="bi bi-graph-up"></i>
+          </div>
+          <div>
+            <h5 class="mb-1">Traccia i Progressi</h5>
+            <p class="text-muted mb-0" style="font-size: 0.875rem;">
+              Monitora il tuo apprendimento e identifica le aree da migliorare.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tips -->
+  <div class="card" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%); border-color: var(--primary-color);">
+    <div class="d-flex align-items-center gap-3">
+      <div class="card-icon primary">
+        <i class="bi bi-info-circle"></i>
+      </div>
+      <div>
+        <h5 class="mb-1">Suggerimento</h5>
+        <p class="text-muted mb-0">
+          Per ottenere spiegazioni migliori, sii specifico nelle tue domande.
+          Ad esempio, invece di "spiegami la matematica", prova "spiegami come risolvere le equazioni di secondo grado".
+        </p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
