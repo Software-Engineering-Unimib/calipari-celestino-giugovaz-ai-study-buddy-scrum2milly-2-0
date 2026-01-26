@@ -53,6 +53,21 @@ public class AIService {
 
         return callGroqAPI(systemPrompt, userPrompt);
     }
+    /**
+     * Genera flashcard
+     */
+    public String generateFlashCard(String topic, int numCards, String complexity) {
+        String systemPrompt = "Sei un generatore di flashcards educative. Rispondi SOLO con JSON valido, senza testo aggiuntivo.";
+        String userPrompt = String.format(
+                "Genera %d flashcards su '%s' con complessità %s. " +
+                        "Formato JSON richiesto: [{\"front\": \"domanda o concetto\", \"back\": \"risposta o spiegazione\"}]" +
+                        "Le flashcards devono essere chiare, concise e utili per il ripasso. " +
+                        "Rispondi SOLO con l'array JSON, nient'altro.",
+                numCards, topic, complexity
+        );
+
+        return callGroqAPI(systemPrompt, userPrompt);
+    }
 
     /**
      * Chiamata API Groq (OpenAI-compatible)

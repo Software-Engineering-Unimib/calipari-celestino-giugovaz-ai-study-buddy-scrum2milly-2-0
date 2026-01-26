@@ -42,4 +42,16 @@ public class AIController {
         String quiz = aiService.generateQuiz(topic, questions, difficulty);
         return ResponseEntity.ok(quiz);
     }
+/**
+ * Test endpoint flashcard
+ */
+    @GetMapping("/flashcards")
+    public ResponseEntity<String> generateFlashCards(
+        @RequestParam String topic,
+        @RequestParam(defaultValue = "10") int cards,
+        @RequestParam(defaultValue = "avanzato") String difficulty) {
+
+    String flashcards = aiService.generateFlashCard(topic, cards, difficulty);
+    return ResponseEntity.ok(flashcards);
+    }
 }
