@@ -1,4 +1,4 @@
-package com.ai.studybuddy.model;
+package com.ai.studybuddy.util.enums;
 
 public enum DifficultyLevel {
 
