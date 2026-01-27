@@ -4,66 +4,379 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI Study Buddy</title>
-  <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Bootstrap Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-  <style>
-    body {
-        min-height: 100vh;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-    .hero-card {
-        backdrop-filter: blur(10px);
-        background: rgba(255, 255, 255, 0.95);
-    }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
 </head>
-<body class="d-flex align-items-center justify-content-center">
+<body>
+<!-- Mobile Menu Button -->
+<button class="mobile-menu-btn" id="mobileMenuBtn">
+  <i class="bi bi-list"></i>
+</button>
 
-<div class="container">
-  <div class="row justify-content-center">
-    <div class="col-md-6 col-lg-5">
-      <div class="card hero-card border-0 shadow-lg rounded-4">
-        <div class="card-body p-5 text-center">
-          <div class="mb-4">
-            <i class="bi bi-book-half text-primary" style="font-size: 4rem;"></i>
-          </div>
-          <h1 class="fw-bold mb-2">AI Study Buddy</h1>
-          <p class="text-muted mb-4">Il tuo tutor intelligente personale</p>
+<!-- Sidebar Overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-          <div class="d-grid gap-3">
-            <a href="/login.html" class="btn btn-primary btn-lg rounded-pill">
-              <i class="bi bi-box-arrow-in-right me-2"></i>Accedi
-            </a>
-            <a href="/register.html" class="btn btn-outline-primary btn-lg rounded-pill">
-              <i class="bi bi-person-plus me-2"></i>Registrati
-            </a>
-          </div>
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <a href="index.html" class="sidebar-logo">
+    <i class="bi bi-mortarboard-fill"></i>
+    <h1>AI Study Buddy</h1>
+  </a>
 
-          <hr class="my-4">
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Studio</div>
+    <a href="spiegazioni.html" class="nav-item">
+      <i class="bi bi-chat-dots"></i>
+      <span>Spiegazioni AI</span>
+    </a>
+    <a href="quiz.html" class="nav-item">
+      <i class="bi bi-patch-question"></i>
+      <span>Quiz</span>
+    </a>
+    <a href="flashcards.html" class="nav-item">
+      <i class="bi bi-stack"></i>
+      <span>Flashcards</span>
+    </a>
+  </nav>
 
-          <div class="row text-center g-3">
-            <div class="col-4">
-              <i class="bi bi-lightning-charge text-warning fs-4"></i>
-              <p class="small text-muted mb-0 mt-1">Quiz AI</p>
-            </div>
-            <div class="col-4">
-              <i class="bi bi-card-text text-info fs-4"></i>
-              <p class="small text-muted mb-0 mt-1">Flashcards</p>
-            </div>
-            <div class="col-4">
-              <i class="bi bi-trophy text-success fs-4"></i>
-              <p class="small text-muted mb-0 mt-1">Gamification</p>
-            </div>
-          </div>
-        </div>
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <div class="user-avatar" id="userAvatar">U</div>
+      <div class="user-details">
+        <div class="user-name" id="userName">Utente</div>
+        <div class="user-level" id="userLevel">Livello 1</div>
       </div>
     </div>
   </div>
-</div>
+</aside>
 
-<!-- Bootstrap JS -->
+<!-- Main Content -->
+<main class="main-content">
+  <div class="page-header">
+    <h1 class="page-title">Benvenuto su AI Study Buddy! 👋</h1>
+    <p class="page-subtitle">Il tuo tutor personale basato sull'Intelligenza Artificiale</p>
+  </div>
+
+  <div id="alertContainer"></div>
+
+  <!-- Stats Overview -->
+  <div class="row mb-4">
+    <div class="col-6 col-md-3 mb-3">
+      <div class="card text-center h-100">
+        <div class="card-icon primary mx-auto mb-2">
+          <i class="bi bi-patch-question"></i>
+        </div>
+        <div class="stat-value" id="statQuizCompleted">-</div>
+        <div class="stat-label">Quiz Completati</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3 mb-3">
+      <div class="card text-center h-100">
+        <div class="card-icon success mx-auto mb-2">
+          <i class="bi bi-check-circle"></i>
+        </div>
+        <div class="stat-value" id="statQuizPassed">-</div>
+        <div class="stat-label">Quiz Superati</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3 mb-3">
+      <div class="card text-center h-100">
+        <div class="card-icon warning mx-auto mb-2">
+          <i class="bi bi-stack"></i>
+        </div>
+        <div class="stat-value" id="statTotalCards">-</div>
+        <div class="stat-label">Flashcards</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3 mb-3">
+      <div class="card text-center h-100">
+        <div class="card-icon mx-auto mb-2" style="background: rgba(236, 72, 153, 0.2); color: #ec4899;">
+          <i class="bi bi-graph-up"></i>
+        </div>
+        <div class="stat-value" id="statAvgScore">-</div>
+        <div class="stat-label">Media Quiz</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress Card -->
+  <div class="card mb-4" id="progressCard">
+    <h3 class="card-title mb-4">
+      <i class="bi bi-bar-chart text-primary me-2"></i>
+      I tuoi Progressi
+    </h3>
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label class="form-label d-flex justify-content-between">
+          <span>Quiz superati</span>
+          <span id="quizPassRate">0%</span>
+        </label>
+        <div class="progress" style="height: 10px;">
+          <div class="progress-bar bg-success" id="quizPassBar" style="width: 0%"></div>
+        </div>
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="form-label d-flex justify-content-between">
+          <span>Flashcards padroneggiate</span>
+          <span id="cardsMasteredRate">0%</span>
+        </label>
+        <div class="progress" style="height: 10px;">
+          <div class="progress-bar bg-warning" id="cardsMasteredBar" style="width: 0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <h5 class="mt-4 mb-3">Attività Recente</h5>
+    <div id="recentActivity">
+      <div class="text-muted text-center py-3">
+        <i class="bi bi-clock-history fs-3 d-block mb-2"></i>
+        Caricamento attività...
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="row mb-4">
+    <div class="col-md-4 mb-4">
+      <a href="spiegazioni.html" class="card text-decoration-none h-100">
+        <div class="d-flex align-items-start gap-3">
+          <div class="card-icon primary">
+            <i class="bi bi-chat-dots"></i>
+          </div>
+          <div>
+            <h3 class="card-title mb-2">Spiegazioni AI</h3>
+            <p class="text-muted mb-0">Chiedi spiegazioni su qualsiasi argomento.</p>
+          </div>
+        </div>
+        <div class="mt-4">
+                    <span class="btn btn-primary">
+                        Inizia a chiedere
+                        <i class="bi bi-arrow-right ms-1"></i>
+                    </span>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-md-4 mb-4">
+      <a href="quiz.html" class="card text-decoration-none h-100">
+        <div class="d-flex align-items-start gap-3">
+          <div class="card-icon warning">
+            <i class="bi bi-patch-question"></i>
+          </div>
+          <div>
+            <h3 class="card-title mb-2">Quiz</h3>
+            <p class="text-muted mb-0">Genera quiz per testare le tue conoscenze.</p>
+          </div>
+        </div>
+        <div class="mt-4">
+                    <span class="btn btn-primary">
+                        Genera un quiz
+                        <i class="bi bi-arrow-right ms-1"></i>
+                    </span>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-md-4 mb-4">
+      <a href="flashcards.html" class="card text-decoration-none h-100">
+        <div class="d-flex align-items-start gap-3">
+          <div class="card-icon success">
+            <i class="bi bi-stack"></i>
+          </div>
+          <div>
+            <h3 class="card-title mb-2">Flashcards</h3>
+            <p class="text-muted mb-0">Crea deck di flashcards con l'AI.</p>
+          </div>
+        </div>
+        <div class="mt-4">
+                    <span class="btn btn-primary">
+                        Studia flashcards
+                        <i class="bi bi-arrow-right ms-1"></i>
+                    </span>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Tips -->
+  <div class="card" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%); border-color: var(--primary-color);">
+    <div class="d-flex align-items-center gap-3">
+      <div class="card-icon primary">
+        <i class="bi bi-lightbulb"></i>
+      </div>
+      <div>
+        <h5 class="mb-1">Suggerimento del giorno</h5>
+        <p class="text-muted mb-0" id="dailyTip">
+          Per ottenere spiegazioni migliori, sii specifico nelle tue domande.
+        </p>
+      </div>
+    </div>
+  </div>
+</main>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/app.js"></script>
+<script>
+  // Tips casuali
+  const tips = [
+      "Per ottenere spiegazioni migliori, sii specifico nelle tue domande.",
+      "Ripassa le flashcards ogni giorno per memorizzare meglio.",
+      "Fai quiz regolarmente per verificare i tuoi progressi.",
+      "Usa la modalità studio per concentrarti senza distrazioni.",
+      "Crea flashcards subito dopo aver studiato un nuovo argomento."
+  ];
+
+  document.addEventListener('DOMContentLoaded', async function() {
+      // Mostra tip casuale
+      document.getElementById('dailyTip').textContent = tips[Math.floor(Math.random() * tips.length)];
+
+      // Carica statistiche
+      await loadDashboardStats();
+      await loadRecentActivity();
+      await loadUserInfo();
+  });
+
+  async function loadUserInfo() {
+      try {
+          const response = await apiFetch('/auth/me');
+          if (response.ok) {
+              const user = await response.json();
+              document.getElementById('userName').textContent =
+                  `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email;
+              document.getElementById('userAvatar').textContent =
+                  (user.firstName?.[0] || user.email[0]).toUpperCase();
+              document.getElementById('userLevel').textContent = `Livello ${user.level || 1}`;
+          }
+      } catch (e) {
+          console.warn('Errore caricamento user info:', e);
+      }
+  }
+
+  async function loadDashboardStats() {
+      try {
+          // Statistiche Quiz
+          const quizResponse = await apiFetch('/ai/quiz/stats');
+          if (quizResponse.ok) {
+              const quizStats = await quizResponse.json();
+              document.getElementById('statQuizCompleted').textContent = quizStats.completedQuizzes || 0;
+              document.getElementById('statQuizPassed').textContent = quizStats.passedQuizzes || 0;
+              document.getElementById('statAvgScore').textContent =
+                  quizStats.averageScore ? `${Math.round(quizStats.averageScore)}%` : '0%';
+
+              // Progress bar quiz
+              const passRate = quizStats.passRate || 0;
+              document.getElementById('quizPassRate').textContent = `${Math.round(passRate)}%`;
+              document.getElementById('quizPassBar').style.width = `${passRate}%`;
+          }
+      } catch (e) {
+          console.warn('Errore caricamento quiz stats:', e);
+          document.getElementById('statQuizCompleted').textContent = '0';
+          document.getElementById('statQuizPassed').textContent = '0';
+          document.getElementById('statAvgScore').textContent = '0%';
+      }
+
+      try {
+          // Statistiche Flashcards
+          const flashcardResponse = await apiFetch('/flashcards/decks/stats');
+          if (flashcardResponse.ok) {
+              const flashcardStats = await flashcardResponse.json();
+              document.getElementById('statTotalCards').textContent = flashcardStats.totalCards || 0;
+
+              // Progress bar flashcards
+              const masteryRate = flashcardStats.overallMasteryPercentage || 0;
+              document.getElementById('cardsMasteredRate').textContent = `${Math.round(masteryRate)}%`;
+              document.getElementById('cardsMasteredBar').style.width = `${masteryRate}%`;
+          }
+      } catch (e) {
+          console.warn('Errore caricamento flashcard stats:', e);
+          document.getElementById('statTotalCards').textContent = '0';
+      }
+  }
+
+  async function loadRecentActivity() {
+      const container = document.getElementById('recentActivity');
+      let activities = [];
+
+      try {
+          // Carica quiz recenti
+          const quizResponse = await apiFetch('/ai/quiz/my');
+          if (quizResponse.ok) {
+              const quizzes = await quizResponse.json();
+              quizzes.slice(0, 3).forEach(quiz => {
+                  activities.push({
+                      type: 'quiz',
+                      title: quiz.title || `Quiz: ${quiz.topic}`,
+                      date: new Date(quiz.createdAt),
+                      status: quiz.isCompleted ?
+                          (quiz.percentage >= 60 ? 'success' : 'danger') : 'warning',
+                      statusText: quiz.isCompleted ?
+                          `${Math.round(quiz.percentage || 0)}%` : 'In corso',
+                      icon: 'bi-patch-question'
+                  });
+              });
+          }
+      } catch (e) {
+          console.warn('Errore caricamento quiz recenti:', e);
+      }
+
+      try {
+          // Carica deck recenti
+          const deckResponse = await apiFetch('/flashcards/decks');
+          if (deckResponse.ok) {
+              const decks = await deckResponse.json();
+              decks.slice(0, 3).forEach(deck => {
+                  activities.push({
+                      type: 'flashcard',
+                      title: deck.name,
+                      date: new Date(deck.updatedAt || deck.createdAt),
+                      status: 'info',
+                      statusText: `${deck.totalCards || 0} carte`,
+                      icon: 'bi-stack'
+                  });
+              });
+          }
+      } catch (e) {
+          console.warn('Errore caricamento deck recenti:', e);
+      }
+
+      // Ordina per data
+      activities.sort((a, b) => b.date - a.date);
+
+      if (activities.length === 0) {
+          container.innerHTML = `
+              <div class="text-muted text-center py-3">
+                  <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                  Nessuna attività recente. Inizia a studiare!
+              </div>
+          `;
+          return;
+      }
+
+      let html = '<div class="list-group list-group-flush">';
+      activities.slice(0, 5).forEach(activity => {
+          const dateStr = activity.date.toLocaleDateString('it-IT', {
+              day: 'numeric', month: 'short'
+          });
+          html += `
+              <div class="list-group-item d-flex align-items-center gap-3 px-0 border-0">
+                  <div class="card-icon ${activity.type === 'quiz' ? 'primary' : 'success'}"
+                       style="width: 36px; height: 36px; font-size: 0.9rem;">
+                      <i class="bi ${activity.icon}"></i>
+                  </div>
+                  <div class="flex-grow-1">
+                      <div class="fw-medium">${activity.title}</div>
+                      <small class="text-muted">${dateStr}</small>
+                  </div>
+                  <span class="badge bg-${activity.status}">${activity.statusText}</span>
+              </div>
+          `;
+      });
+      html += '</div>';
+      container.innerHTML = html;
+  }
+</script>
 </body>
 </html>
