@@ -1,10 +1,13 @@
 package com.ai.studybuddy.service;
 
-import com.ai.studybuddy.dto.FlashcardDeckCreateRequest;
+import com.ai.studybuddy.dto.flashcard.FlashcardDeckCreateRequest;
+import com.ai.studybuddy.exception.ResourceNotFoundException;
+import com.ai.studybuddy.mapper.FlashcardMapper;
 import com.ai.studybuddy.model.flashcard.FlashcardDeck;
 import com.ai.studybuddy.model.user.User;
 import com.ai.studybuddy.repository.FlashcardDeckRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,30 +18,36 @@ import java.util.UUID;
 @Service
 public class FlashcardDeckService {
 
-    @Autowired
-    private FlashcardDeckRepository deckRepository;
+    private static final Logger log = LoggerFactory.getLogger(FlashcardDeckService.class);
+
+    private final FlashcardDeckRepository deckRepository;
+    private final FlashcardMapper flashcardMapper;
+
+    public FlashcardDeckService(FlashcardDeckRepository deckRepository,
+                                FlashcardMapper flashcardMapper) {
+        this.deckRepository = deckRepository;
+        this.flashcardMapper = flashcardMapper;
+    }
 
     /**
      * Crea un nuovo deck
      */
     @Transactional
     public FlashcardDeck createDeck(FlashcardDeckCreateRequest request, User owner) {
-        FlashcardDeck deck = new FlashcardDeck();
-        deck.setName(request.getName());
-        deck.setDescription(request.getDescription());
-        deck.setSubject(request.getSubject());
-        deck.setColor(request.getColor());
-        deck.setIcon(request.getIcon());
-        deck.setIsPublic(request.getIsPublic());
-        deck.setOwner(owner);
+        log.info("Creazione deck '{}' per utente: {}", request.getName(), owner.getId());
 
-        return deckRepository.save(deck);
+        FlashcardDeck deck = flashcardMapper.toEntity(request, owner);
+        FlashcardDeck saved = deckRepository.save(deck);
+
+        log.info("Deck creato con ID: {}", saved.getId());
+        return saved;
     }
 
     /**
      * Ottiene tutti i deck di un utente
      */
     public List<FlashcardDeck> getUserDecks(UUID userId) {
+        log.debug("Recupero deck per utente: {}", userId);
         return deckRepository.findByOwnerIdAndIsActiveTrueOrderByUpdatedAtDesc(userId);
     }
 
@@ -46,8 +55,7 @@ public class FlashcardDeckService {
      * Ottiene un deck specifico
      */
     public FlashcardDeck getDeck(UUID deckId, UUID userId) {
-        return deckRepository.findByIdAndOwnerIdAndIsActiveTrue(deckId, userId)
-            .orElseThrow(() -> new RuntimeException("Deck non trovato"));
+        return findDeckByIdAndOwner(deckId, userId);
     }
 
     /**
@@ -55,15 +63,10 @@ public class FlashcardDeckService {
      */
     @Transactional
     public FlashcardDeck updateDeck(UUID deckId, FlashcardDeckCreateRequest request, UUID userId) {
-        FlashcardDeck deck = deckRepository.findByIdAndOwnerIdAndIsActiveTrue(deckId, userId)
-            .orElseThrow(() -> new RuntimeException("Deck non trovato"));
+        log.info("Aggiornamento deck: {}", deckId);
 
-        deck.setName(request.getName());
-        deck.setDescription(request.getDescription());
-        deck.setSubject(request.getSubject());
-        deck.setColor(request.getColor());
-        deck.setIcon(request.getIcon());
-        deck.setIsPublic(request.getIsPublic());
+        FlashcardDeck deck = findDeckByIdAndOwner(deckId, userId);
+        flashcardMapper.updateEntity(deck, request);
 
         return deckRepository.save(deck);
     }
@@ -73,9 +76,9 @@ public class FlashcardDeckService {
      */
     @Transactional
     public void deleteDeck(UUID deckId, UUID userId) {
-        FlashcardDeck deck = deckRepository.findByIdAndOwnerIdAndIsActiveTrue(deckId, userId)
-            .orElseThrow(() -> new RuntimeException("Deck non trovato"));
+        log.info("Eliminazione deck: {}", deckId);
 
+        FlashcardDeck deck = findDeckByIdAndOwner(deckId, userId);
         deck.setIsActive(false);
         deckRepository.save(deck);
     }
@@ -85,9 +88,9 @@ public class FlashcardDeckService {
      */
     @Transactional
     public void recordStudySession(UUID deckId, UUID userId) {
-        FlashcardDeck deck = deckRepository.findByIdAndOwnerIdAndIsActiveTrue(deckId, userId)
-            .orElseThrow(() -> new RuntimeException("Deck non trovato"));
+        log.debug("Registrazione sessione studio per deck: {}", deckId);
 
+        FlashcardDeck deck = findDeckByIdAndOwner(deckId, userId);
         deck.recordStudySession();
         deckRepository.save(deck);
     }
@@ -97,9 +100,7 @@ public class FlashcardDeckService {
      */
     @Transactional
     public void updateMasteredCount(UUID deckId, UUID userId) {
-        FlashcardDeck deck = deckRepository.findByIdAndOwnerIdAndIsActiveTrue(deckId, userId)
-            .orElseThrow(() -> new RuntimeException("Deck non trovato"));
-
+        FlashcardDeck deck = findDeckByIdAndOwner(deckId, userId);
         deck.updateMasteredCount();
         deckRepository.save(deck);
     }
@@ -108,6 +109,7 @@ public class FlashcardDeckService {
      * Cerca deck per nome
      */
     public List<FlashcardDeck> searchDecks(UUID userId, String searchTerm) {
+        log.debug("Ricerca deck per utente: {}, termine: '{}'", userId, searchTerm);
         return deckRepository.searchByName(userId, searchTerm);
     }
 
@@ -137,36 +139,57 @@ public class FlashcardDeckService {
      * Ottiene statistiche globali dell'utente
      */
     public DeckGlobalStats getGlobalStats(UUID userId) {
+        log.debug("Calcolo statistiche globali per utente: {}", userId);
+
         long totalDecks = deckRepository.countByOwnerIdAndIsActiveTrue(userId);
         long totalCards = deckRepository.countTotalCardsByOwner(userId);
-        
+
         List<FlashcardDeck> decks = deckRepository.findByOwnerIdAndIsActiveTrueOrderByUpdatedAtDesc(userId);
-        
+
         long totalMastered = decks.stream()
-            .mapToLong(FlashcardDeck::getCardsMastered)
-            .sum();
-        
+                .mapToLong(FlashcardDeck::getCardsMastered)
+                .sum();
+
         long totalStudySessions = decks.stream()
-            .mapToLong(FlashcardDeck::getTimesStudied)
-            .sum();
+                .mapToLong(FlashcardDeck::getTimesStudied)
+                .sum();
 
         return new DeckGlobalStats(totalDecks, totalCards, totalMastered, totalStudySessions);
     }
+
+    // ==================== HELPER METHODS ====================
+
+    private FlashcardDeck findDeckByIdAndOwner(UUID deckId, UUID userId) {
+        return deckRepository.findByIdAndOwnerIdAndIsActiveTrue(deckId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Deck", "id", deckId));
+    }
+
+    // ==================== INNER CLASSES ====================
 
     /**
      * Classe per statistiche globali
      */
     public static class DeckGlobalStats {
-        public long totalDecks;
-        public long totalCards;
-        public long totalMastered;
-        public long totalStudySessions;
+        private final long totalDecks;
+        private final long totalCards;
+        private final long totalMastered;
+        private final long totalStudySessions;
+        private final double overallMasteryPercentage;
 
-        public DeckGlobalStats(long totalDecks, long totalCards, long totalMastered, long totalStudySessions) {
+        public DeckGlobalStats(long totalDecks, long totalCards,
+                               long totalMastered, long totalStudySessions) {
             this.totalDecks = totalDecks;
             this.totalCards = totalCards;
             this.totalMastered = totalMastered;
             this.totalStudySessions = totalStudySessions;
+            this.overallMasteryPercentage = totalCards > 0
+                    ? (double) totalMastered / totalCards * 100 : 0.0;
         }
+
+        public long getTotalDecks() { return totalDecks; }
+        public long getTotalCards() { return totalCards; }
+        public long getTotalMastered() { return totalMastered; }
+        public long getTotalStudySessions() { return totalStudySessions; }
+        public double getOverallMasteryPercentage() { return overallMasteryPercentage; }
     }
 }

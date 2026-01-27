@@ -1,7 +1,7 @@
 package com.ai.studybuddy.controller;
 
-import com.ai.studybuddy.dto.FlashcardCreateRequest;
-import com.ai.studybuddy.dto.FlashcardDeckCreateRequest;
+import com.ai.studybuddy.dto.flashcard.FlashcardCreateRequest;
+import com.ai.studybuddy.dto.flashcard.FlashcardDeckCreateRequest;
 import com.ai.studybuddy.model.flashcard.Flashcard;
 import com.ai.studybuddy.model.flashcard.FlashcardDeck;
 import com.ai.studybuddy.model.user.User;

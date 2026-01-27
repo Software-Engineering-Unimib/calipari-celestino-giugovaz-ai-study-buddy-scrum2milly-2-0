@@ -2,17 +2,22 @@ package com.ai.studybuddy.model.flashcard;
 
 import com.ai.studybuddy.model.user.User;
 import com.ai.studybuddy.util.enums.DifficultyLevel;
-import jakarta.persistence.*;
-import java.time.LocalDateTime;
-import java.util.UUID;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
+
+import java.time.LocalDateTime;
+import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Entità Flashcard - rappresenta una singola scheda di studio
  */
 @Entity
-@Table(name = "flashcards")
+@Table(name = "flashcards", indexes = {
+        @Index(name = "idx_flashcard_deck", columnList = "deck_id"),
+        @Index(name = "idx_flashcard_created_by", columnList = "created_by_user_id"),
+        @Index(name = "idx_flashcard_active", columnList = "is_active")
+})
 public class Flashcard {
 
     @Id
@@ -20,7 +25,7 @@ public class Flashcard {
     private UUID id;
 
     // ==================== RELAZIONI ====================
-    
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "deck_id", nullable = false)
     @JsonIgnore
@@ -32,33 +37,33 @@ public class Flashcard {
     private User createdBy;
 
     // ==================== CONTENUTO ====================
-    
+
     @Column(name = "front_content", nullable = false, columnDefinition = "TEXT")
-    private String frontContent;  // Domanda/Concetto
+    private String frontContent;
 
     @Column(name = "back_content", nullable = false, columnDefinition = "TEXT")
-    private String backContent;   // Risposta/Spiegazione
+    private String backContent;
 
     @Column(name = "hint", columnDefinition = "TEXT")
-    private String hint;  // Suggerimento opzionale
+    private String hint;
 
     @Column(name = "tags", length = 500)
-    private String tags;  // es: "matematica,algebra,equazioni" (separati da virgola)
+    private String tags;
 
     // ==================== METADATI ====================
-    
+
     @Enumerated(EnumType.STRING)
     @Column(name = "difficulty_level")
     private DifficultyLevel difficultyLevel;
 
     @Column(name = "ai_generated")
-    private Boolean aiGenerated = false;  // true se creata dall'AI
+    private Boolean aiGenerated = false;
 
     @Column(name = "source", length = 255)
-    private String source;  // Riferimento (es: "Capitolo 5, pagina 42")
+    private String source;
 
     // ==================== STATISTICHE ====================
-    
+
     @Column(name = "times_reviewed")
     private Integer timesReviewed = 0;
 
@@ -69,7 +74,7 @@ public class Flashcard {
     private LocalDateTime lastReviewedAt;
 
     // ==================== AUDIT ====================
-    
+
     @Column(name = "is_active")
     private Boolean isActive = true;
 
@@ -80,11 +85,15 @@ public class Flashcard {
     private LocalDateTime updatedAt;
 
     // ==================== LIFECYCLE ====================
-    
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+        if (timesReviewed == null) timesReviewed = 0;
+        if (timesCorrect == null) timesCorrect = 0;
+        if (aiGenerated == null) aiGenerated = false;
+        if (isActive == null) isActive = true;
     }
 
     @PreUpdate
@@ -93,24 +102,43 @@ public class Flashcard {
     }
 
     // ==================== BUSINESS LOGIC ====================
-    
+
     /**
      * Calcola la percentuale di successo
      */
     public double getSuccessRate() {
-        if (timesReviewed == 0) return 0.0;
+        if (timesReviewed == null || timesReviewed == 0) return 0.0;
         return (double) timesCorrect / timesReviewed * 100;
+    }
+
+    /**
+     * Verifica se la carta è stata masterizzata (>80% successo)
+     */
+    public boolean isMastered() {
+        return getSuccessRate() >= 80.0;
     }
 
     /**
      * Registra una revisione
      */
     public void recordReview(boolean wasCorrect) {
+        if (timesReviewed == null) timesReviewed = 0;
+        if (timesCorrect == null) timesCorrect = 0;
+
         timesReviewed++;
         if (wasCorrect) {
             timesCorrect++;
         }
         lastReviewedAt = LocalDateTime.now();
+    }
+
+    /**
+     * Verifica se necessita revisione
+     */
+    public boolean needsReview(int daysThreshold) {
+        if (timesReviewed == 0) return true;
+        if (lastReviewedAt == null) return true;
+        return lastReviewedAt.isBefore(LocalDateTime.now().minusDays(daysThreshold));
     }
 
     /**
@@ -132,6 +160,48 @@ public class Flashcard {
         } else {
             this.tags = String.join(",", tagsArray);
         }
+    }
+
+    /**
+     * Aggiunge un tag
+     */
+    public void addTag(String tag) {
+        if (tag == null || tag.isBlank()) return;
+
+        if (tags == null || tags.isEmpty()) {
+            tags = tag.trim();
+        } else if (!hasTag(tag)) {
+            tags += "," + tag.trim();
+        }
+    }
+
+    /**
+     * Verifica se ha un determinato tag
+     */
+    public boolean hasTag(String tag) {
+        if (tags == null || tag == null) return false;
+        String[] tagsArray = getTagsArray();
+        for (String t : tagsArray) {
+            if (t.trim().equalsIgnoreCase(tag.trim())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // ==================== EQUALS & HASHCODE ====================
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Flashcard flashcard = (Flashcard) o;
+        return Objects.equals(id, flashcard.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 
     // ==================== GETTERS & SETTERS ====================
