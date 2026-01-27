@@ -1,4 +1,4 @@
-package com.ai.studybuddy.service;
+package com.ai.studybuddy.service.impl;
 
 import com.ai.studybuddy.dto.flashcard.FlashcardAIGenerateRequest;
 import com.ai.studybuddy.dto.flashcard.FlashcardCreateRequest;
@@ -8,8 +8,10 @@ import com.ai.studybuddy.mapper.FlashcardMapper;
 import com.ai.studybuddy.model.flashcard.Flashcard;
 import com.ai.studybuddy.model.flashcard.FlashcardDeck;
 import com.ai.studybuddy.model.user.User;
-import com.ai.studybuddy.repository.FlashcardRepository;
 import com.ai.studybuddy.repository.FlashcardDeckRepository;
+import com.ai.studybuddy.repository.FlashcardRepository;
+import com.ai.studybuddy.service.inter.AIService;
+import com.ai.studybuddy.service.inter.FlashcardService;
 import com.ai.studybuddy.util.enums.DifficultyLevel;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -24,9 +26,9 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-public class FlashcardService {
+public class FlashcardServiceImpl implements FlashcardService {
 
-    private static final Logger log = LoggerFactory.getLogger(FlashcardService.class);
+    private static final Logger log = LoggerFactory.getLogger(FlashcardServiceImpl.class);
     private static final int DEFAULT_REVIEW_DAYS = 7;
 
     private final FlashcardRepository flashcardRepository;
@@ -34,19 +36,17 @@ public class FlashcardService {
     private final AIService aiService;
     private final FlashcardMapper flashcardMapper;
 
-    public FlashcardService(FlashcardRepository flashcardRepository,
-                            FlashcardDeckRepository deckRepository,
-                            AIService aiService,
-                            FlashcardMapper flashcardMapper) {
+    public FlashcardServiceImpl(FlashcardRepository flashcardRepository,
+                                FlashcardDeckRepository deckRepository,
+                                AIService aiService,
+                                FlashcardMapper flashcardMapper) {
         this.flashcardRepository = flashcardRepository;
         this.deckRepository = deckRepository;
         this.aiService = aiService;
         this.flashcardMapper = flashcardMapper;
     }
 
-    /**
-     * Crea una nuova flashcard
-     */
+    @Override
     @Transactional
     public Flashcard createFlashcard(UUID deckId, FlashcardCreateRequest request, User user) {
         log.info("Creazione flashcard nel deck: {}", deckId);
@@ -63,16 +63,11 @@ public class FlashcardService {
         return saved;
     }
 
-    /**
-     * Genera E salva flashcard usando AI (metodo legacy per retrocompatibilità)
-     * @deprecated Usa {@link #generateAndSaveFlashcards(UUID, FlashcardAIGenerateRequest, User)} invece
-     */
+    @Override
     @Deprecated
-    public List<Flashcard> generateAndSaveFlashcards(UUID deckId,
-                                                     String topic,
-                                                     int numberOfCards,
-                                                     String difficulty,
-                                                     User user) {
+    @Transactional
+    public List<Flashcard> generateAndSaveFlashcards(UUID deckId, String topic, int numberOfCards,
+                                                     String difficulty, User user) {
         FlashcardAIGenerateRequest request = FlashcardAIGenerateRequest.builder()
                 .topic(topic)
                 .numberOfCards(numberOfCards)
@@ -82,9 +77,7 @@ public class FlashcardService {
         return generateAndSaveFlashcards(deckId, request, user);
     }
 
-    /**
-     * Genera E salva flashcard usando AI
-     */
+    @Override
     @Transactional
     public List<Flashcard> generateAndSaveFlashcards(UUID deckId,
                                                      FlashcardAIGenerateRequest request,
@@ -126,18 +119,14 @@ public class FlashcardService {
         return createdCards;
     }
 
-    /**
-     * Ottiene tutte le flashcard di un deck
-     */
+    @Override
     public List<Flashcard> getFlashcardsByDeck(UUID deckId, UUID userId) {
         FlashcardDeck deck = findDeckOrThrow(deckId);
         verifyOwnership(deck, userId);
         return flashcardRepository.findByDeckIdAndIsActiveTrue(deckId);
     }
 
-    /**
-     * Registra una revisione di una flashcard
-     */
+    @Override
     @Transactional
     public Flashcard reviewFlashcard(UUID flashcardId, boolean wasCorrect, UUID userId) {
         log.debug("Review flashcard: {}, correct: {}", flashcardId, wasCorrect);
@@ -149,9 +138,7 @@ public class FlashcardService {
         return flashcardRepository.save(flashcard);
     }
 
-    /**
-     * Aggiorna una flashcard esistente
-     */
+    @Override
     @Transactional
     public Flashcard updateFlashcard(UUID flashcardId, FlashcardCreateRequest request, UUID userId) {
         log.info("Aggiornamento flashcard: {}", flashcardId);
@@ -163,9 +150,7 @@ public class FlashcardService {
         return flashcardRepository.save(flashcard);
     }
 
-    /**
-     * Elimina (soft delete) una flashcard
-     */
+    @Override
     @Transactional
     public void deleteFlashcard(UUID flashcardId, UUID userId) {
         log.info("Eliminazione flashcard: {}", flashcardId);
@@ -179,9 +164,7 @@ public class FlashcardService {
         updateDeckCardCount(flashcard.getDeck(), -1);
     }
 
-    /**
-     * Ottiene flashcard casuali per una sessione di studio
-     */
+    @Override
     public List<Flashcard> getStudySession(UUID deckId, int numberOfCards, UUID userId) {
         FlashcardDeck deck = findDeckOrThrow(deckId);
         verifyOwnership(deck, userId);
@@ -201,19 +184,15 @@ public class FlashcardService {
         return flashcardRepository.findRandomForStudy(deckId, numberOfCards);
     }
 
-    /**
-     * Cerca flashcards per contenuto
-     */
+    @Override
     public List<Flashcard> searchFlashcards(UUID deckId, String searchTerm, UUID userId) {
         FlashcardDeck deck = findDeckOrThrow(deckId);
         verifyOwnership(deck, userId);
         return flashcardRepository.searchByContent(deckId, searchTerm);
     }
 
-    /**
-     * Ottiene statistiche delle flashcard
-     */
-    public FlashcardStats getFlashcardStats(UUID deckId, UUID userId) {
+    @Override
+    public FlashcardService.FlashcardStats getFlashcardStats(UUID deckId, UUID userId) {
         FlashcardDeck deck = findDeckOrThrow(deckId);
         verifyOwnership(deck, userId);
 
@@ -227,7 +206,7 @@ public class FlashcardService {
                 .filter(this::needsReview)
                 .count();
 
-        return new FlashcardStats(total, mastered, needReview);
+        return new FlashcardService.FlashcardStats(total, mastered, needReview);
     }
 
     // ==================== HELPER METHODS ====================
@@ -261,29 +240,5 @@ public class FlashcardService {
         if (card.getTimesReviewed() == 0) return true;
         if (card.getLastReviewedAt() == null) return true;
         return card.getLastReviewedAt().isBefore(LocalDateTime.now().minusDays(DEFAULT_REVIEW_DAYS));
-    }
-
-    // ==================== INNER CLASSES ====================
-
-    /**
-     * Classe per le statistiche
-     */
-    public static class FlashcardStats {
-        private final long total;
-        private final long mastered;
-        private final long needReview;
-        private final double masteryPercentage;
-
-        public FlashcardStats(long total, long mastered, long needReview) {
-            this.total = total;
-            this.mastered = mastered;
-            this.needReview = needReview;
-            this.masteryPercentage = total > 0 ? (double) mastered / total * 100 : 0.0;
-        }
-
-        public long getTotal() { return total; }
-        public long getMastered() { return mastered; }
-        public long getNeedReview() { return needReview; }
-        public double getMasteryPercentage() { return masteryPercentage; }
     }
 }

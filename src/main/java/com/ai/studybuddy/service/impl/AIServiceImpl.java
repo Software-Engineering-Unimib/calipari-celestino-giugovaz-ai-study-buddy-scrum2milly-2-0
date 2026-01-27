@@ -1,7 +1,8 @@
-package com.ai.studybuddy.service;
+package com.ai.studybuddy.service.impl;
 
 import com.ai.studybuddy.exception.AIServiceException;
 import com.ai.studybuddy.exception.AIServiceException.AIErrorType;
+import com.ai.studybuddy.service.inter.AIService;
 import com.ai.studybuddy.util.enums.DifficultyLevel;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -18,9 +19,9 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 
 @Service
-public class AIService {
+public class AIServiceImpl implements AIService {
 
-    private static final Logger log = LoggerFactory.getLogger(AIService.class);
+    private static final Logger log = LoggerFactory.getLogger(AIServiceImpl.class);
 
     private static final int DEFAULT_MAX_TOKENS = 2048;
     private static final double DEFAULT_TEMPERATURE = 0.7;
@@ -35,15 +36,13 @@ public class AIService {
     private final WebClient webClient;
     private final Gson gson = new Gson();
 
-    public AIService(WebClient.Builder webClientBuilder) {
+    public AIServiceImpl(WebClient.Builder webClientBuilder) {
         this.webClient = webClientBuilder
                 .baseUrl("https://api.groq.com/openai/v1")
                 .build();
     }
 
-    /**
-     * Genera spiegazione personalizzata
-     */
+    @Override
     public String generateExplanation(String topic, String studentLevel) {
         log.info("Generazione spiegazione per topic: '{}', livello: {}", topic, studentLevel);
 
@@ -57,9 +56,7 @@ public class AIService {
         return callGroqAPI(systemPrompt, userPrompt);
     }
 
-    /**
-     * Genera quiz
-     */
+    @Override
     public String generateQuiz(String topic, int numQuestions, String difficulty) {
         log.info("Generazione quiz - topic: '{}', domande: {}, difficoltà: {}",
                 topic, numQuestions, difficulty);
@@ -68,6 +65,7 @@ public class AIService {
         String userPrompt = String.format(
                 "Genera %d domande a scelta multipla su '%s' con difficoltà %s. " +
                         "Formato JSON richiesto: [{\"question\": \"...\", \"options\": [\"A\", \"B\", \"C\", \"D\"], \"correct\": \"A\"}]" +
+                        "IMPORTANTE: Il campo 'correct' deve contenere SOLO la lettera della risposta corretta (A, B, C o D), non il testo." +
                         "Rispondi SOLO con l'array JSON, nient'altro.",
                 numQuestions, topic, difficulty
         );
@@ -75,26 +73,19 @@ public class AIService {
         return callGroqAPI(systemPrompt, userPrompt);
     }
 
-    /**
-     * Genera quiz con DifficultyLevel enum
-     */
+    @Override
     public String generateQuiz(String topic, int numQuestions, DifficultyLevel difficulty) {
         return generateQuiz(topic, numQuestions, difficulty.getLevel());
     }
 
-    /**
-     * Genera flashcard (metodo legacy per retrocompatibilità)
-     * @deprecated Usa {@link #generateFlashcards(String, int, DifficultyLevel)} invece
-     */
+    @Override
     @Deprecated
     public String generateFlashCard(String topic, int numCards, String difficulty) {
         DifficultyLevel level = DifficultyLevel.fromString(difficulty);
         return generateFlashcards(topic, numCards, level);
     }
 
-    /**
-     * Genera flashcard
-     */
+    @Override
     public String generateFlashcards(String topic, int numCards, DifficultyLevel difficulty) {
         log.info("Generazione flashcards - topic: '{}', carte: {}, difficoltà: {}",
                 topic, numCards, difficulty);
@@ -105,15 +96,13 @@ public class AIService {
                         "Formato JSON richiesto: [{\"front\": \"domanda o concetto\", \"back\": \"risposta o spiegazione\"}]" +
                         "Le flashcards devono essere chiare, concise e utili per il ripasso. " +
                         "Rispondi SOLO con l'array JSON, nient'altro.",
-                numCards, topic, difficulty.name().toLowerCase()
+                numCards, topic, difficulty.getLevel()
         );
 
         return callGroqAPI(systemPrompt, userPrompt);
     }
 
-    /**
-     * Genera flashcard con contesto aggiuntivo
-     */
+    @Override
     public String generateFlashcardsWithContext(String topic, int numCards,
                                                 DifficultyLevel difficulty, String context) {
         log.info("Generazione flashcards con contesto - topic: '{}', carte: {}", topic, numCards);
@@ -125,16 +114,14 @@ public class AIService {
                         "Formato JSON richiesto: [{\"front\": \"domanda o concetto\", \"back\": \"risposta o spiegazione\"}]" +
                         "Le flashcards devono essere chiare, concise e utili per il ripasso. " +
                         "Rispondi SOLO con l'array JSON, nient'altro.",
-                numCards, topic, difficulty.name().toLowerCase(),
+                numCards, topic, difficulty.getLevel(),
                 context != null ? context : "nessuno"
         );
 
         return callGroqAPI(systemPrompt, userPrompt);
     }
 
-    /**
-     * Parsa la risposta JSON delle flashcards
-     */
+    @Override
     public JsonArray parseFlashcardsResponse(String aiResponse) {
         try {
             String cleaned = cleanJsonResponse(aiResponse);

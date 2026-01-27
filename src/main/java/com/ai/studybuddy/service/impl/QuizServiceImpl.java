@@ -4,14 +4,14 @@ import com.ai.studybuddy.dto.quiz.QuizAnswerRequest;
 import com.ai.studybuddy.dto.quiz.QuizGenerateRequest;
 import com.ai.studybuddy.dto.quiz.QuizResultResponse;
 import com.ai.studybuddy.exception.ResourceNotFoundException;
-import com.ai.studybuddy.exception.UnauthorizedException;
 import com.ai.studybuddy.mapper.QuizMapper;
 import com.ai.studybuddy.model.quiz.Question;
 import com.ai.studybuddy.model.quiz.Quiz;
 import com.ai.studybuddy.model.user.User;
 import com.ai.studybuddy.repository.QuestionRepository;
 import com.ai.studybuddy.repository.QuizRepository;
-import com.ai.studybuddy.service.AIService;
+import com.ai.studybuddy.service.inter.AIService;
+import com.ai.studybuddy.service.inter.QuizService;
 import com.ai.studybuddy.util.enums.DifficultyLevel;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -27,9 +27,9 @@ import java.util.Map;
 import java.util.UUID;
 
 @Service
-public class QuizService {
+public class QuizServiceImpl implements QuizService {
 
-    private static final Logger log = LoggerFactory.getLogger(QuizService.class);
+    private static final Logger log = LoggerFactory.getLogger(QuizServiceImpl.class);
 
     private final QuizRepository quizRepository;
     private final QuestionRepository questionRepository;
@@ -37,19 +37,17 @@ public class QuizService {
     private final QuizMapper quizMapper;
     private final Gson gson = new Gson();
 
-    public QuizService(QuizRepository quizRepository,
-                       QuestionRepository questionRepository,
-                       AIService aiService,
-                       QuizMapper quizMapper) {
+    public QuizServiceImpl(QuizRepository quizRepository,
+                           QuestionRepository questionRepository,
+                           AIService aiService,
+                           QuizMapper quizMapper) {
         this.quizRepository = quizRepository;
         this.questionRepository = questionRepository;
         this.aiService = aiService;
         this.quizMapper = quizMapper;
     }
 
-    /**
-     * Genera un nuovo quiz con AI e lo salva
-     */
+    @Override
     @Transactional
     public Quiz generateQuiz(QuizGenerateRequest request, User user) {
         log.info("Generazione quiz - topic: {}, domande: {}, difficoltà: {}",
@@ -63,7 +61,7 @@ public class QuizService {
         String aiResponse = aiService.generateQuiz(
                 request.getTopic(),
                 request.getNumberOfQuestions(),
-                request.getDifficultyLevel().getLevel()
+                request.getDifficultyLevel()
         );
 
         // 3. Parsa e salva domande
@@ -81,9 +79,7 @@ public class QuizService {
         return quiz;
     }
 
-    /**
-     * Genera quiz (metodo legacy per retrocompatibilità)
-     */
+    @Override
     @Deprecated
     public Quiz generateQuiz(String topic, int numberOfQuestions, String difficulty, User user) {
         QuizGenerateRequest request = QuizGenerateRequest.builder()
@@ -94,9 +90,7 @@ public class QuizService {
         return generateQuiz(request, user);
     }
 
-    /**
-     * Inizia un quiz (segna l'ora di inizio)
-     */
+    @Override
     @Transactional
     public Quiz startQuiz(UUID quizId, UUID userId) {
         Quiz quiz = findQuizByIdAndUser(quizId, userId);
@@ -104,9 +98,7 @@ public class QuizService {
         return quizRepository.save(quiz);
     }
 
-    /**
-     * Invia le risposte e calcola il punteggio
-     */
+    @Override
     @Transactional
     public QuizResultResponse submitAnswers(QuizAnswerRequest request, UUID userId) {
         log.info("Invio risposte quiz: {}", request.getQuizId());
@@ -139,51 +131,37 @@ public class QuizService {
         return QuizResultResponse.success(quiz, results);
     }
 
-    /**
-     * Ottiene un quiz per ID
-     */
+    @Override
     public Quiz getQuiz(UUID quizId, UUID userId) {
         return findQuizByIdAndUser(quizId, userId);
     }
 
-    /**
-     * Ottiene tutti i quiz di un utente
-     */
+    @Override
     public List<Quiz> getUserQuizzes(UUID userId) {
         return quizRepository.findByUserIdOrderByCreatedAtDesc(userId);
     }
 
-    /**
-     * Ottiene i quiz completati di un utente
-     */
+    @Override
     public List<Quiz> getCompletedQuizzes(UUID userId) {
         return quizRepository.findByUserIdAndIsCompletedTrueOrderByCompletedAtDesc(userId);
     }
 
-    /**
-     * Ottiene i quiz in sospeso di un utente
-     */
+    @Override
     public List<Quiz> getPendingQuizzes(UUID userId) {
         return quizRepository.findByUserIdAndIsCompletedFalseOrderByCreatedAtDesc(userId);
     }
 
-    /**
-     * Cerca quiz per topic
-     */
+    @Override
     public List<Quiz> searchByTopic(UUID userId, String topic) {
         return quizRepository.findByUserIdAndTopicContainingIgnoreCaseOrderByCreatedAtDesc(userId, topic);
     }
 
-    /**
-     * Ottiene quiz per materia
-     */
+    @Override
     public List<Quiz> getBySubject(UUID userId, String subject) {
         return quizRepository.findByUserIdAndSubjectOrderByCreatedAtDesc(userId, subject);
     }
 
-    /**
-     * Elimina un quiz
-     */
+    @Override
     @Transactional
     public void deleteQuiz(UUID quizId, UUID userId) {
         Quiz quiz = findQuizByIdAndUser(quizId, userId);
@@ -191,9 +169,7 @@ public class QuizService {
         log.info("Quiz eliminato: {}", quizId);
     }
 
-    /**
-     * Ripeti un quiz (resetta le risposte)
-     */
+    @Override
     @Transactional
     public Quiz retryQuiz(UUID quizId, UUID userId) {
         Quiz quiz = findQuizByIdAndUser(quizId, userId);
@@ -201,17 +177,15 @@ public class QuizService {
         return quizRepository.save(quiz);
     }
 
-    /**
-     * Ottiene statistiche quiz dell'utente
-     */
-    public QuizStats getUserStats(UUID userId) {
+    @Override
+    public QuizService.QuizStats getUserStats(UUID userId) {
         long totalQuizzes = quizRepository.countByUserId(userId);
         long completedQuizzes = quizRepository.countByUserIdAndIsCompletedTrue(userId);
         Double averageScore = quizRepository.getAverageScoreByUserId(userId);
         List<Quiz> passedQuizzes = quizRepository.findPassedQuizzes(userId);
         List<Quiz> failedQuizzes = quizRepository.findFailedQuizzes(userId);
 
-        return new QuizStats(
+        return new QuizService.QuizStats(
                 totalQuizzes,
                 completedQuizzes,
                 passedQuizzes.size(),
@@ -220,9 +194,7 @@ public class QuizService {
         );
     }
 
-    /**
-     * Ottiene quiz recenti (ultimi 7 giorni)
-     */
+    @Override
     public List<Quiz> getRecentQuizzes(UUID userId, int days) {
         LocalDateTime since = LocalDateTime.now().minusDays(days);
         return quizRepository.findRecentQuizzes(userId, since);
@@ -241,38 +213,5 @@ public class QuizService {
                 .replaceAll("```\\s*", "")
                 .trim();
         return gson.fromJson(cleaned, JsonArray.class);
-    }
-
-    // ==================== INNER CLASSES ====================
-
-    /**
-     * Statistiche quiz utente
-     */
-    public static class QuizStats {
-        private final long totalQuizzes;
-        private final long completedQuizzes;
-        private final long passedQuizzes;
-        private final long failedQuizzes;
-        private final double averageScore;
-        private final double passRate;
-
-        public QuizStats(long totalQuizzes, long completedQuizzes,
-                         long passedQuizzes, long failedQuizzes, double averageScore) {
-            this.totalQuizzes = totalQuizzes;
-            this.completedQuizzes = completedQuizzes;
-            this.passedQuizzes = passedQuizzes;
-            this.failedQuizzes = failedQuizzes;
-            this.averageScore = averageScore;
-            this.passRate = completedQuizzes > 0
-                    ? (double) passedQuizzes / completedQuizzes * 100
-                    : 0.0;
-        }
-
-        public long getTotalQuizzes() { return totalQuizzes; }
-        public long getCompletedQuizzes() { return completedQuizzes; }
-        public long getPassedQuizzes() { return passedQuizzes; }
-        public long getFailedQuizzes() { return failedQuizzes; }
-        public double getAverageScore() { return averageScore; }
-        public double getPassRate() { return passRate; }
     }
 }

@@ -7,7 +7,7 @@ import com.ai.studybuddy.dto.auth.RegisterRequest;
 import com.ai.studybuddy.dto.auth.RegisterResponse;
 import com.ai.studybuddy.model.user.User;
 import com.ai.studybuddy.config.security.JwtUtils;
-import com.ai.studybuddy.service.impl.UserService;
+import com.ai.studybuddy.service.inter.UserService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

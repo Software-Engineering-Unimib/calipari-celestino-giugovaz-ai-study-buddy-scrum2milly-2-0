@@ -1,5 +1,6 @@
 package com.ai.studybuddy.service.impl;
 
+import com.ai.studybuddy.service.inter.UserService;
 import com.ai.studybuddy.util.Const;
 import com.ai.studybuddy.model.user.User;
 import com.ai.studybuddy.repository.UserRepository;

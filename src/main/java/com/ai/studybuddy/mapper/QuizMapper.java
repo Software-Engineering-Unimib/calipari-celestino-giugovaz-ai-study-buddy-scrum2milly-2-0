@@ -52,7 +52,10 @@ public class QuizMapper {
             }
         }
 
-        question.setCorrectAnswer(getJsonString(json, "correct"));
+        // Estrai la risposta corretta - deve essere solo "A", "B", "C" o "D"
+        String correctRaw = getJsonString(json, "correct");
+        String correctAnswer = extractLetterAnswer(correctRaw, question);
+        question.setCorrectAnswer(correctAnswer);
 
         // Spiegazione opzionale
         if (json.has("explanation")) {
@@ -60,6 +63,37 @@ public class QuizMapper {
         }
 
         return question;
+    }
+
+    /**
+     * Estrae la lettera della risposta corretta
+     * L'AI potrebbe restituire "A", "B", "C", "D" oppure il testo completo della risposta
+     */
+    private String extractLetterAnswer(String correctRaw, Question question) {
+        if (correctRaw == null || correctRaw.isEmpty()) {
+            return "A"; // default
+        }
+
+        // Se è già una singola lettera A-D, usala
+        String upper = correctRaw.trim().toUpperCase();
+        if (upper.length() == 1 && "ABCD".contains(upper)) {
+            return upper;
+        }
+
+        // Altrimenti, cerca quale opzione corrisponde al testo
+        String correctText = correctRaw.trim();
+        if (correctText.equalsIgnoreCase(question.getOptionA())) return "A";
+        if (correctText.equalsIgnoreCase(question.getOptionB())) return "B";
+        if (correctText.equalsIgnoreCase(question.getOptionC())) return "C";
+        if (correctText.equalsIgnoreCase(question.getOptionD())) return "D";
+
+        // Fallback: controlla se inizia con una lettera seguita da ) o .
+        if (upper.matches("^[ABCD][).:].*")) {
+            return upper.substring(0, 1);
+        }
+
+        // Default
+        return "A";
     }
 
     /**

@@ -5,9 +5,9 @@ import com.ai.studybuddy.dto.flashcard.FlashcardDeckCreateRequest;
 import com.ai.studybuddy.model.flashcard.Flashcard;
 import com.ai.studybuddy.model.flashcard.FlashcardDeck;
 import com.ai.studybuddy.model.user.User;
-import com.ai.studybuddy.service.FlashcardDeckService;
-import com.ai.studybuddy.service.FlashcardService;
-import com.ai.studybuddy.service.impl.UserService;
+import com.ai.studybuddy.service.impl.FlashcardDeckServiceImpl;
+import com.ai.studybuddy.service.impl.FlashcardServiceImpl;
+import com.ai.studybuddy.service.inter.UserService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,10 +28,10 @@ public class FlashcardController {
     private static final Logger logger = LoggerFactory.getLogger(FlashcardController.class);
 
     @Autowired
-    private FlashcardService flashcardService;
+    private FlashcardServiceImpl flashcardServiceImpl;
 
     @Autowired
-    private FlashcardDeckService deckService;
+    private FlashcardDeckServiceImpl deckService;
 
     @Autowired
     private UserService userService;
@@ -101,9 +101,9 @@ public class FlashcardController {
     }
 
     @GetMapping("/decks/stats")
-    public ResponseEntity<FlashcardDeckService.DeckGlobalStats> getGlobalStats(Principal principal) {
+    public ResponseEntity<FlashcardDeckServiceImpl.DeckGlobalStats> getGlobalStats(Principal principal) {
         User user = userService.getCurrentUser(principal);
-        FlashcardDeckService.DeckGlobalStats stats = deckService.getGlobalStats(user.getId());
+        FlashcardDeckServiceImpl.DeckGlobalStats stats = deckService.getGlobalStats(user.getId());
         return ResponseEntity.ok(stats);
     }
 
@@ -114,7 +114,7 @@ public class FlashcardController {
             @PathVariable UUID deckId,
             Principal principal) {
         User user = userService.getCurrentUser(principal);
-        List<Flashcard> cards = flashcardService.getFlashcardsByDeck(deckId, user.getId());
+        List<Flashcard> cards = flashcardServiceImpl.getFlashcardsByDeck(deckId, user.getId());
         return ResponseEntity.ok(cards);
     }
 
@@ -124,7 +124,7 @@ public class FlashcardController {
             @Valid @RequestBody FlashcardCreateRequest request,
             Principal principal) {
         User user = userService.getCurrentUser(principal);
-        Flashcard card = flashcardService.createFlashcard(deckId, request, user);
+        Flashcard card = flashcardServiceImpl.createFlashcard(deckId, request, user);
         return ResponseEntity.status(HttpStatus.CREATED).body(card);
     }
 
@@ -134,14 +134,14 @@ public class FlashcardController {
             @Valid @RequestBody FlashcardCreateRequest request,
             Principal principal) {
         User user = userService.getCurrentUser(principal);
-        Flashcard card = flashcardService.updateFlashcard(cardId, request, user.getId());
+        Flashcard card = flashcardServiceImpl.updateFlashcard(cardId, request, user.getId());
         return ResponseEntity.ok(card);
     }
 
     @DeleteMapping("/cards/{cardId}")
     public ResponseEntity<Void> deleteFlashcard(@PathVariable UUID cardId, Principal principal) {
         User user = userService.getCurrentUser(principal);
-        flashcardService.deleteFlashcard(cardId, user.getId());
+        flashcardServiceImpl.deleteFlashcard(cardId, user.getId());
         return ResponseEntity.noContent().build();
     }
 
@@ -152,7 +152,7 @@ public class FlashcardController {
             Principal principal) {
         User user = userService.getCurrentUser(principal);
         Boolean wasCorrect = body.get("wasCorrect");
-        Flashcard card = flashcardService.reviewFlashcard(cardId, wasCorrect, user.getId());
+        Flashcard card = flashcardServiceImpl.reviewFlashcard(cardId, wasCorrect, user.getId());
         return ResponseEntity.ok(card);
     }
 
@@ -162,7 +162,7 @@ public class FlashcardController {
             @RequestParam(defaultValue = "10") int numberOfCards,
             Principal principal) {
         User user = userService.getCurrentUser(principal);
-        List<Flashcard> cards = flashcardService.getStudySession(deckId, numberOfCards, user.getId());
+        List<Flashcard> cards = flashcardServiceImpl.getStudySession(deckId, numberOfCards, user.getId());
         return ResponseEntity.ok(cards);
     }
 
@@ -172,16 +172,16 @@ public class FlashcardController {
             @RequestParam String query,
             Principal principal) {
         User user = userService.getCurrentUser(principal);
-        List<Flashcard> cards = flashcardService.searchFlashcards(deckId, query, user.getId());
+        List<Flashcard> cards = flashcardServiceImpl.searchFlashcards(deckId, query, user.getId());
         return ResponseEntity.ok(cards);
     }
 
     @GetMapping("/decks/{deckId}/stats")
-    public ResponseEntity<FlashcardService.FlashcardStats> getDeckStats(
+    public ResponseEntity<FlashcardServiceImpl.FlashcardStats> getDeckStats(
             @PathVariable UUID deckId,
             Principal principal) {
         User user = userService.getCurrentUser(principal);
-        FlashcardService.FlashcardStats stats = flashcardService.getFlashcardStats(deckId, user.getId());
+        FlashcardServiceImpl.FlashcardStats stats = flashcardServiceImpl.getFlashcardStats(deckId, user.getId());
         return ResponseEntity.ok(stats);
     }
 }
