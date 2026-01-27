@@ -1,11 +1,10 @@
 package com.ai.studybuddy.controller;
 
-import com.ai.studybuddy.util.Const;
 import com.ai.studybuddy.dto.FlashcardCreateRequest;
 import com.ai.studybuddy.dto.FlashcardDeckCreateRequest;
-import com.ai.studybuddy.model.Flashcard;
-import com.ai.studybuddy.model.FlashcardDeck;
-import com.ai.studybuddy.model.User;
+import com.ai.studybuddy.model.flashcard.Flashcard;
+import com.ai.studybuddy.model.flashcard.FlashcardDeck;
+import com.ai.studybuddy.model.user.User;
 import com.ai.studybuddy.service.FlashcardDeckService;
 import com.ai.studybuddy.service.FlashcardService;
 import com.ai.studybuddy.service.impl.UserService;

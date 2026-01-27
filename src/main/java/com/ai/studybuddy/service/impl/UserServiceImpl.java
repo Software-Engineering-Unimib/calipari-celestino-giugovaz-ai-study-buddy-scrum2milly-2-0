@@ -1,10 +1,8 @@
 package com.ai.studybuddy.service.impl;
 
 import com.ai.studybuddy.util.Const;
-import com.ai.studybuddy.model.User;
+import com.ai.studybuddy.model.user.User;
 import com.ai.studybuddy.repository.UserRepository;
-import com.ai.studybuddy.service.impl.UserService;
-import com.ai.studybuddy.util.Const;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

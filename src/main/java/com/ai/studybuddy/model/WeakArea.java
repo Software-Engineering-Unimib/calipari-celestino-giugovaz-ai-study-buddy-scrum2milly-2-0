@@ -1,5 +1,6 @@
 package com.ai.studybuddy.model;
 
+import com.ai.studybuddy.model.user.User;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;

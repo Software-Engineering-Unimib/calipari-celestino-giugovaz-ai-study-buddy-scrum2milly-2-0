@@ -1,6 +1,6 @@
 package com.ai.studybuddy.dto;
 
-import com.ai.studybuddy.model.Flashcard;
+import com.ai.studybuddy.model.flashcard.Flashcard;
 import java.util.List;
 
 /**

@@ -1,7 +1,7 @@
 package com.ai.studybuddy.repository;
 
-import com.ai.studybuddy.model.Flashcard;
-import com.ai.studybuddy.model.DifficultyLevel;
+import com.ai.studybuddy.model.flashcard.Flashcard;
+import com.ai.studybuddy.util.enums.DifficultyLevel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

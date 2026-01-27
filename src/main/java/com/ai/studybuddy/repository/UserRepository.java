@@ -1,6 +1,6 @@
 package com.ai.studybuddy.repository;
 
-import com.ai.studybuddy.model.User;
+import com.ai.studybuddy.model.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

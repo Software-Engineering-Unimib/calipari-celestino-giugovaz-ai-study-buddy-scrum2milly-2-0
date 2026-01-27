@@ -1,10 +1,8 @@
-package com.ai.studybuddy.model;
+package com.ai.studybuddy.model.user;
 
 import com.ai.studybuddy.util.enums.EducationLevel;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

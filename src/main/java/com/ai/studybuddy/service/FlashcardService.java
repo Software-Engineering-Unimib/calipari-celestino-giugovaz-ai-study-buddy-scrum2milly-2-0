@@ -1,10 +1,10 @@
 package com.ai.studybuddy.service;
 
 import com.ai.studybuddy.dto.FlashcardCreateRequest;
-import com.ai.studybuddy.model.DifficultyLevel;
-import com.ai.studybuddy.model.Flashcard;
-import com.ai.studybuddy.model.FlashcardDeck;
-import com.ai.studybuddy.model.User;
+import com.ai.studybuddy.util.enums.DifficultyLevel;
+import com.ai.studybuddy.model.flashcard.Flashcard;
+import com.ai.studybuddy.model.flashcard.FlashcardDeck;
+import com.ai.studybuddy.model.user.User;
 import com.ai.studybuddy.repository.FlashcardRepository;
 import com.ai.studybuddy.repository.FlashcardDeckRepository;
 import com.google.gson.Gson;

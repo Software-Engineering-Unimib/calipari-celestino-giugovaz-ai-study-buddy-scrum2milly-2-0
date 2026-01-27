@@ -1,6 +1,6 @@
 package com.ai.studybuddy.repository;
 
-import com.ai.studybuddy.model.FlashcardDeck;
+import com.ai.studybuddy.model.flashcard.FlashcardDeck;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

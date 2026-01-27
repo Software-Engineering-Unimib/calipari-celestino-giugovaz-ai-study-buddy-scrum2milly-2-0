@@ -1,5 +1,6 @@
-package com.ai.studybuddy.model;
+package com.ai.studybuddy.model.user;
 
+import com.ai.studybuddy.util.enums.DifficultyLevel;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;

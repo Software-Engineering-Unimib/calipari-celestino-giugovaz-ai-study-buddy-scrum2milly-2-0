@@ -1,6 +1,6 @@
 package com.ai.studybuddy.service.impl;
 
-import com.ai.studybuddy.model.User;
+import com.ai.studybuddy.model.user.User;
 
 import java.security.Principal;
 import java.util.List;

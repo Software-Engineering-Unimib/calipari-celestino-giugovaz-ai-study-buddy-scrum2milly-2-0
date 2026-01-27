@@ -1,5 +1,7 @@
-package com.ai.studybuddy.model;
+package com.ai.studybuddy.model.flashcard;
 
+import com.ai.studybuddy.model.user.User;
+import com.ai.studybuddy.util.enums.DifficultyLevel;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.UUID;

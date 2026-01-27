@@ -1,6 +1,6 @@
 package com.ai.studybuddy.dto;
 
-import com.ai.studybuddy.model.DifficultyLevel;
+import com.ai.studybuddy.util.enums.DifficultyLevel;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 

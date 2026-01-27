@@ -1,8 +1,8 @@
 package com.ai.studybuddy.service;
 
 import com.ai.studybuddy.dto.FlashcardDeckCreateRequest;
-import com.ai.studybuddy.model.FlashcardDeck;
-import com.ai.studybuddy.model.User;
+import com.ai.studybuddy.model.flashcard.FlashcardDeck;
+import com.ai.studybuddy.model.user.User;
 import com.ai.studybuddy.repository.FlashcardDeckRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

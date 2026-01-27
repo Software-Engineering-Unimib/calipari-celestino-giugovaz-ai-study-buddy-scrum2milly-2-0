@@ -1,8 +1,8 @@
 package com.ai.studybuddy.controller;
 
 import com.ai.studybuddy.dto.GenerateFlashcardsResponse;
-import com.ai.studybuddy.model.Flashcard;
-import com.ai.studybuddy.model.User;
+import com.ai.studybuddy.model.flashcard.Flashcard;
+import com.ai.studybuddy.model.user.User;
 import com.ai.studybuddy.service.AIService;
 import com.ai.studybuddy.service.FlashcardService;
 import com.ai.studybuddy.service.impl.UserService;

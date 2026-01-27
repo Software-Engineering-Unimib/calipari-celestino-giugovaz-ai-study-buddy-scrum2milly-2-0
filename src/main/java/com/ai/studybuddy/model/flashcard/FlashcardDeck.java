@@ -1,5 +1,6 @@
-package com.ai.studybuddy.model;
+package com.ai.studybuddy.model.flashcard;
 
+import com.ai.studybuddy.model.user.User;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
