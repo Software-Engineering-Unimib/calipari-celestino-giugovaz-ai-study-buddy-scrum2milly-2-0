@@ -49,6 +49,8 @@ public class AIServiceImpl implements AIService {
 
     @Override
     public String generateExplanation(String topic, String studentLevel) {
+
+
         log.info("Generazione spiegazione per topic: '{}', livello: {}", topic, studentLevel);
 
         String prompt = buildExplanationPrompt(topic, studentLevel);
@@ -97,10 +99,15 @@ public class AIServiceImpl implements AIService {
     @Override
     public JsonArray parseFlashcardsResponse(String aiResponse) {
         try {
+
+
+
+            if(aiResponse == null || aiResponse.isEmpty())
+                throw new AIServiceException(AIErrorType.RESPONSE_NULL);
             String cleaned = cleanJsonResponse(aiResponse);
             return gson.fromJson(cleaned, JsonArray.class);
         } catch (JsonSyntaxException e) {
-            log.error("Errore parsing risposta AI: {}", e.getMessage());
+
             throw new AIServiceException(AIErrorType.PARSE_ERROR,
                     "Impossibile interpretare la risposta dell'AI");
         }
@@ -152,17 +159,16 @@ public class AIServiceImpl implements AIService {
 
         // TEST MODE: Forza fallback
 
-
+        if (testFallback) {
+            log.warn("⚠️ TEST MODE ATTIVO: Forzando fallback al modello secondario");
+            log.warn("⚠️ Per disattivare: imposta ai.groq.test-fallback=false");
+            throw new AIServiceException(AIErrorType.RATE_LIMIT, "Test fallback");
+        }
 
 
         // LIVELLO 1: Prova con modello principale (Llama 3.3 70B)
         try {
 
-            if (testFallback) {
-                log.warn("⚠️ TEST MODE ATTIVO: Forzando fallback al modello secondario");
-                log.warn("⚠️ Per disattivare: imposta ai.groq.test-fallback=false");
-                throw new AIServiceException(AIErrorType.RATE_LIMIT, "Test fallback");
-            }
 
             log.debug("Tentativo con {}", primaryClient.getModelName());
             return primaryClient.generateText(prompt);

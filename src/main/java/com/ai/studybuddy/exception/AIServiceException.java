@@ -10,7 +10,8 @@ public class AIServiceException extends StudyBuddyException {
         INVALID_API_KEY("API Key non valida. Verifica la configurazione."),
         TIMEOUT("Il servizio AI non ha risposto in tempo. Riprova."),
         PARSE_ERROR("Errore nel parsing della risposta AI."),
-        SERVICE_UNAVAILABLE("Servizio AI temporaneamente non disponibile.");
+        SERVICE_UNAVAILABLE("Servizio AI temporaneamente non disponibile."),
+        RESPONSE_NULL("Risposta AI vuota");
 
         private final String defaultMessage;
 
