@@ -1,59 +1,58 @@
 package com.ai.studybuddy.service.impl;
 
+import com.ai.studybuddy.config.integration.AIClient;
 import com.ai.studybuddy.exception.AIServiceException;
 import com.ai.studybuddy.exception.AIServiceException.AIErrorType;
 import com.ai.studybuddy.service.inter.AIService;
 import com.ai.studybuddy.util.enums.DifficultyLevel;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-
+/**
+ * Servizio principale per la generazione di contenuti AI.
+ *
+ * Implementa una strategia di fallback a 2 livelli:
+ * 1. Groq Primary Model (llama-3.3-70b-versatile) - più potente
+ * 2. Groq Fallback Model (mixtral-8x7b-32768) - più veloce
+ *
+ */
 @Service
 public class AIServiceImpl implements AIService {
 
     private static final Logger log = LoggerFactory.getLogger(AIServiceImpl.class);
 
-    private static final int DEFAULT_MAX_TOKENS = 2048;
-    private static final double DEFAULT_TEMPERATURE = 0.7;
-    private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(30);
-
-    @Value("${ai.groq.api-key}")
-    private String apiKey;
-
-    @Value("${ai.groq.model:llama-3.3-70b-versatile}")
-    private String model;
-
-    private final WebClient webClient;
+    private final AIClient primaryClient;
+    private final AIClient fallbackClient;
     private final Gson gson = new Gson();
 
-    public AIServiceImpl(WebClient.Builder webClientBuilder) {
-        this.webClient = webClientBuilder
-                .baseUrl("https://api.groq.com/openai/v1")
-                .build();
+    @Value("${ai.groq.test-fallback:true}")
+    private boolean testFallback;
+
+    public AIServiceImpl(
+            @Qualifier("groqPrimaryClient") AIClient primaryClient,
+            @Qualifier("groqFallbackClient") AIClient fallbackClient
+    ) {
+        this.primaryClient = primaryClient;
+        this.fallbackClient = fallbackClient;
     }
+
+    // ========================================
+    // METODI PUBBLICI - GENERAZIONE CONTENUTI
+    // ========================================
 
     @Override
     public String generateExplanation(String topic, String studentLevel) {
         log.info("Generazione spiegazione per topic: '{}', livello: {}", topic, studentLevel);
 
-        String systemPrompt = "Sei un tutor paziente e chiaro. Rispondi sempre in italiano.";
-        String userPrompt = String.format(
-                "Spiega '%s' a uno studente di livello %s. " +
-                        "Usa esempi concreti e un linguaggio semplice.",
-                topic, studentLevel
-        );
-
-        return callGroqAPI(systemPrompt, userPrompt);
+        String prompt = buildExplanationPrompt(topic, studentLevel);
+        return callAIWithFallback(prompt);
     }
 
     @Override
@@ -61,16 +60,8 @@ public class AIServiceImpl implements AIService {
         log.info("Generazione quiz - topic: '{}', domande: {}, difficoltà: {}",
                 topic, numQuestions, difficulty);
 
-        String systemPrompt = "Sei un generatore di quiz educativi. Rispondi SOLO con JSON valido, senza testo aggiuntivo.";
-        String userPrompt = String.format(
-                "Genera %d domande a scelta multipla su '%s' con difficoltà %s. " +
-                        "Formato JSON richiesto: [{\"question\": \"...\", \"options\": [\"A\", \"B\", \"C\", \"D\"], \"correct\": \"A\"}]" +
-                        "IMPORTANTE: Il campo 'correct' deve contenere SOLO la lettera della risposta corretta (A, B, C o D), non il testo." +
-                        "Rispondi SOLO con l'array JSON, nient'altro.",
-                numQuestions, topic, difficulty
-        );
-
-        return callGroqAPI(systemPrompt, userPrompt);
+        String prompt = buildQuizPrompt(topic, numQuestions, difficulty);
+        return callAIWithFallback(prompt);
     }
 
     @Override
@@ -90,16 +81,8 @@ public class AIServiceImpl implements AIService {
         log.info("Generazione flashcards - topic: '{}', carte: {}, difficoltà: {}",
                 topic, numCards, difficulty);
 
-        String systemPrompt = "Sei un generatore di flashcards educative. Rispondi SOLO con JSON valido, senza testo aggiuntivo.";
-        String userPrompt = String.format(
-                "Genera %d flashcards su '%s' con difficoltà %s. " +
-                        "Formato JSON richiesto: [{\"front\": \"domanda o concetto\", \"back\": \"risposta o spiegazione\"}]" +
-                        "Le flashcards devono essere chiare, concise e utili per il ripasso. " +
-                        "Rispondi SOLO con l'array JSON, nient'altro.",
-                numCards, topic, difficulty.getLevel()
-        );
-
-        return callGroqAPI(systemPrompt, userPrompt);
+        String prompt = buildFlashcardsPrompt(topic, numCards, difficulty);
+        return callAIWithFallback(prompt);
     }
 
     @Override
@@ -107,18 +90,8 @@ public class AIServiceImpl implements AIService {
                                                 DifficultyLevel difficulty, String context) {
         log.info("Generazione flashcards con contesto - topic: '{}', carte: {}", topic, numCards);
 
-        String systemPrompt = "Sei un generatore di flashcards educative. Rispondi SOLO con JSON valido, senza testo aggiuntivo.";
-        String userPrompt = String.format(
-                "Genera %d flashcards su '%s' con difficoltà %s. " +
-                        "Contesto aggiuntivo: %s. " +
-                        "Formato JSON richiesto: [{\"front\": \"domanda o concetto\", \"back\": \"risposta o spiegazione\"}]" +
-                        "Le flashcards devono essere chiare, concise e utili per il ripasso. " +
-                        "Rispondi SOLO con l'array JSON, nient'altro.",
-                numCards, topic, difficulty.getLevel(),
-                context != null ? context : "nessuno"
-        );
-
-        return callGroqAPI(systemPrompt, userPrompt);
+        String prompt = buildFlashcardsWithContextPrompt(topic, numCards, difficulty, context);
+        return callAIWithFallback(prompt);
     }
 
     @Override
@@ -132,6 +105,159 @@ public class AIServiceImpl implements AIService {
                     "Impossibile interpretare la risposta dell'AI");
         }
     }
+
+    // ========================================
+    // METODI PUBBLICI - UTILITÀ
+    // ========================================
+
+    /**
+     * Verifica quale modello è disponibile
+     */
+
+    //* SERVONO QUESTI METODI getAvailableModel e isAnyModelAvailable PER I TEST
+
+
+
+    public String getAvailableModel() {
+        if (primaryClient.isAvailable()) {
+            return primaryClient.getModelName();
+        }
+        if (fallbackClient.isAvailable()) {
+            return fallbackClient.getModelName();
+        }
+        return "Nessun modello AI disponibile";
+    }
+
+
+    public boolean isAnyModelAvailable() {
+        return primaryClient.isAvailable() || fallbackClient.isAvailable();
+    }
+
+    /**
+     * Verifica se almeno un modello AI è disponibile
+
+    public boolean isAnyModelAvailable() {
+        return primaryClient.isAvailable() || fallbackClient.isAvailable();
+    }
+
+
+    // ========================================
+    // METODI PRIVATI - FALLBACK LOGIC
+    // ========================================
+
+    /**
+     * Chiamata AI con fallback automatico tra modelli
+     */
+    private String callAIWithFallback(String prompt) {
+
+        // TEST MODE: Forza fallback
+
+
+
+
+        // LIVELLO 1: Prova con modello principale (Llama 3.3 70B)
+        try {
+
+            if (testFallback) {
+                log.warn("⚠️ TEST MODE ATTIVO: Forzando fallback al modello secondario");
+                log.warn("⚠️ Per disattivare: imposta ai.groq.test-fallback=false");
+                throw new AIServiceException(AIErrorType.RATE_LIMIT, "Test fallback");
+            }
+
+            log.debug("Tentativo con {}", primaryClient.getModelName());
+            return primaryClient.generateText(prompt);
+
+        } catch (Exception primaryError) {
+            log.warn("Primary model fallito: {}", primaryError.getMessage());
+
+            // LIVELLO 2: Prova con modello di fallback (Mixtral 8x7B)
+            try {
+                log.info("🔄 Fallback a {}", fallbackClient.getModelName());
+                return fallbackClient.generateText(prompt);
+
+            } catch (WebClientResponseException e) {
+                handleWebClientException(e);
+                throw new AIServiceException(AIErrorType.SERVICE_UNAVAILABLE);
+
+            } catch (Exception fallbackError) {
+                log.error("❌ Anche il fallback model è fallito: {}",
+                        fallbackError.getMessage());
+
+                if (fallbackError.getMessage() != null &&
+                        fallbackError.getMessage().contains("timeout")) {
+                    throw new AIServiceException(AIErrorType.TIMEOUT);
+                }
+
+                throw new AIServiceException(AIErrorType.SERVICE_UNAVAILABLE,
+                        "Tutti i modelli AI non disponibili: " + fallbackError.getMessage());
+            }
+        }
+    }
+
+    // ========================================
+    // METODI PRIVATI - COSTRUZIONE PROMPT
+    // ========================================
+
+    /**
+     * Costruisce il prompt per spiegazioni
+     */
+    private String buildExplanationPrompt(String topic, String studentLevel) {
+        return String.format(
+                "Sei un tutor paziente e chiaro. Rispondi sempre in italiano. " +
+                        "Spiega '%s' a uno studente di livello %s. " +
+                        "Usa esempi concreti e un linguaggio semplice.",
+                topic, studentLevel
+        );
+    }
+
+    /**
+     * Costruisce il prompt per quiz
+     */
+    private String buildQuizPrompt(String topic, int numQuestions, String difficulty) {
+        return String.format(
+                "Sei un generatore di quiz educativi. Rispondi SOLO con JSON valido, senza testo aggiuntivo. " +
+                        "Genera %d domande a scelta multipla su '%s' con difficoltà %s. " +
+                        "Formato JSON richiesto: [{\"question\": \"...\", \"options\": [\"A\", \"B\", \"C\", \"D\"], \"correct\": \"A\"}]" +
+                        "IMPORTANTE: Il campo 'correct' deve contenere SOLO la lettera della risposta corretta (A, B, C o D), non il testo. " +
+                        "Rispondi SOLO con l'array JSON, nient'altro.",
+                numQuestions, topic, difficulty
+        );
+    }
+
+    /**
+     * Costruisce il prompt per flashcards
+     */
+    private String buildFlashcardsPrompt(String topic, int numCards, DifficultyLevel difficulty) {
+        return String.format(
+                "Sei un generatore di flashcards educative. Rispondi SOLO con JSON valido, senza testo aggiuntivo. " +
+                        "Genera %d flashcards su '%s' con difficoltà %s. " +
+                        "Formato JSON richiesto: [{\"front\": \"domanda o concetto\", \"back\": \"risposta o spiegazione\"}]" +
+                        "Le flashcards devono essere chiare, concise e utili per il ripasso. " +
+                        "Rispondi SOLO con l'array JSON, nient'altro.",
+                numCards, topic, difficulty.getLevel()
+        );
+    }
+
+    /**
+     * Costruisce il prompt per flashcards con contesto
+     */
+    private String buildFlashcardsWithContextPrompt(String topic, int numCards,
+                                                    DifficultyLevel difficulty, String context) {
+        return String.format(
+                "Sei un generatore di flashcards educative. Rispondi SOLO con JSON valido, senza testo aggiuntivo. " +
+                        "Genera %d flashcards su '%s' con difficoltà %s. " +
+                        "Contesto aggiuntivo: %s. " +
+                        "Formato JSON richiesto: [{\"front\": \"domanda o concetto\", \"back\": \"risposta o spiegazione\"}]" +
+                        "Le flashcards devono essere chiare, concise e utili per il ripasso. " +
+                        "Rispondi SOLO con l'array JSON, nient'altro.",
+                numCards, topic, difficulty.getLevel(),
+                context != null ? context : "nessuno"
+        );
+    }
+
+    // ========================================
+    // METODI PRIVATI - UTILITÀ
+    // ========================================
 
     /**
      * Pulisce la risposta JSON dall'AI
@@ -147,89 +273,12 @@ public class AIServiceImpl implements AIService {
     }
 
     /**
-     * Chiamata API Groq (OpenAI-compatible)
-     */
-    private String callGroqAPI(String systemPrompt, String userPrompt) {
-        JsonObject requestBody = buildRequestBody(systemPrompt, userPrompt);
-
-        log.debug("Chiamata Groq API - Model: {}, Timestamp: {}", model, LocalDateTime.now());
-
-        try {
-            String response = webClient.post()
-                    .uri("/chat/completions")
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", "Bearer " + apiKey)
-                    .bodyValue(requestBody.toString())
-                    .retrieve()
-                    .bodyToMono(String.class)
-                    .timeout(DEFAULT_TIMEOUT)
-                    .block();
-
-            return extractContentFromResponse(response);
-
-        } catch (WebClientResponseException e) {
-            handleWebClientException(e);
-            throw new AIServiceException(AIErrorType.SERVICE_UNAVAILABLE);
-        } catch (Exception e) {
-            log.error("Errore chiamata API Groq: {}", e.getMessage(), e);
-
-            if (e.getMessage() != null && e.getMessage().contains("timeout")) {
-                throw new AIServiceException(AIErrorType.TIMEOUT);
-            }
-
-            throw new AIServiceException(AIErrorType.SERVICE_UNAVAILABLE,
-                    "Errore chiamata API Groq: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Costruisce il body della richiesta
-     */
-    private JsonObject buildRequestBody(String systemPrompt, String userPrompt) {
-        JsonArray messages = new JsonArray();
-
-        JsonObject systemMessage = new JsonObject();
-        systemMessage.addProperty("role", "system");
-        systemMessage.addProperty("content", systemPrompt);
-        messages.add(systemMessage);
-
-        JsonObject userMessage = new JsonObject();
-        userMessage.addProperty("role", "user");
-        userMessage.addProperty("content", userPrompt);
-        messages.add(userMessage);
-
-        JsonObject requestBody = new JsonObject();
-        requestBody.addProperty("model", model);
-        requestBody.add("messages", messages);
-        requestBody.addProperty("temperature", DEFAULT_TEMPERATURE);
-        requestBody.addProperty("max_tokens", DEFAULT_MAX_TOKENS);
-
-        return requestBody;
-    }
-
-    /**
-     * Estrae il contenuto dalla risposta
-     */
-    private String extractContentFromResponse(String response) {
-        try {
-            JsonObject jsonResponse = gson.fromJson(response, JsonObject.class);
-            return jsonResponse
-                    .getAsJsonArray("choices")
-                    .get(0).getAsJsonObject()
-                    .getAsJsonObject("message")
-                    .get("content").getAsString();
-        } catch (Exception e) {
-            log.error("Errore parsing risposta Groq: {}", e.getMessage());
-            throw new AIServiceException(AIErrorType.PARSE_ERROR);
-        }
-    }
-
-    /**
      * Gestisce le eccezioni WebClient
      */
     private void handleWebClientException(WebClientResponseException e) {
         int statusCode = e.getStatusCode().value();
-        log.error("Errore API Groq - Status: {}, Body: {}", statusCode, e.getResponseBodyAsString());
+        log.error("Errore API Groq - Status: {}, Body: {}",
+                statusCode, e.getResponseBodyAsString());
 
         switch (statusCode) {
             case 429:
