@@ -17,6 +17,11 @@ import java.util.stream.Collectors;
 @Component
 public class QuizMapper {
 
+    private static final String FIELD_OPTIONS = "options";
+    private static final String FIELD_QUESTION = "question";
+    private static final String FIELD_CORRECT = "correct";
+    private static final String FIELD_EXPLANATION = "explanation";
+
     /**
      * Crea Quiz entity da request e user
      */
@@ -39,11 +44,11 @@ public class QuizMapper {
         Question question = new Question();
         question.setQuiz(quiz);
         question.setQuestionOrder(order);
-        question.setQuestionText(getJsonString(json, "question"));
+        question.setQuestionText(getJsonString(json, FIELD_QUESTION));
 
         // Parsing opzioni
-        if (json.has("options") && json.get("options").isJsonArray()) {
-            var options = json.getAsJsonArray("options");
+        if (json.has(FIELD_OPTIONS) && json.get(FIELD_OPTIONS).isJsonArray()) {
+            var options = json.getAsJsonArray(FIELD_OPTIONS);
             if (options.size() >= 4) {
                 question.setOptionA(options.get(0).getAsString());
                 question.setOptionB(options.get(1).getAsString());
@@ -53,13 +58,13 @@ public class QuizMapper {
         }
 
         // Estrai la risposta corretta - deve essere solo "A", "B", "C" o "D"
-        String correctRaw = getJsonString(json, "correct");
+        String correctRaw = getJsonString(json, FIELD_CORRECT);
         String correctAnswer = extractLetterAnswer(correctRaw, question);
         question.setCorrectAnswer(correctAnswer);
 
         // Spiegazione opzionale
-        if (json.has("explanation")) {
-            question.setExplanation(getJsonString(json, "explanation"));
+        if (json.has(FIELD_EXPLANATION)) {
+            question.setExplanation(getJsonString(json, FIELD_EXPLANATION));
         }
 
         return question;

@@ -3,6 +3,8 @@ package com.ai.studybuddy.config.integration;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -12,11 +14,11 @@ import org.springframework.web.reactive.function.client.WebClient;
  *
  * Questo è il modello più potente e accurato, usato come default
  * per tutte le richieste AI.
- *
- *
  */
 @Component("groqPrimaryClient")
 public class GroqPrimaryClient implements AIClient {
+
+    private static final Logger log = LoggerFactory.getLogger(GroqPrimaryClient.class);
 
     @Value("${ai.groq.api-key}")
     private String apiKey;
@@ -28,7 +30,7 @@ public class GroqPrimaryClient implements AIClient {
     private final ResponseParser responseParser;
     private final Gson gson = new Gson();
 
-    //Constructor Injection
+    // Constructor Injection
     public GroqPrimaryClient(WebClient.Builder webClientBuilder, ResponseParser responseParser) {
         this.webClient = webClientBuilder
                 .baseUrl("https://api.groq.com/openai/v1")
@@ -44,11 +46,11 @@ public class GroqPrimaryClient implements AIClient {
 
         JsonObject requestBody = buildRequest(prompt);
 
-        System.out.println("========================================");
-        System.out.println("Chiamata Groq API - PRIMARY MODEL");
-        System.out.println("Model: " + model);
-        System.out.println("Timestamp: " + java.time.LocalDateTime.now());
-        System.out.println("========================================");
+        log.info("========================================");
+        log.info("Chiamata Groq API - PRIMARY MODEL");
+        log.info("Model: {}", model);
+        log.info("Timestamp: {}", java.time.LocalDateTime.now());
+        log.info("========================================");
 
         try {
             String response = webClient.post()
@@ -74,7 +76,7 @@ public class GroqPrimaryClient implements AIClient {
             String testResponse = generateText("Rispondi solo 'OK'");
             return testResponse != null && !testResponse.isEmpty();
         } catch (Exception e) {
-            System.err.println("Primary Groq Model non disponibile: " + e.getMessage());
+            log.error("Primary Groq Model non disponibile: {}", e.getMessage());
             return false;
         }
     }
@@ -109,23 +111,8 @@ public class GroqPrimaryClient implements AIClient {
         return requestBody;
     }
 
-
-    /*
-
-    private String parseResponse(String response) {
-        JsonObject jsonResponse = gson.fromJson(response, JsonObject.class);
-
-        return jsonResponse
-                .getAsJsonArray("choices")
-                .get(0).getAsJsonObject()
-                .getAsJsonObject("message")
-                .get("content").getAsString();
-    }
-
-
-     */
     private void handleException(Exception e) {
-        e.printStackTrace();
+        log.error("Errore nella chiamata a Groq Primary API", e);
 
         if (e.getMessage() != null) {
             if (e.getMessage().contains("429")) {
@@ -140,4 +127,3 @@ public class GroqPrimaryClient implements AIClient {
         }
     }
 }
-

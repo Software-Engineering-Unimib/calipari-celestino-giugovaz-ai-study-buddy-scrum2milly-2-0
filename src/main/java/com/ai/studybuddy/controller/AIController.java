@@ -9,7 +9,7 @@ import com.ai.studybuddy.model.quiz.Quiz;
 import com.ai.studybuddy.model.user.User;
 import com.ai.studybuddy.service.impl.AIServiceImpl;
 import com.ai.studybuddy.service.impl.FlashcardServiceImpl;
-import com.ai.studybuddy.service.impl.QuizServiceImpl;
+import com.ai.studybuddy.service.inter.QuizService;  // Import cambiato
 import com.ai.studybuddy.service.inter.UserService;
 import com.ai.studybuddy.util.enums.DifficultyLevel;
 import org.slf4j.Logger;
@@ -35,7 +35,7 @@ public class AIController {
     private FlashcardServiceImpl flashcardServiceImpl;
 
     @Autowired
-    private QuizServiceImpl quizServiceImpl;
+    private QuizService quizService;  // Cambiato da QuizServiceImpl a QuizService
 
     @Autowired
     private UserService userService;
@@ -78,7 +78,7 @@ public class AIController {
                 .subject(subject)
                 .build();
 
-        Quiz quiz = quizServiceImpl.generateQuiz(request, user);
+        Quiz quiz = quizService.generateQuiz(request, user);  // Cambiato da quizServiceImpl
 
         logger.info("Quiz salvato con ID: {}", quiz.getId());
         return ResponseEntity.ok(quiz);
@@ -95,7 +95,7 @@ public class AIController {
         User user = userService.getCurrentUser(principal);
         logger.info("Inizio quiz {} per utente: {}", quizId, user.getEmail());
 
-        Quiz quiz = quizServiceImpl.startQuiz(quizId, user.getId());
+        Quiz quiz = quizService.startQuiz(quizId, user.getId());  // Cambiato da quizServiceImpl
         return ResponseEntity.ok(quiz);
     }
 
@@ -110,7 +110,7 @@ public class AIController {
         User user = userService.getCurrentUser(principal);
         logger.info("Invio risposte quiz {} per utente: {}", request.getQuizId(), user.getEmail());
 
-        QuizResultResponse result = quizServiceImpl.submitAnswers(request, user.getId());
+        QuizResultResponse result = quizService.submitAnswers(request, user.getId());  // Cambiato
 
         logger.info("Quiz completato - Score: {}/{}", result.getScore(), result.getTotalQuestions());
         return ResponseEntity.ok(result);
@@ -125,7 +125,7 @@ public class AIController {
             Principal principal) {
 
         User user = userService.getCurrentUser(principal);
-        Quiz quiz = quizServiceImpl.getQuiz(quizId, user.getId());
+        Quiz quiz = quizService.getQuiz(quizId, user.getId());  // Cambiato
         return ResponseEntity.ok(quiz);
     }
 
@@ -135,7 +135,7 @@ public class AIController {
     @GetMapping("/quiz/my")
     public ResponseEntity<List<Quiz>> getMyQuizzes(Principal principal) {
         User user = userService.getCurrentUser(principal);
-        List<Quiz> quizzes = quizServiceImpl.getUserQuizzes(user.getId());
+        List<Quiz> quizzes = quizService.getUserQuizzes(user.getId());  // Cambiato
         return ResponseEntity.ok(quizzes);
     }
 
@@ -145,7 +145,7 @@ public class AIController {
     @GetMapping("/quiz/completed")
     public ResponseEntity<List<Quiz>> getCompletedQuizzes(Principal principal) {
         User user = userService.getCurrentUser(principal);
-        List<Quiz> quizzes = quizServiceImpl.getCompletedQuizzes(user.getId());
+        List<Quiz> quizzes = quizService.getCompletedQuizzes(user.getId());  // Cambiato
         return ResponseEntity.ok(quizzes);
     }
 
@@ -153,9 +153,9 @@ public class AIController {
      * Ottieni statistiche quiz
      */
     @GetMapping("/quiz/stats")
-    public ResponseEntity<QuizServiceImpl.QuizStats> getQuizStats(Principal principal) {
+    public ResponseEntity<QuizService.QuizStats> getQuizStats(Principal principal) {  // Cambiato
         User user = userService.getCurrentUser(principal);
-        QuizServiceImpl.QuizStats stats = quizServiceImpl.getUserStats(user.getId());
+        QuizService.QuizStats stats = quizService.getUserStats(user.getId());  // Cambiato
         return ResponseEntity.ok(stats);
     }
 
@@ -168,7 +168,7 @@ public class AIController {
             Principal principal) {
 
         User user = userService.getCurrentUser(principal);
-        Quiz quiz = quizServiceImpl.retryQuiz(quizId, user.getId());
+        Quiz quiz = quizService.retryQuiz(quizId, user.getId());  // Cambiato
         return ResponseEntity.ok(quiz);
     }
 
@@ -181,7 +181,7 @@ public class AIController {
             Principal principal) {
 
         User user = userService.getCurrentUser(principal);
-        quizServiceImpl.deleteQuiz(quizId, user.getId());
+        quizService.deleteQuiz(quizId, user.getId());  // Cambiato
         return ResponseEntity.noContent().build();
     }
 

@@ -18,6 +18,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +38,8 @@ public class QuizServiceImpl implements QuizService {
     private final AIService aiService;
     private final QuizMapper quizMapper;
     private final Gson gson = new Gson();
+    
+    private QuizService selfProxy; // Campo per l'auto-iniezione
 
     public QuizServiceImpl(QuizRepository quizRepository,
                            QuestionRepository questionRepository,
@@ -45,6 +49,12 @@ public class QuizServiceImpl implements QuizService {
         this.questionRepository = questionRepository;
         this.aiService = aiService;
         this.quizMapper = quizMapper;
+    }
+
+    // Auto-iniezione del proxy (con @Lazy per evitare problemi di ciclo)
+    @Autowired
+    public void setSelfProxy(@Lazy QuizService quizService) {
+        this.selfProxy = quizService;
     }
 
     @Override
@@ -87,7 +97,8 @@ public class QuizServiceImpl implements QuizService {
                 .numberOfQuestions(numberOfQuestions)
                 .difficultyLevel(DifficultyLevel.fromString(difficulty))
                 .build();
-        return generateQuiz(request, user);
+        // Usa selfProxy invece di this per assicurarti che le transazioni funzionino
+        return selfProxy.generateQuiz(request, user);
     }
 
     @Override

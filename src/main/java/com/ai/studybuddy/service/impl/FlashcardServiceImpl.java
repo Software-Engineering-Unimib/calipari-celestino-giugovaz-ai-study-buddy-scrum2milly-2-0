@@ -17,6 +17,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +37,8 @@ public class FlashcardServiceImpl implements FlashcardService {
     private final FlashcardDeckRepository deckRepository;
     private final AIService aiService;
     private final FlashcardMapper flashcardMapper;
+    
+    private FlashcardService selfProxy; // Campo per l'auto-iniezione
 
     public FlashcardServiceImpl(FlashcardRepository flashcardRepository,
                                 FlashcardDeckRepository deckRepository,
@@ -44,6 +48,12 @@ public class FlashcardServiceImpl implements FlashcardService {
         this.deckRepository = deckRepository;
         this.aiService = aiService;
         this.flashcardMapper = flashcardMapper;
+    }
+
+    // Auto-iniezione del proxy (con @Lazy per evitare problemi di ciclo)
+    @Autowired
+    public void setSelfProxy(@Lazy FlashcardService flashcardService) {
+        this.selfProxy = flashcardService;
     }
 
     @Override
@@ -74,7 +84,8 @@ public class FlashcardServiceImpl implements FlashcardService {
                 .difficultyLevel(DifficultyLevel.fromString(difficulty))
                 .build();
 
-        return generateAndSaveFlashcards(deckId, request, user);
+        // Usa selfProxy invece di this per assicurarti che le transazioni funzionino
+        return selfProxy.generateAndSaveFlashcards(deckId, request, user);
     }
 
     @Override

@@ -30,6 +30,10 @@ public class AIServiceException extends StudyBuddyException {
         super("AI_" + errorType.name(), errorType.getDefaultMessage());
         this.errorType = errorType;
     }
+    public AIServiceException(AIErrorType errorType, String customMessage, Throwable cause) {
+        super(customMessage, cause);
+        this.errorType = errorType;
+    }
 
     public AIServiceException(AIErrorType errorType, String customMessage) {
         super("AI_" + errorType.name(), customMessage);

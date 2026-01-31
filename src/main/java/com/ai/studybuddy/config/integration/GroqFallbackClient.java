@@ -60,8 +60,10 @@ public class GroqFallbackClient implements AIClient {
         JsonObject requestBody = buildRequestFromPrompt(prompt);
 
         // LOG DELLA RICHIESTA COMPLETA (senza API key)
-        log.info("📤 REQUEST BODY:");
-        log.info("{}", gson.toJson(requestBody));
+        if (log.isInfoEnabled()) {
+            log.info("📤 REQUEST BODY:");
+            log.info("{}", gson.toJson(requestBody));
+        }
 
         try {
             String response = webClient.post()
@@ -78,11 +80,10 @@ public class GroqFallbackClient implements AIClient {
             return responseParser.extractContent(response);
 
         } catch (WebClientResponseException e) {
-            log.error("Errore HTTP {}: {}", e.getStatusCode(), e.getResponseBodyAsString());
             throw handleWebClientException(e);
         } catch (Exception e) {
-            log.error("Errore generico: {}", e.getMessage(), e);
-            throw new RuntimeException("Errore Fallback Groq Model: " + e.getMessage(), e);
+            throw new AIServiceException(AIErrorType.SERVICE_UNAVAILABLE,
+                    "Errore generico chiamando Groq Fallback API: " + e.getMessage(), e);
         }
     }
 
@@ -145,56 +146,28 @@ public class GroqFallbackClient implements AIClient {
     }
 
     /**
-     * Estrae il contenuto dalla risposta API
-     */
-
-    /* VERIFICHIAMO SE FUNZIONA RESPONSEPARSER --> SE FUNZIONA: RIMUOVIAMO
-    private String parseResponse(String response) {
-        try {
-            JsonObject jsonResponse = gson.fromJson(response, JsonObject.class);
-            return jsonResponse
-                    .getAsJsonArray("choices")
-                    .get(0).getAsJsonObject()
-                    .getAsJsonObject("message")
-                    .get("content").getAsString();
-        } catch (Exception e) {
-            log.error("Errore parsing risposta: {}", e.getMessage());
-            log.error("Risposta ricevuta: {}", response);
-            throw new RuntimeException("Errore parsing risposta Groq: " + e.getMessage(), e);
-        }
-    }
-
-    */
-
-
-    /**
      * Gestisce gli errori HTTP
      */
     private AIServiceException handleWebClientException(WebClientResponseException e) {
         int statusCode = e.getStatusCode().value();
         String responseBody = e.getResponseBodyAsString();
 
-        log.error("❌ Errore API Groq Fallback");
-        log.error("Status Code: {}", statusCode);
-        log.error("Response Body: {}", responseBody);
-        log.error("Request URL: POST https://api.groq.com/openai/v1/chat/completions");
-
         switch (statusCode) {
             case 429:
-                throw new AIServiceException(AIErrorType.RATE_LIMIT);
+                return new AIServiceException(AIErrorType.RATE_LIMIT, 
+                        "Rate limit Groq API Fallback. Status: " + statusCode);
             case 401:
-                throw new AIServiceException(AIErrorType.INVALID_API_KEY);
+                return new AIServiceException(AIErrorType.INVALID_API_KEY, 
+                        "API Key non valida per Groq Fallback. Status: " + statusCode);
             case 400:
-                log.error("🔴 BAD REQUEST - Verifica il formato della richiesta!");
-                throw new AIServiceException(AIErrorType.SERVICE_UNAVAILABLE,
-                        "Bad Request da Groq API. Controlla i log per dettagli: " + responseBody);
-            case 503:
-            case 502:
-            case 504:
-                throw new AIServiceException(AIErrorType.SERVICE_UNAVAILABLE);
+                return new AIServiceException(AIErrorType.SERVICE_UNAVAILABLE,
+                        "Bad Request Groq API Fallback. Status: " + statusCode + " - Response: " + responseBody);
+            case 502, 503, 504:
+                return new AIServiceException(AIErrorType.SERVICE_UNAVAILABLE,
+                        "Servizio Groq Fallback non disponibile. Status: " + statusCode);
             default:
-                throw new AIServiceException(AIErrorType.SERVICE_UNAVAILABLE,
-                        "Errore API Fallback: " + e.getMessage());
+                return new AIServiceException(AIErrorType.SERVICE_UNAVAILABLE,
+                        "Errore HTTP Groq Fallback: " + statusCode + " - " + responseBody, e);
         }
     }
 }
