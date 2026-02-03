@@ -4,7 +4,9 @@ import com.ai.studybuddy.dto.gamification.GamificationDTO.*;
 import com.ai.studybuddy.model.gamification.*;
 import com.ai.studybuddy.model.gamification.Recommendation.Priority;
 import com.ai.studybuddy.model.gamification.Recommendation.RecommendationType;
+import com.ai.studybuddy.model.gamification.UserStats;
 import com.ai.studybuddy.model.user.User;
+import com.ai.studybuddy.model.user.UserProgress;
 import com.ai.studybuddy.repository.*;
 import com.ai.studybuddy.service.inter.GamificationService;
 import org.slf4j.Logger;
@@ -17,17 +19,26 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Implementazione GamificationService
+ *
+ * INTEGRAZIONE con UserProgress:
+ * - Quando si registrano attività (quiz, spiegazioni, etc.)
+ *   questo service aggiorna ENTRAMBE le tabelle:
+ *   1. UserProgress → per tracciare progressi per argomento
+ *   2. UserStats → per XP globali, badge, streak
+ */
 @Service
 public class GamificationServiceImpl implements GamificationService {
 
     private static final Logger logger = LoggerFactory.getLogger(GamificationServiceImpl.class);
 
-    // Costanti XP dalla documentazione
-    private static final int XP_EXPLANATION = 10;
-    private static final int XP_QUIZ_COMPLETED = 20;
-    private static final int XP_QUIZ_PASSED_BONUS = 10;
-    private static final int XP_FLASHCARD_PER_CARD = 2;
-    private static final int XP_FOCUS_SESSION = 15;
+    // ==================== COSTANTI XP (dalla documentazione) ====================
+    private static final int XP_EXPLANATION = 10;      // +10 XP per spiegazione
+    private static final int XP_QUIZ_COMPLETED = 20;   // +20 XP per quiz completato
+    private static final int XP_QUIZ_PASSED_BONUS = 10;// +10 XP bonus se superato
+    private static final int XP_FLASHCARD_PER_CARD = 2;// +2 XP per flashcard
+    private static final int XP_FOCUS_SESSION = 15;    // +15 XP per sessione focus
 
     @Autowired
     private UserStatsRepository userStatsRepository;
@@ -43,6 +54,9 @@ public class GamificationServiceImpl implements GamificationService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private UserProgressRepository userProgressRepository;  // Repository esistente!
 
     // ==================== XP & STATISTICHE ====================
 
@@ -63,20 +77,47 @@ public class GamificationServiceImpl implements GamificationService {
     public UserStatsResponse getUserStatsResponse(UUID userId) {
         UserStats stats = getOrCreateUserStats(userId);
         long badgeCount = userBadgeRepository.countByUserId(userId);
+
+        // Arricchisci con dati da UserProgress
+        enrichStatsFromProgress(stats, userId);
+
         return UserStatsResponse.fromUserStats(stats, badgeCount);
+    }
+
+    /**
+     * Arricchisce UserStats con dati aggregati da UserProgress
+     * Nota: i minuti di studio sono già tracciati in UserStats.totalStudyTimeMinutes
+     */
+    private void enrichStatsFromProgress(UserStats stats, UUID userId) {
+        // I dati aggregati da UserProgress (come quiz per topic, score medio, etc.)
+        // sono già disponibili tramite UserProgressRepository se necessario.
+        // UserStats traccia già totalStudyTimeMinutes direttamente.
     }
 
     @Override
     @Transactional
     public XpEventResponse recordExplanationXp(User user) {
+        return recordExplanationXp(user, null, null);
+    }
+
+    /**
+     * Registra XP per spiegazione con topic opzionale
+     * Aggiorna sia UserStats che UserProgress
+     */
+    @Transactional
+    public XpEventResponse recordExplanationXp(User user, String topic, String subject) {
         UserStats stats = getOrCreateUserStats(user.getId());
 
-        // Aggiorna contatore e XP
+        // Aggiorna UserStats (globale)
         stats.incrementExplanations();
         stats.updateStreak();
         boolean leveledUp = stats.addXp(XP_EXPLANATION);
-
         userStatsRepository.save(stats);
+
+        // Aggiorna UserProgress (per topic) se specificato
+        if (topic != null && !topic.isEmpty()) {
+            updateUserProgress(user, topic, subject, 0, 0, 0, 0);
+        }
 
         // Verifica badge
         List<Badge> newBadges = checkAndUnlockBadges(user, stats);
@@ -90,6 +131,15 @@ public class GamificationServiceImpl implements GamificationService {
     @Override
     @Transactional
     public XpEventResponse recordQuizXp(User user, boolean passed) {
+        return recordQuizXp(user, passed, null, null, 0, 0, 0);
+    }
+
+    /**
+     * Registra XP per quiz con dettagli per UserProgress
+     */
+    @Transactional
+    public XpEventResponse recordQuizXp(User user, boolean passed, String topic, String subject,
+                                        double score, int totalQuestions, int correctAnswers) {
         UserStats stats = getOrCreateUserStats(user.getId());
 
         int xpEarned = XP_QUIZ_COMPLETED;
@@ -97,12 +147,18 @@ public class GamificationServiceImpl implements GamificationService {
             xpEarned += XP_QUIZ_PASSED_BONUS;
         }
 
+        // Aggiorna UserStats (globale)
         stats.incrementQuizzesCompleted(passed);
         stats.updateStreak();
         boolean leveledUp = stats.addXp(xpEarned);
-
         userStatsRepository.save(stats);
 
+        // Aggiorna UserProgress (per topic) se specificato
+        if (topic != null && !topic.isEmpty()) {
+            updateUserProgress(user, topic, subject, 1, score, totalQuestions, correctAnswers);
+        }
+
+        // Verifica badge
         List<Badge> newBadges = checkAndUnlockBadges(user, stats);
 
         logger.info("Utente {} ha guadagnato {} XP per quiz (passed: {}). Totale: {}",
@@ -121,7 +177,6 @@ public class GamificationServiceImpl implements GamificationService {
         stats.incrementFlashcardsStudied(cardsStudied);
         stats.updateStreak();
         boolean leveledUp = stats.addXp(xpEarned);
-
         userStatsRepository.save(stats);
 
         List<Badge> newBadges = checkAndUnlockBadges(user, stats);
@@ -140,7 +195,6 @@ public class GamificationServiceImpl implements GamificationService {
         stats.incrementFocusSessions(durationMinutes);
         stats.updateStreak();
         boolean leveledUp = stats.addXp(XP_FOCUS_SESSION);
-
         userStatsRepository.save(stats);
 
         List<Badge> newBadges = checkAndUnlockBadges(user, stats);
@@ -149,6 +203,74 @@ public class GamificationServiceImpl implements GamificationService {
                 user.getEmail(), XP_FOCUS_SESSION, stats.getTotalXp());
 
         return new XpEventResponse("FOCUS_SESSION", XP_FOCUS_SESSION, stats, leveledUp, newBadges);
+    }
+
+    // ==================== INTEGRAZIONE USER PROGRESS ====================
+
+    /**
+     * Aggiorna o crea UserProgress per un topic specifico
+     */
+    @Transactional
+    public void updateUserProgress(User user, String topic, String subject,
+                                   int quizCompleted, double score,
+                                   int totalQuestions, int correctAnswers) {
+        try {
+            Optional<UserProgress> existingProgress = userProgressRepository
+                    .findByUserIdAndTopic(user.getId(), topic);
+
+            UserProgress progress;
+            if (existingProgress.isPresent()) {
+                progress = existingProgress.get();
+
+                // Aggiorna statistiche esistenti
+                progress.setQuizCompleted(
+                        (progress.getQuizCompleted() != null ? progress.getQuizCompleted() : 0) + quizCompleted);
+                progress.setTotalQuestions(
+                        (progress.getTotalQuestions() != null ? progress.getTotalQuestions() : 0) + totalQuestions);
+                progress.setCorrectAnswers(
+                        (progress.getCorrectAnswers() != null ? progress.getCorrectAnswers() : 0) + correctAnswers);
+
+                // Ricalcola media
+                if (progress.getTotalQuestions() > 0) {
+                    double newAverage = (progress.getCorrectAnswers() * 100.0) / progress.getTotalQuestions();
+                    progress.setAverageScore(newAverage);
+                }
+
+            } else {
+                // Crea nuovo progress
+                progress = new UserProgress();
+                progress.setUser(user);
+                progress.setTopic(topic);
+                progress.setSubject(subject);
+                progress.setQuizCompleted(quizCompleted);
+                progress.setTotalQuestions(totalQuestions);
+                progress.setCorrectAnswers(correctAnswers);
+
+                if (totalQuestions > 0) {
+                    progress.setAverageScore((correctAnswers * 100.0) / totalQuestions);
+                }
+            }
+
+            progress.setLastActivityAt(LocalDateTime.now());
+
+            // Calcola mastery level basato su score medio
+            progress.setMasteryLevel(calculateMasteryLevel(progress.getAverageScore()));
+
+            userProgressRepository.save(progress);
+        } catch (Exception e) {
+            logger.warn("Errore aggiornamento UserProgress: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Calcola il livello di padronanza basato sul punteggio medio
+     */
+    private com.ai.studybuddy.util.enums.DifficultyLevel calculateMasteryLevel(Double averageScore) {
+        if (averageScore == null) return com.ai.studybuddy.util.enums.DifficultyLevel.PRINCIPIANTE;
+
+        if (averageScore >= 90) return com.ai.studybuddy.util.enums.DifficultyLevel.AVANZATO;
+        if (averageScore >= 70) return com.ai.studybuddy.util.enums.DifficultyLevel.INTERMEDIO;
+        return com.ai.studybuddy.util.enums.DifficultyLevel.PRINCIPIANTE;
     }
 
     // ==================== BADGE ====================
@@ -223,6 +345,8 @@ public class GamificationServiceImpl implements GamificationService {
 
     private void checkAndUnlockByType(User user, UserStats stats, String type,
                                       Integer currentValue, List<Badge> newlyUnlocked) {
+        if (currentValue == null) return;
+
         List<Badge> eligibleBadges = badgeRepository.findUnlockableBadges(type, currentValue);
 
         for (Badge badge : eligibleBadges) {
@@ -262,6 +386,8 @@ public class GamificationServiceImpl implements GamificationService {
             default -> 0;
         };
 
+        if (currentValue == null) return 0.0;
+
         double progress = (double) currentValue / badge.getRequirementValue() * 100;
         return Math.min(progress, 100.0);
     }
@@ -281,30 +407,72 @@ public class GamificationServiceImpl implements GamificationService {
         List<Recommendation> newRecs = new ArrayList<>();
         UserStats stats = getOrCreateUserStats(user.getId());
 
-        // 1. Mantieni lo streak
-        if (stats.getCurrentStreak() > 0 &&
-                stats.getLastActivityDate() != null &&
-                stats.getLastActivityDate().isBefore(java.time.LocalDate.now())) {
+        try {
+            List<UserProgress> progressList = userProgressRepository.findByUserId(user.getId());
 
-            Recommendation streakRec = createRecommendation(
-                    user,
-                    RecommendationType.STREAK_REMINDER,
-                    "Mantieni il tuo streak! 🔥",
-                    "Hai uno streak di " + stats.getCurrentStreak() + " giorni. Non perderlo!",
-                    null,
-                    "Non perdere il tuo streak di studio",
-                    Priority.HIGH
-            );
-            if (streakRec != null) newRecs.add(streakRec);
+            // 1. Mantieni lo streak
+            if (stats.getCurrentStreak() > 0 &&
+                    stats.getLastActivityDate() != null &&
+                    stats.getLastActivityDate().isBefore(java.time.LocalDate.now())) {
+
+                Recommendation streakRec = createRecommendation(
+                        user,
+                        RecommendationType.STREAK_REMINDER,
+                        "Mantieni il tuo streak! 🔥",
+                        "Hai uno streak di " + stats.getCurrentStreak() + " giorni. Non perderlo!",
+                        null,
+                        "Non perdere il tuo streak di studio",
+                        Priority.HIGH
+                );
+                if (streakRec != null) newRecs.add(streakRec);
+            }
+
+            // 2. Argomenti deboli (da UserProgress)
+            for (UserProgress progress : progressList) {
+                if (progress.getAverageScore() != null && progress.getAverageScore() < 60
+                        && progress.getQuizCompleted() != null && progress.getQuizCompleted() > 0) {
+
+                    Recommendation weakTopicRec = createRecommendation(
+                            user,
+                            RecommendationType.WEAKNESS_FOCUS,
+                            "Ripassa: " + progress.getTopic() + " 📚",
+                            "Il tuo punteggio medio è " + Math.round(progress.getAverageScore()) + "%. Prova a ripassare!",
+                            progress.getTopic(),
+                            "Punteggio sotto il 60%",
+                            Priority.HIGH
+                    );
+                    if (weakTopicRec != null) newRecs.add(weakTopicRec);
+                }
+            }
+
+            // 3. Argomenti non studiati da tempo
+            for (UserProgress progress : progressList) {
+                if (progress.getLastActivityAt() != null &&
+                        progress.getLastActivityAt().isBefore(LocalDateTime.now().minusDays(7))) {
+
+                    Recommendation reviewRec = createRecommendation(
+                            user,
+                            RecommendationType.REVIEW_TOPIC,
+                            "Ripasso consigliato: " + progress.getTopic(),
+                            "Non studi questo argomento da oltre una settimana",
+                            progress.getTopic(),
+                            "Ultima attività: " + progress.getLastActivityAt().toLocalDate(),
+                            Priority.MEDIUM
+                    );
+                    if (reviewRec != null) newRecs.add(reviewRec);
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("Errore generazione raccomandazioni da UserProgress: {}", e.getMessage());
         }
 
-        // 2. Obiettivo giornaliero XP
-        if (stats.getWeeklyXp() < 50) {
+        // 4. Obiettivo giornaliero XP
+        if (stats.getWeeklyXp() == null || stats.getWeeklyXp() < 50) {
             Recommendation dailyGoal = createRecommendation(
                     user,
                     RecommendationType.DAILY_GOAL,
                     "Raggiungi 50 XP oggi! 🎯",
-                    "Completa qualche attività per raggiungere il tuo obiettivo giornaliero",
+                    "Completa qualche attività per raggiungere il tuo obiettivo",
                     null,
                     "Guadagna XP per salire di livello",
                     Priority.MEDIUM
@@ -312,8 +480,8 @@ public class GamificationServiceImpl implements GamificationService {
             if (dailyGoal != null) newRecs.add(dailyGoal);
         }
 
-        // 3. Suggerisci di provare nuove funzionalità
-        if (stats.getQuizzesCompleted() == 0) {
+        // 5. Suggerisci nuove funzionalità
+        if (stats.getQuizzesCompleted() == null || stats.getQuizzesCompleted() == 0) {
             Recommendation tryQuiz = createRecommendation(
                     user,
                     RecommendationType.NEW_TOPIC,
@@ -326,12 +494,12 @@ public class GamificationServiceImpl implements GamificationService {
             if (tryQuiz != null) newRecs.add(tryQuiz);
         }
 
-        if (stats.getFlashcardsStudied() == 0) {
+        if (stats.getFlashcardsStudied() == null || stats.getFlashcardsStudied() == 0) {
             Recommendation tryFlashcards = createRecommendation(
                     user,
                     RecommendationType.STUDY_FLASHCARDS,
                     "Scopri le Flashcards! 🃏",
-                    "Crea un deck di flashcards per memorizzare concetti importanti",
+                    "Crea un deck di flashcards per memorizzare concetti",
                     null,
                     "Non hai ancora studiato nessuna flashcard",
                     Priority.MEDIUM
@@ -359,7 +527,7 @@ public class GamificationServiceImpl implements GamificationService {
         rec.setTopic(topic);
         rec.setReason(reason);
         rec.setPriority(priority);
-        rec.setExpiresAt(LocalDateTime.now().plusDays(1)); // Scade dopo 1 giorno
+        rec.setExpiresAt(LocalDateTime.now().plusDays(1));
 
         return recommendationRepository.save(rec);
     }

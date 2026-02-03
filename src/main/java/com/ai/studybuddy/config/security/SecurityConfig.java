@@ -19,7 +19,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtFilter jwtFilter) throws Exception {
         http
-                //.csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.disable())
 
                 .authorizeHttpRequests(auth -> auth
                         // File statici (HTML, CSS, JS, immagini)
