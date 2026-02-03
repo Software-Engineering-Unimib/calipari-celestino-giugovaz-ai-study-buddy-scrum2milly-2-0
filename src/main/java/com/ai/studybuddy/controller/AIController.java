@@ -9,12 +9,11 @@ import com.ai.studybuddy.model.quiz.Quiz;
 import com.ai.studybuddy.model.user.User;
 import com.ai.studybuddy.service.impl.AIServiceImpl;
 import com.ai.studybuddy.service.impl.FlashcardServiceImpl;
-import com.ai.studybuddy.service.inter.QuizService;  // Import cambiato
+import com.ai.studybuddy.service.inter.QuizService;
 import com.ai.studybuddy.service.inter.UserService;
 import com.ai.studybuddy.util.enums.DifficultyLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,17 +27,21 @@ public class AIController {
 
     private static final Logger logger = LoggerFactory.getLogger(AIController.class);
 
-    @Autowired
-    private AIServiceImpl aiServiceImpl;
+    private final AIServiceImpl aiServiceImpl;
+    private final FlashcardServiceImpl flashcardServiceImpl;
+    private final QuizService quizService;
+    private final UserService userService;
 
-    @Autowired
-    private FlashcardServiceImpl flashcardServiceImpl;
-
-    @Autowired
-    private QuizService quizService;  // Cambiato da QuizServiceImpl a QuizService
-
-    @Autowired
-    private UserService userService;
+    // Constructor injection (best practice)
+    public AIController(AIServiceImpl aiServiceImpl,
+                       FlashcardServiceImpl flashcardServiceImpl,
+                       QuizService quizService,
+                       UserService userService) {
+        this.aiServiceImpl = aiServiceImpl;
+        this.flashcardServiceImpl = flashcardServiceImpl;
+        this.quizService = quizService;
+        this.userService = userService;
+    }
 
     // ==================== EXPLANATION ====================
 
@@ -78,7 +81,7 @@ public class AIController {
                 .subject(subject)
                 .build();
 
-        Quiz quiz = quizService.generateQuiz(request, user);  // Cambiato da quizServiceImpl
+        Quiz quiz = quizService.generateQuiz(request, user);
 
         logger.info("Quiz salvato con ID: {}", quiz.getId());
         return ResponseEntity.ok(quiz);
@@ -95,7 +98,7 @@ public class AIController {
         User user = userService.getCurrentUser(principal);
         logger.info("Inizio quiz {} per utente: {}", quizId, user.getEmail());
 
-        Quiz quiz = quizService.startQuiz(quizId, user.getId());  // Cambiato da quizServiceImpl
+        Quiz quiz = quizService.startQuiz(quizId, user.getId());
         return ResponseEntity.ok(quiz);
     }
 
@@ -110,7 +113,7 @@ public class AIController {
         User user = userService.getCurrentUser(principal);
         logger.info("Invio risposte quiz {} per utente: {}", request.getQuizId(), user.getEmail());
 
-        QuizResultResponse result = quizService.submitAnswers(request, user.getId());  // Cambiato
+        QuizResultResponse result = quizService.submitAnswers(request, user.getId());
 
         logger.info("Quiz completato - Score: {}/{}", result.getScore(), result.getTotalQuestions());
         return ResponseEntity.ok(result);
@@ -125,7 +128,7 @@ public class AIController {
             Principal principal) {
 
         User user = userService.getCurrentUser(principal);
-        Quiz quiz = quizService.getQuiz(quizId, user.getId());  // Cambiato
+        Quiz quiz = quizService.getQuiz(quizId, user.getId());
         return ResponseEntity.ok(quiz);
     }
 
@@ -135,7 +138,7 @@ public class AIController {
     @GetMapping("/quiz/my")
     public ResponseEntity<List<Quiz>> getMyQuizzes(Principal principal) {
         User user = userService.getCurrentUser(principal);
-        List<Quiz> quizzes = quizService.getUserQuizzes(user.getId());  // Cambiato
+        List<Quiz> quizzes = quizService.getUserQuizzes(user.getId());
         return ResponseEntity.ok(quizzes);
     }
 
@@ -145,7 +148,7 @@ public class AIController {
     @GetMapping("/quiz/completed")
     public ResponseEntity<List<Quiz>> getCompletedQuizzes(Principal principal) {
         User user = userService.getCurrentUser(principal);
-        List<Quiz> quizzes = quizService.getCompletedQuizzes(user.getId());  // Cambiato
+        List<Quiz> quizzes = quizService.getCompletedQuizzes(user.getId());
         return ResponseEntity.ok(quizzes);
     }
 
@@ -153,9 +156,9 @@ public class AIController {
      * Ottieni statistiche quiz
      */
     @GetMapping("/quiz/stats")
-    public ResponseEntity<QuizService.QuizStats> getQuizStats(Principal principal) {  // Cambiato
+    public ResponseEntity<QuizService.QuizStats> getQuizStats(Principal principal) {
         User user = userService.getCurrentUser(principal);
-        QuizService.QuizStats stats = quizService.getUserStats(user.getId());  // Cambiato
+        QuizService.QuizStats stats = quizService.getUserStats(user.getId());
         return ResponseEntity.ok(stats);
     }
 
@@ -168,7 +171,7 @@ public class AIController {
             Principal principal) {
 
         User user = userService.getCurrentUser(principal);
-        Quiz quiz = quizService.retryQuiz(quizId, user.getId());  // Cambiato
+        Quiz quiz = quizService.retryQuiz(quizId, user.getId());
         return ResponseEntity.ok(quiz);
     }
 
@@ -181,7 +184,7 @@ public class AIController {
             Principal principal) {
 
         User user = userService.getCurrentUser(principal);
-        quizService.deleteQuiz(quizId, user.getId());  // Cambiato
+        quizService.deleteQuiz(quizId, user.getId());
         return ResponseEntity.noContent().build();
     }
 

@@ -20,7 +20,7 @@ import java.io.IOException;
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
-    private static final Logger logger = LoggerFactory.getLogger(JwtFilter.class);
+    private static final Logger log = LoggerFactory.getLogger(JwtFilter.class);
 
     private final JwtUtils jwtUtils;
     private final UserDetailsService userDetailsService;
@@ -53,10 +53,10 @@ public class JwtFilter extends OncePerRequestFilter {
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                logger.debug("Utente autenticato: {}", email);
+                log.debug("Utente autenticato: {}", email);
             }
         } catch (Exception e) {
-            logger.error("Errore autenticazione: {}", e.getMessage());
+            log.error("Errore autenticazione: {}", e.getMessage());
         }
 
         filterChain.doFilter(request, response);
