@@ -1,5 +1,6 @@
 package com.ai.studybuddy.controller;
 
+import com.ai.studybuddy.dto.explanation.ExplanationResponse;
 import com.ai.studybuddy.dto.flashcard.GenerateFlashcardsResponse;
 import com.ai.studybuddy.dto.gamification.GamificationDTO.XpEventResponse;
 import com.ai.studybuddy.dto.quiz.QuizAnswerRequest;
@@ -8,9 +9,9 @@ import com.ai.studybuddy.dto.quiz.QuizResultResponse;
 import com.ai.studybuddy.model.flashcard.Flashcard;
 import com.ai.studybuddy.model.quiz.Quiz;
 import com.ai.studybuddy.model.user.User;
-import com.ai.studybuddy.service.impl.AIServiceImpl;
 import com.ai.studybuddy.service.impl.FlashcardServiceImpl;
 import com.ai.studybuddy.service.impl.GamificationServiceImpl;
+import com.ai.studybuddy.service.inter.ExplanationService;
 import com.ai.studybuddy.service.inter.QuizService;
 import com.ai.studybuddy.service.inter.UserService;
 import com.ai.studybuddy.util.enums.DifficultyLevel;
@@ -31,32 +32,32 @@ public class AIController {
 
     private static final Logger logger = LoggerFactory.getLogger(AIController.class);
 
-    private final AIServiceImpl aiServiceImpl;
+    private final ExplanationService explanationService;
     private final FlashcardServiceImpl flashcardServiceImpl;
     private final QuizService quizService;
     private final UserService userService;
-    private final GamificationServiceImpl gamificationService;  // AGGIUNTO
+    private final GamificationServiceImpl gamificationService;
 
-    // Constructor injection
-    public AIController(AIServiceImpl aiServiceImpl,
+    public AIController(ExplanationService explanationService,
                         FlashcardServiceImpl flashcardServiceImpl,
                         QuizService quizService,
                         UserService userService,
-                        GamificationServiceImpl gamificationService) {  // AGGIUNTO
-        this.aiServiceImpl = aiServiceImpl;
+                        GamificationServiceImpl gamificationService) {
+        this.explanationService = explanationService;
         this.flashcardServiceImpl = flashcardServiceImpl;
         this.quizService = quizService;
         this.userService = userService;
-        this.gamificationService = gamificationService;  // AGGIUNTO
+        this.gamificationService = gamificationService;
     }
 
     // ==================== EXPLANATION ====================
 
     /**
-     * Genera una spiegazione e assegna XP (+10)
+     * Genera una spiegazione personalizzata
+     * ✅ ASSEGNA XP PER SPIEGAZIONE (+10 XP)
      */
     @GetMapping("/explain")
-    public ResponseEntity<Map<String, Object>> getExplanation(
+    public ResponseEntity<ExplanationResponse> getExplanation(
             @RequestParam String topic,
             @RequestParam(defaultValue = "università") String level,
             @RequestParam(required = false) String subject,
@@ -65,26 +66,10 @@ public class AIController {
         User user = userService.getCurrentUser(principal);
         logger.info("Richiesta spiegazione '{}' da utente: {}", topic, user.getEmail());
 
-        // Genera la spiegazione
-        String explanation = aiServiceImpl.generateExplanation(topic, level);
+        ExplanationResponse response = explanationService.generateExplanation(topic, level, subject, user);
 
-        // ✅ ASSEGNA XP PER SPIEGAZIONE (+10 XP)
-        XpEventResponse xpEvent = gamificationService.recordExplanationXp(user, topic, subject);
-
-        logger.info("Utente {} ha guadagnato {} XP per spiegazione. Totale: {}",
-                user.getEmail(), xpEvent.getXpEarned(), xpEvent.getNewTotalXp());
-
-        // Costruisci risposta con XP info
-        Map<String, Object> response = new HashMap<>();
-        response.put("explanation", explanation);
-        response.put("xpEarned", xpEvent.getXpEarned());
-        response.put("totalXp", xpEvent.getNewTotalXp());
-        response.put("level", xpEvent.getNewLevel());
-        response.put("leveledUp", xpEvent.isLeveledUp());
-
-        if (xpEvent.getNewBadges() != null && !xpEvent.getNewBadges().isEmpty()) {
-            response.put("newBadges", xpEvent.getNewBadges());
-        }
+        logger.info("Spiegazione generata - XP: +{}, Totale: {}",
+                response.getXpEarned(), response.getTotalXp());
 
         return ResponseEntity.ok(response);
     }
@@ -261,38 +246,7 @@ public class AIController {
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * LEGACY: Genera quiz senza salvare (per retrocompatibilità)
-     * @deprecated Usa POST /quiz/generate invece
-     */
-    @Deprecated
-    @GetMapping("/quiz")
-    public ResponseEntity<String> generateQuizLegacy(
-            @RequestParam String topic,
-            @RequestParam(defaultValue = "5") int questions,
-            @RequestParam(defaultValue = "media") String difficulty,
-            Principal principal) {
-        User user = userService.getCurrentUser(principal);
-        logger.warn("Uso endpoint deprecato /quiz da utente: {}", user.getEmail());
-
-        String quiz = aiServiceImpl.generateQuiz(topic, questions, difficulty);
-        return ResponseEntity.ok(quiz);
-    }
-
     // ==================== FLASHCARDS ====================
-
-    @GetMapping("/flashcards")
-    public ResponseEntity<String> generateFlashcards(
-            @RequestParam String topic,
-            @RequestParam(defaultValue = "10") int cards,
-            @RequestParam(defaultValue = "avanzato") String difficulty,
-            Principal principal) {
-        User user = userService.getCurrentUser(principal);
-        logger.info("Generazione {} flashcard '{}' per utente: {}", cards, topic, user.getEmail());
-
-        String flashcards = aiServiceImpl.generateFlashCard(topic, cards, difficulty);
-        return ResponseEntity.ok(flashcards);
-    }
 
     /**
      * Genera e salva flashcards con AI
@@ -319,7 +273,6 @@ public class AIController {
         );
 
         // ✅ ASSEGNA XP PER FLASHCARDS GENERATE
-        // Nota: le flashcards generate danno XP come se fossero "studiate"
         XpEventResponse xpEvent = gamificationService.recordFlashcardXp(user, createdCards.size());
 
         GenerateFlashcardsResponse response = new GenerateFlashcardsResponse(

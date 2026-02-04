@@ -34,6 +34,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api**").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
+                        .requestMatchers("/api/ai/explain").permitAll()
 
                         // Console H2 e Swagger
                         .requestMatchers("/h2-console/**").permitAll()
