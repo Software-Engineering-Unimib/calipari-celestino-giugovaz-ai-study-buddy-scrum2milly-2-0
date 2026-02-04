@@ -9,6 +9,11 @@ import com.ai.studybuddy.model.user.User;
 import com.ai.studybuddy.config.security.JwtUtils;
 import com.ai.studybuddy.service.inter.UserService;
 import jakarta.validation.Valid;
+
+import java.security.Principal;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -42,7 +47,8 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
-        logger.info("Tentativo registrazione per email: {}", request.getEmail());
+        logger.info("Tentativo registrazione per email: {} con lingua: {}", 
+                request.getEmail(), request.getPreferredLanguage());
 
         if (userService.existsByEmail(request.getEmail())) {
             return ResponseEntity
@@ -50,14 +56,17 @@ public class AuthController {
                     .body(new RegisterResponse(false, Const.EMAIL_EXISTS, null));
         }
 
+        // ⭐ MODIFICATO: Passa anche preferredLanguage
         User user = userService.registerUser(
                 request.getFirstName(),
                 request.getLastName(),
                 request.getEmail(),
-                request.getPassword()
+                request.getPassword(),
+                request.getPreferredLanguage()  // ← AGGIUNTO
         );
 
-        logger.info("Utente registrato con successo: {}", user.getEmail());
+        logger.info("Utente registrato con successo: {} con lingua: {}", 
+                user.getEmail(), user.getPreferredLanguage());
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -80,7 +89,7 @@ public class AuthController {
             User user = userService.findByEmail(request.getEmail())
                     .orElseThrow(() -> new BadCredentialsException(Const.USER_NOT_FOUND));
 
-            logger.info("Login riuscito per: {}", request.getEmail());
+            logger.info("Login riuscito per: {} (lingua: {})", request.getEmail(), user.getPreferredLanguage());
 
             return ResponseEntity.ok(new LoginResponse(
                     true,
@@ -105,5 +114,61 @@ public class AuthController {
     @GetMapping("/verify")
     public ResponseEntity<String> verifyToken() {
         return ResponseEntity.ok(Const.TOKEN_VALID);
+    }
+    /**
+     * Aggiorna la lingua preferita dell'utente
+     */
+    @PutMapping("/update-language")
+    public ResponseEntity<Map<String, Object>> updateLanguage(
+            @Valid @RequestBody Map<String, String> request,
+            Principal principal) {
+
+        User user = userService.getCurrentUser(principal);
+        String language = request.get("preferredLanguage");
+
+        if (language == null || language.isBlank()) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(Map.of("success", false, "message", "Lingua non specificata"));
+        }
+
+        try {
+            User updated = userService.updatePreferredLanguage(user.getId(), language);
+
+            logger.info("Lingua aggiornata per {}: {}", user.getEmail(), language);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Lingua aggiornata con successo",
+                    "preferredLanguage", updated.getPreferredLanguage()
+            ));
+
+        } catch (Exception e) {
+            logger.error("Errore aggiornamento lingua: {}", e.getMessage());
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+
+    /**
+     * Ottieni informazioni utente corrente (compresa lingua)
+     */
+    @GetMapping("/me")
+    public ResponseEntity<Map<String, Object>> getCurrentUserInfo(Principal principal) {
+        User user = userService.getCurrentUser(principal);
+
+        Map<String, Object> userInfo = new HashMap<>();
+        userInfo.put("id", user.getId());
+        userInfo.put("firstName", user.getFirstName());
+        userInfo.put("lastName", user.getLastName());
+        userInfo.put("email", user.getEmail());
+        userInfo.put("preferredLanguage", user.getPreferredLanguage());
+        userInfo.put("level", user.getLevel());
+        userInfo.put("totalPoints", user.getTotalPoints());
+        userInfo.put("streakDays", user.getStreakDays());
+        userInfo.put("createdAt", user.getCreatedAt());
+
+        return ResponseEntity.ok(userInfo);
     }
 }

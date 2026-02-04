@@ -19,7 +19,17 @@ public interface UserService {
 
     void deleteById(UUID id);
 
-    User registerUser(String firstName, String lastName, String email, String password);
+    /**
+     * Registra un nuovo utente con supporto multilingua
+     * 
+     * @param firstName nome
+     * @param lastName cognome
+     * @param email email
+     * @param password password
+     * @param preferredLanguage lingua preferita (it, en, es, fr, de, pt, ru)
+     * @return utente registrato
+     */
+    User registerUser(String firstName, String lastName, String email, String password, String preferredLanguage);
 
     boolean existsByEmail(String email);
 
@@ -32,4 +42,6 @@ public interface UserService {
     void updateStreak(UUID userId);
 
     void resetStreak(UUID userId);
+
+    User updatePreferredLanguage(UUID userId, String language);
 }

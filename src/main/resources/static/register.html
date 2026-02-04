@@ -7,29 +7,27 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
   <style>
-    body {
-        min-height: 100vh;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    /* STILI ORIGINALI MANTENUTI */
+    body { min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .register-card { backdrop-filter: blur(10px); background: rgba(255, 255, 255, 0.95); }
+    .form-control:focus { border-color: #667eea; box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25); }
+    .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; }
+    .btn-primary:hover { background: linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%); }
+    .password-strength { height: 4px; border-radius: 2px; transition: all 0.3s; }
+    
+    /* Stile per il selettore lingua */
+    .language-selector .form-select {
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+      background-size: 16px 12px;
+      padding-left: 2.5rem;
     }
-    .register-card {
-        backdrop-filter: blur(10px);
-        background: rgba(255, 255, 255, 0.95);
-    }
-    .form-control:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
-    }
-    .btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: none;
-    }
-    .btn-primary:hover {
-        background: linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%);
-    }
-    .password-strength {
-        height: 4px;
-        border-radius: 2px;
-        transition: all 0.3s;
+    .language-flag {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.2rem;
+      z-index: 5;
     }
   </style>
 </head>
@@ -59,21 +57,19 @@
               <div class="col-md-6 mb-3">
                 <label for="firstName" class="form-label fw-medium">Nome</label>
                 <div class="input-group">
-                                        <span class="input-group-text bg-light border-end-0">
-                                            <i class="bi bi-person text-muted"></i>
-                                        </span>
-                  <input type="text" class="form-control border-start-0 ps-0"
-                         id="firstName" placeholder="Mario" required minlength="2">
+                  <span class="input-group-text bg-light border-end-0">
+                    <i class="bi bi-person text-muted"></i>
+                  </span>
+                  <input type="text" class="form-control border-start-0 ps-0" id="firstName" placeholder="Mario" required minlength="2">
                 </div>
               </div>
               <div class="col-md-6 mb-3">
                 <label for="lastName" class="form-label fw-medium">Cognome</label>
                 <div class="input-group">
-                                        <span class="input-group-text bg-light border-end-0">
-                                            <i class="bi bi-person text-muted"></i>
-                                        </span>
-                  <input type="text" class="form-control border-start-0 ps-0"
-                         id="lastName" placeholder="Rossi" required minlength="2">
+                  <span class="input-group-text bg-light border-end-0">
+                    <i class="bi bi-person text-muted"></i>
+                  </span>
+                  <input type="text" class="form-control border-start-0 ps-0" id="lastName" placeholder="Rossi" required minlength="2">
                 </div>
               </div>
             </div>
@@ -81,27 +77,47 @@
             <div class="mb-3">
               <label for="email" class="form-label fw-medium">Email</label>
               <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0">
-                                        <i class="bi bi-envelope text-muted"></i>
-                                    </span>
-                <input type="email" class="form-control border-start-0 ps-0"
-                       id="email" placeholder="mario@esempio.com" required>
+                <span class="input-group-text bg-light border-end-0">
+                  <i class="bi bi-envelope text-muted"></i>
+                </span>
+                <input type="email" class="form-control border-start-0 ps-0" id="email" placeholder="mario@esempio.com" required>
               </div>
+            </div>
+
+            <!-- NUOVO: Selezione Lingua -->
+            <div class="mb-3">
+              <label for="language" class="form-label fw-medium">Lingua preferita</label>
+              <div class="input-group language-selector position-relative">
+                <span class="input-group-text bg-light border-end-0">
+                  <i class="bi bi-translate text-muted"></i>
+                </span>
+                <span class="language-flag" id="languageFlag">🇮🇹</span>
+                <select class="form-select border-start-0 ps-4" id="language" required>
+                  <option value="it" selected>🇮🇹 Italiano</option>
+                  <option value="en">🇺🇸 English</option>
+                  <option value="es">🇪🇸 Español</option>
+                  <option value="fr">🇫🇷 Français</option>
+                  <option value="de">🇩🇪 Deutsch</option>
+                  <option value="pt">🇵🇹 Português</option>
+                  <option value="ru">🇷🇺 Русский</option>
+                </select>
+              </div>
+              <small class="text-muted">Scegli la lingua in cui vuoi ricevere i contenuti AI</small>
             </div>
 
             <div class="mb-3">
               <label for="password" class="form-label fw-medium">Password</label>
               <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0">
-                                        <i class="bi bi-lock text-muted"></i>
-                                    </span>
+                <span class="input-group-text bg-light border-end-0">
+                  <i class="bi bi-lock text-muted"></i>
+                </span>
                 <input type="password" class="form-control border-start-0 border-end-0 ps-0"
                        id="password" placeholder="Minimo 8 caratteri" required minlength="8"
                        oninput="checkPasswordStrength()">
                 <span class="input-group-text bg-light border-start-0 password-toggle"
                       onclick="togglePassword('password', 'toggleIcon1')">
-                                        <i class="bi bi-eye text-muted" id="toggleIcon1"></i>
-                                    </span>
+                  <i class="bi bi-eye text-muted" id="toggleIcon1"></i>
+                </span>
               </div>
               <div class="password-strength bg-secondary mt-2" id="passwordStrength"></div>
               <small class="text-muted" id="passwordHint">Usa almeno 8 caratteri</small>
@@ -110,15 +126,15 @@
             <div class="mb-4">
               <label for="confirmPassword" class="form-label fw-medium">Conferma Password</label>
               <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0">
-                                        <i class="bi bi-lock-fill text-muted"></i>
-                                    </span>
+                <span class="input-group-text bg-light border-end-0">
+                  <i class="bi bi-lock-fill text-muted"></i>
+                </span>
                 <input type="password" class="form-control border-start-0 border-end-0 ps-0"
                        id="confirmPassword" placeholder="Ripeti la password" required>
                 <span class="input-group-text bg-light border-start-0 password-toggle"
                       onclick="togglePassword('confirmPassword', 'toggleIcon2')">
-                                        <i class="bi bi-eye text-muted" id="toggleIcon2"></i>
-                                    </span>
+                  <i class="bi bi-eye text-muted" id="toggleIcon2"></i>
+                </span>
               </div>
             </div>
 
@@ -192,6 +208,21 @@
       hint.textContent = password.length > 0 ? hints[Math.max(0, strength - 1)] : 'Usa almeno 8 caratteri';
   }
 
+  // Aggiorna bandiera quando cambia lingua
+  document.getElementById('language').addEventListener('change', function() {
+      const flagElement = document.getElementById('languageFlag');
+      const flags = {
+          'it': '🇮🇹',
+          'en': '🇺🇸', 
+          'es': '🇪🇸',
+          'fr': '🇫🇷',
+          'de': '🇩🇪',
+          'pt': '🇵🇹',
+          'ru': '🇷🇺'
+      };
+      flagElement.textContent = flags[this.value] || '🌐';
+  });
+
   // Show alert
   function showAlert(message, type) {
       const alert = document.getElementById('alertMessage');
@@ -224,7 +255,8 @@
           firstName: document.getElementById('firstName').value,
           lastName: document.getElementById('lastName').value,
           email: document.getElementById('email').value,
-          password: password
+          password: password,
+          preferredLanguage: document.getElementById('language').value // Aggiunto lingua
       };
 
       try {

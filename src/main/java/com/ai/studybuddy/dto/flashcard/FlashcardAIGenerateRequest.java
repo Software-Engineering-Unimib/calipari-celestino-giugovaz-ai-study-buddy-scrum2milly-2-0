@@ -24,6 +24,9 @@ public class FlashcardAIGenerateRequest {
     @Size(max = 500, message = "Il contesto non può superare 500 caratteri")
     private String context;
 
+    @Size(min = 2, max = 10, message = "La lingua deve essere tra 2 e 10 caratteri")
+    private String language = "it"; // Default italiano
+
     // Costruttori
     public FlashcardAIGenerateRequest() {}
 
@@ -31,6 +34,13 @@ public class FlashcardAIGenerateRequest {
         this.topic = topic;
         this.numberOfCards = numberOfCards;
         this.difficultyLevel = difficultyLevel;
+    }
+
+    public FlashcardAIGenerateRequest(String topic, Integer numberOfCards, DifficultyLevel difficultyLevel, String language) {
+        this.topic = topic;
+        this.numberOfCards = numberOfCards;
+        this.difficultyLevel = difficultyLevel;
+        this.language = language;
     }
 
     // Builder pattern
@@ -43,6 +53,7 @@ public class FlashcardAIGenerateRequest {
         private Integer numberOfCards = 5;
         private DifficultyLevel difficultyLevel = DifficultyLevel.INTERMEDIO;
         private String context;
+        private String language = "it";
 
         public Builder topic(String topic) {
             this.topic = topic;
@@ -64,12 +75,18 @@ public class FlashcardAIGenerateRequest {
             return this;
         }
 
+        public Builder language(String language) {
+            this.language = language;
+            return this;
+        }
+
         public FlashcardAIGenerateRequest build() {
             FlashcardAIGenerateRequest request = new FlashcardAIGenerateRequest();
             request.setTopic(this.topic);
             request.setNumberOfCards(this.numberOfCards);
             request.setDifficultyLevel(this.difficultyLevel);
             request.setContext(this.context);
+            request.setLanguage(this.language);
             return request;
         }
     }
@@ -105,5 +122,18 @@ public class FlashcardAIGenerateRequest {
 
     public void setContext(String context) {
         this.context = context;
+    }
+
+    public String getLanguage() {
+        return language != null ? language : "it"; // Default italiano
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+
+    // Utility method per retrocompatibilità
+    public boolean hasContext() {
+        return context != null && !context.trim().isEmpty();
     }
 }

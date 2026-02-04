@@ -87,4 +87,7 @@ public interface FlashcardService {
         public long getNeedReview() { return needReview; }
         public double getMasteryPercentage() { return masteryPercentage; }
     }
+
+	List<Flashcard> generateAndSaveFlashcards(UUID deckId, String topic, int numberOfCards, String difficulty,
+			String language, User user);
 }

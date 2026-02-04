@@ -77,11 +77,12 @@ public class FlashcardServiceImpl implements FlashcardService {
     @Deprecated
     @Transactional
     public List<Flashcard> generateAndSaveFlashcards(UUID deckId, String topic, int numberOfCards,
-                                                     String difficulty, User user) {
+            String difficulty, String language, User user) {
         FlashcardAIGenerateRequest request = FlashcardAIGenerateRequest.builder()
                 .topic(topic)
                 .numberOfCards(numberOfCards)
                 .difficultyLevel(DifficultyLevel.fromString(difficulty))
+                .language(language) // Aggiungi la lingua alla richiesta
                 .build();
 
         // Usa selfProxy invece di this per assicurarti che le transazioni funzionino
@@ -93,18 +94,33 @@ public class FlashcardServiceImpl implements FlashcardService {
     public List<Flashcard> generateAndSaveFlashcards(UUID deckId,
                                                      FlashcardAIGenerateRequest request,
                                                      User user) {
-        log.info("Generazione AI flashcards - deck: {}, topic: {}, cards: {}",
-                deckId, request.getTopic(), request.getNumberOfCards());
+        log.info("Generazione AI flashcards - deck: {}, topic: {}, cards: {}, lingua: {}",
+                deckId, request.getTopic(), request.getNumberOfCards(), request.getLanguage());
 
         FlashcardDeck deck = findDeckOrThrow(deckId);
         verifyOwnership(deck, user);
 
-        // Genera flashcard con AI
-        String aiResponse = aiService.generateFlashcards(
-                request.getTopic(),
-                request.getNumberOfCards(),
-                request.getDifficultyLevel()
-        );
+        String aiResponse;
+        
+        // Controlla se c'è un contesto
+        if (request.getContext() != null && !request.getContext().trim().isEmpty()) {
+            // Genera flashcard con contesto
+            aiResponse = aiService.generateFlashcardsWithContext(
+                    request.getTopic(),
+                    request.getNumberOfCards(),
+                    request.getDifficultyLevel(),
+                    request.getContext(),
+                    request.getLanguage() // Passa la lingua
+            );
+        } else {
+            // Genera flashcard senza contesto
+            aiResponse = aiService.generateFlashcards(
+                    request.getTopic(),
+                    request.getNumberOfCards(),
+                    request.getDifficultyLevel(),
+                    request.getLanguage() // Passa la lingua
+            );
+        }
 
         // Parsa e salva
         JsonArray flashcardsJson = aiService.parseFlashcardsResponse(aiResponse);
@@ -126,8 +142,16 @@ public class FlashcardServiceImpl implements FlashcardService {
 
         updateDeckCardCount(deck, createdCards.size());
 
-        log.info("Generate {} flashcards con AI", createdCards.size());
+        log.info("Generate {} flashcards con AI in lingua: {}", createdCards.size(), request.getLanguage());
         return createdCards;
+    }
+
+    @Override
+    @Deprecated
+    public List<Flashcard> generateAndSaveFlashcards(UUID deckId, String topic, int numberOfCards, String difficulty,
+            User user) {
+        // Metodo legacy per retrocompatibilità - usa italiano come default
+        return generateAndSaveFlashcards(deckId, topic, numberOfCards, difficulty, "it", user);
     }
 
     @Override

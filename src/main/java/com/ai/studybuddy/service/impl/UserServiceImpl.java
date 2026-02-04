@@ -18,6 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -79,7 +80,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     @Transactional
-    public User registerUser(String firstName, String lastName, String email, String password) {
+    public User registerUser(String firstName, String lastName, String email, String password, String preferredLanguage) {
         if (existsByEmail(email)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, Const.EMAIL_EXISTS);
         }
@@ -89,10 +90,14 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         user.setLastName(lastName);
         user.setEmail(email);
         user.setPasswordHash(passwordEncoder.encode(password));
+        
+        // ⭐ AGGIUNTO: Imposta la lingua preferita (default "it" se null)
+        user.setPreferredLanguage(preferredLanguage != null && !preferredLanguage.isBlank() ? preferredLanguage : "it");
+        
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
 
-        logger.info("Registrazione nuovo utente: {}", email);
+        logger.info("Registrazione nuovo utente: {} con lingua: {}", email, user.getPreferredLanguage());
         return userRepository.save(user);
     }
 
@@ -166,5 +171,24 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         userRepository.save(user);
 
         logger.info("Utente {} streak resettato", userId);
+    }
+    @Override
+    @Transactional
+    public User updatePreferredLanguage(UUID userId, String language) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, Const.USER_NOT_FOUND));
+
+        // Valida la lingua
+        List<String> supportedLanguages = Arrays.asList("it", "en", "es", "fr", "de", "pt", "ru");
+        if (!supportedLanguages.contains(language)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lingua non supportata: " + language);
+        }
+
+        user.setPreferredLanguage(language);
+        user.setUpdatedAt(LocalDateTime.now());
+        User updated = userRepository.save(user);
+
+        logger.info("Lingua aggiornata per utente {}: {}", userId, language);
+        return updated;
     }
 }

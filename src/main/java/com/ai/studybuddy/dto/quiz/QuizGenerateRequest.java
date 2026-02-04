@@ -27,6 +27,9 @@ public class QuizGenerateRequest {
     @Size(max = 500, message = "Il contesto non può superare 500 caratteri")
     private String context;
 
+    @Size(min = 2, max = 10, message = "La lingua deve essere tra 2 e 10 caratteri")
+    private String language = "it"; // Default italiano
+
     // Costruttori
     public QuizGenerateRequest() {}
 
@@ -34,6 +37,13 @@ public class QuizGenerateRequest {
         this.topic = topic;
         this.numberOfQuestions = numberOfQuestions;
         this.difficultyLevel = difficultyLevel;
+    }
+
+    public QuizGenerateRequest(String topic, Integer numberOfQuestions, DifficultyLevel difficultyLevel, String language) {
+        this.topic = topic;
+        this.numberOfQuestions = numberOfQuestions;
+        this.difficultyLevel = difficultyLevel;
+        this.language = language;
     }
 
     // Builder
@@ -47,6 +57,7 @@ public class QuizGenerateRequest {
         private Integer numberOfQuestions = 5;
         private DifficultyLevel difficultyLevel = DifficultyLevel.INTERMEDIO;
         private String context;
+        private String language = "it";
 
         public Builder topic(String topic) {
             this.topic = topic;
@@ -73,6 +84,11 @@ public class QuizGenerateRequest {
             return this;
         }
 
+        public Builder language(String language) {
+            this.language = language;
+            return this;
+        }
+
         public QuizGenerateRequest build() {
             QuizGenerateRequest request = new QuizGenerateRequest();
             request.setTopic(this.topic);
@@ -80,6 +96,7 @@ public class QuizGenerateRequest {
             request.setNumberOfQuestions(this.numberOfQuestions);
             request.setDifficultyLevel(this.difficultyLevel);
             request.setContext(this.context);
+            request.setLanguage(this.language);
             return request;
         }
     }
@@ -123,5 +140,18 @@ public class QuizGenerateRequest {
 
     public void setContext(String context) {
         this.context = context;
+    }
+
+    public String getLanguage() {
+        return language != null ? language : "it"; // Default italiano
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+
+    // Utility method per verificare se c'è un contesto
+    public boolean hasContext() {
+        return context != null && !context.trim().isEmpty();
     }
 }

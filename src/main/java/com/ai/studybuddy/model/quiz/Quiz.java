@@ -18,7 +18,8 @@ import java.util.UUID;
 @Table(name = "quizzes", indexes = {
         @Index(name = "idx_quiz_user", columnList = "user_id"),
         @Index(name = "idx_quiz_completed", columnList = "is_completed"),
-        @Index(name = "idx_quiz_subject", columnList = "subject")
+        @Index(name = "idx_quiz_subject", columnList = "subject"),
+        @Index(name = "idx_quiz_language", columnList = "language") // Nuovo indice
 })
 public class Quiz {
 
@@ -57,6 +58,9 @@ public class Quiz {
 
     @Column(name = "number_of_questions")
     private Integer numberOfQuestions;
+
+    @Column(name = "language", length = 10)
+    private String language = "it"; // Nuovo campo per la lingua
 
     // ==================== STATO ====================
 
@@ -102,6 +106,7 @@ public class Quiz {
         updatedAt = LocalDateTime.now();
         if (isCompleted == null) isCompleted = false;
         if (isAiGenerated == null) isAiGenerated = false;
+        if (language == null) language = "it"; // Default italiano
     }
 
     @PreUpdate
@@ -226,6 +231,42 @@ public class Quiz {
         return String.format("%02d:%02d", minutes, seconds);
     }
 
+    /**
+     * Ottiene l'emoji della bandiera in base alla lingua
+     */
+    public String getLanguageFlag() {
+        if (language == null) return "🇮🇹";
+        
+        return switch (language.toLowerCase()) {
+            case "en" -> "🇺🇸";
+            case "es" -> "🇪🇸";
+            case "fr" -> "🇫🇷";
+            case "de" -> "🇩🇪";
+            case "pt" -> "🇵🇹";
+            case "ru" -> "🇷🇺";
+            case "it" -> "🇮🇹";
+            default -> "🌐";
+        };
+    }
+
+    /**
+     * Ottiene il nome della lingua
+     */
+    public String getLanguageName() {
+        if (language == null) return "Italiano";
+        
+        return switch (language.toLowerCase()) {
+            case "en" -> "English";
+            case "es" -> "Español";
+            case "fr" -> "Français";
+            case "de" -> "Deutsch";
+            case "pt" -> "Português";
+            case "ru" -> "Русский";
+            case "it" -> "Italiano";
+            default -> language.toUpperCase();
+        };
+    }
+
     // ==================== EQUALS & HASHCODE ====================
 
     @Override
@@ -313,6 +354,14 @@ public class Quiz {
 
     public void setNumberOfQuestions(Integer numberOfQuestions) {
         this.numberOfQuestions = numberOfQuestions;
+    }
+
+    public String getLanguage() {
+        return language != null ? language : "it"; // Default italiano
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
     }
 
     public Boolean getIsCompleted() {

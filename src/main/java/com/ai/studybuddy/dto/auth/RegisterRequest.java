@@ -17,6 +17,10 @@ public class RegisterRequest {
     @Size(min = 8)
     private String password;
 
+    // ⭐ AGGIUNTO: Campo per la lingua preferita
+    @Size(min = 2, max = 10)
+    private String preferredLanguage;
+
     public RegisterRequest() {}
 
     public RegisterRequest(String firstName, String lastName, String email, String password) {
@@ -24,6 +28,14 @@ public class RegisterRequest {
         this.lastName = lastName;
         this.email = email;
         this.password = password;
+    }
+
+    public RegisterRequest(String firstName, String lastName, String email, String password, String preferredLanguage) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.password = password;
+        this.preferredLanguage = preferredLanguage;
     }
 
     public String getFirstName() {
@@ -56,5 +68,14 @@ public class RegisterRequest {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    // ⭐ AGGIUNTO: Getter e Setter per preferredLanguage
+    public String getPreferredLanguage() {
+        return preferredLanguage;
+    }
+
+    public void setPreferredLanguage(String preferredLanguage) {
+        this.preferredLanguage = preferredLanguage;
     }
 }
