@@ -3,379 +3,141 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Study Buddy</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <title>Dashboard - AI Study Buddy</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="css/style.css" rel="stylesheet">
+  <link href="css/topbar-footer.css" rel="stylesheet">
 </head>
 <body>
-<!-- Mobile Menu Button -->
-<button class="mobile-menu-btn" id="mobileMenuBtn">
-  <i class="bi bi-list"></i>
-</button>
+<!-- Sidebar, Topbar generati da layout.js -->
 
-<!-- Sidebar Overlay -->
-<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<main class="main-content">
+  <!-- Topbar verrà inserito qui da renderTopbar() -->
 
-<!-- Sidebar -->
-<aside class="sidebar" id="sidebar">
-  <a href="index.html" class="sidebar-logo">
-    <i class="bi bi-mortarboard-fill"></i>
-    <h1>AI Study Buddy</h1>
-  </a>
-
-  <nav class="sidebar-nav">
-    <div class="nav-section-title">Studio</div>
-    <a href="spiegazioni.html" class="nav-item">
-      <i class="bi bi-chat-dots"></i>
-      <span>Spiegazioni AI</span>
-    </a>
-    <a href="quiz.html" class="nav-item">
-      <i class="bi bi-patch-question"></i>
-      <span>Quiz</span>
-    </a>
-    <a href="flashcards.html" class="nav-item">
-      <i class="bi bi-stack"></i>
-      <span>Flashcards</span>
-    </a>
-  </nav>
-
-  <div class="sidebar-footer">
-    <div class="user-info">
-      <div class="user-avatar" id="userAvatar">U</div>
-      <div class="user-details">
-        <div class="user-name" id="userName">Utente</div>
-        <div class="user-level" id="userLevel">Livello 1</div>
+  <!-- Welcome Card -->
+  <div class="card" style="background: var(--gradient-primary); border: none; margin-bottom: 1.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">
+          Ciao, <span id="welcomeName">Studente</span>! 👋
+        </h2>
+        <p style="opacity: 0.9; margin: 0;">Pronto per una nuova sessione di studio?</p>
       </div>
+      <a href="quiz.html" class="btn btn-secondary">
+        <i class="bi bi-play-fill"></i> Inizia Quiz
+      </a>
     </div>
   </div>
-</aside>
 
-<!-- Main Content -->
-<main class="main-content">
-  <div class="page-header">
-    <h1 class="page-title">Benvenuto su AI Study Buddy! 👋</h1>
-    <p class="page-subtitle">Il tuo tutor personale basato sull'Intelligenza Artificiale</p>
-  </div>
+  <!-- Stats Grid -->
+  <h3 class="page-title" style="font-size: 1.25rem; margin-bottom: 1rem;">
+    <i class="bi bi-graph-up-arrow text-primary"></i> Le tue statistiche
+  </h3>
 
-  <div id="alertContainer"></div>
-
-  <!-- Stats Overview -->
-  <div class="row mb-4">
-    <div class="col-6 col-md-3 mb-3">
-      <div class="card text-center h-100">
-        <div class="card-icon primary mx-auto mb-2">
-          <i class="bi bi-patch-question"></i>
-        </div>
-        <div class="stat-value" id="statQuizCompleted">-</div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+    <div class="stat-card">
+      <div class="card-icon primary"><i class="bi bi-lightning-charge-fill"></i></div>
+      <div>
+        <div class="stat-value" id="statXp">0</div>
+        <div class="stat-label">XP Totali</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="card-icon" style="background: #dc2626;"><i class="bi bi-fire"></i></div>
+      <div>
+        <div class="stat-value" id="statStreak">0</div>
+        <div class="stat-label">Giorni Streak</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="card-icon success"><i class="bi bi-patch-check-fill"></i></div>
+      <div>
+        <div class="stat-value" id="statQuiz">0</div>
         <div class="stat-label">Quiz Completati</div>
       </div>
     </div>
-    <div class="col-6 col-md-3 mb-3">
-      <div class="card text-center h-100">
-        <div class="card-icon success mx-auto mb-2">
-          <i class="bi bi-check-circle"></i>
-        </div>
-        <div class="stat-value" id="statQuizPassed">-</div>
-        <div class="stat-label">Quiz Superati</div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3 mb-3">
-      <div class="card text-center h-100">
-        <div class="card-icon warning mx-auto mb-2">
-          <i class="bi bi-stack"></i>
-        </div>
-        <div class="stat-value" id="statTotalCards">-</div>
+    <div class="stat-card">
+      <div class="card-icon warning"><i class="bi bi-stack"></i></div>
+      <div>
+        <div class="stat-value" id="statFlashcards">0</div>
         <div class="stat-label">Flashcards</div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3 mb-3">
-      <div class="card text-center h-100">
-        <div class="card-icon mx-auto mb-2" style="background: rgba(236, 72, 153, 0.2); color: #ec4899;">
-          <i class="bi bi-graph-up"></i>
-        </div>
-        <div class="stat-value" id="statAvgScore">-</div>
-        <div class="stat-label">Media Quiz</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Progress Card -->
-  <div class="card mb-4" id="progressCard">
-    <h3 class="card-title mb-4">
-      <i class="bi bi-bar-chart text-primary me-2"></i>
-      I tuoi Progressi
-    </h3>
-    <div class="row">
-      <div class="col-md-6 mb-3">
-        <label class="form-label d-flex justify-content-between">
-          <span>Quiz superati</span>
-          <span id="quizPassRate">0%</span>
-        </label>
-        <div class="progress" style="height: 10px;">
-          <div class="progress-bar bg-success" id="quizPassBar" style="width: 0%"></div>
-        </div>
-      </div>
-      <div class="col-md-6 mb-3">
-        <label class="form-label d-flex justify-content-between">
-          <span>Flashcards padroneggiate</span>
-          <span id="cardsMasteredRate">0%</span>
-        </label>
-        <div class="progress" style="height: 10px;">
-          <div class="progress-bar bg-warning" id="cardsMasteredBar" style="width: 0%"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Recent Activity -->
-    <h5 class="mt-4 mb-3">Attività Recente</h5>
-    <div id="recentActivity">
-      <div class="text-muted text-center py-3">
-        <i class="bi bi-clock-history fs-3 d-block mb-2"></i>
-        Caricamento attività...
       </div>
     </div>
   </div>
 
   <!-- Quick Actions -->
-  <div class="row mb-4">
-    <div class="col-md-4 mb-4">
-      <a href="spiegazioni.html" class="card text-decoration-none h-100">
-        <div class="d-flex align-items-start gap-3">
-          <div class="card-icon primary">
-            <i class="bi bi-chat-dots"></i>
-          </div>
-          <div>
-            <h3 class="card-title mb-2">Spiegazioni AI</h3>
-            <p class="text-muted mb-0">Chiedi spiegazioni su qualsiasi argomento.</p>
-          </div>
-        </div>
-        <div class="mt-4">
-                    <span class="btn btn-primary">
-                        Inizia a chiedere
-                        <i class="bi bi-arrow-right ms-1"></i>
-                    </span>
-        </div>
-      </a>
-    </div>
+  <h3 class="page-title" style="font-size: 1.25rem; margin-bottom: 1rem;">
+    <i class="bi bi-rocket-takeoff text-primary"></i> Azioni rapide
+  </h3>
 
-    <div class="col-md-4 mb-4">
-      <a href="quiz.html" class="card text-decoration-none h-100">
-        <div class="d-flex align-items-start gap-3">
-          <div class="card-icon warning">
-            <i class="bi bi-patch-question"></i>
-          </div>
-          <div>
-            <h3 class="card-title mb-2">Quiz</h3>
-            <p class="text-muted mb-0">Genera quiz per testare le tue conoscenze.</p>
-          </div>
-        </div>
-        <div class="mt-4">
-                    <span class="btn btn-primary">
-                        Genera un quiz
-                        <i class="bi bi-arrow-right ms-1"></i>
-                    </span>
-        </div>
-      </a>
-    </div>
-
-    <div class="col-md-4 mb-4">
-      <a href="flashcards.html" class="card text-decoration-none h-100">
-        <div class="d-flex align-items-start gap-3">
-          <div class="card-icon success">
-            <i class="bi bi-stack"></i>
-          </div>
-          <div>
-            <h3 class="card-title mb-2">Flashcards</h3>
-            <p class="text-muted mb-0">Crea deck di flashcards con l'AI.</p>
-          </div>
-        </div>
-        <div class="mt-4">
-                    <span class="btn btn-primary">
-                        Studia flashcards
-                        <i class="bi bi-arrow-right ms-1"></i>
-                    </span>
-        </div>
-      </a>
-    </div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
+    <a href="explaination.html" class="card" style="text-decoration: none; text-align: center; padding: 1.5rem;">
+      <i class="bi bi-lightbulb text-warning" style="font-size: 2.5rem; display: block; margin-bottom: 0.75rem;"></i>
+      <strong style="color: #fff;">Chiedi Spiegazione</strong>
+      <small style="display: block; color: var(--text-muted);">+10 XP</small>
+    </a>
+    <a href="quiz.html" class="card" style="text-decoration: none; text-align: center; padding: 1.5rem;">
+      <i class="bi bi-patch-question text-primary" style="font-size: 2.5rem; display: block; margin-bottom: 0.75rem;"></i>
+      <strong style="color: #fff;">Genera Quiz</strong>
+      <small style="display: block; color: var(--text-muted);">+20 XP</small>
+    </a>
+    <a href="flashcards.html" class="card" style="text-decoration: none; text-align: center; padding: 1.5rem;">
+      <i class="bi bi-stack text-success" style="font-size: 2.5rem; display: block; margin-bottom: 0.75rem;"></i>
+      <strong style="color: #fff;">Studia Flashcards</strong>
+      <small style="display: block; color: var(--text-muted);">+5 XP/carta</small>
+    </a>
+    <a href="leaderboard.html" class="card" style="text-decoration: none; text-align: center; padding: 1.5rem;">
+      <i class="bi bi-trophy text-danger" style="font-size: 2.5rem; display: block; margin-bottom: 0.75rem;"></i>
+      <strong style="color: #fff;">Classifica</strong>
+      <small style="display: block; color: var(--text-muted);">Vedi posizione</small>
+    </a>
   </div>
 
-  <!-- Tips -->
-  <div class="card" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%); border-color: var(--primary-color);">
-    <div class="d-flex align-items-center gap-3">
-      <div class="card-icon primary">
-        <i class="bi bi-lightbulb"></i>
-      </div>
-      <div>
-        <h5 class="mb-1">Suggerimento del giorno</h5>
-        <p class="text-muted mb-0" id="dailyTip">
-          Per ottenere spiegazioni migliori, sii specifico nelle tue domande.
-        </p>
-      </div>
-    </div>
-  </div>
+  <!-- Footer verrà aggiunto da renderFooter() -->
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="js/app.js"></script>
+<script src="js/layout.js"></script>
 <script>
-  // Tips casuali
-  const tips = [
-      "Per ottenere spiegazioni migliori, sii specifico nelle tue domande.",
-      "Ripassa le flashcards ogni giorno per memorizzare meglio.",
-      "Fai quiz regolarmente per verificare i tuoi progressi.",
-      "Usa la modalità studio per concentrarti senza distrazioni.",
-      "Crea flashcards subito dopo aver studiato un nuovo argomento."
-  ];
+  document.addEventListener('DOMContentLoaded', function() {
+      // Inizializza layout (sidebar + topbar + footer)
+      initLayout({
+          pageTitle: 'Dashboard',
+          activePage: 'index',
+          showTopbar: true,
+          showFooter: true
+      });
 
-  document.addEventListener('DOMContentLoaded', async function() {
-      // Mostra tip casuale
-      document.getElementById('dailyTip').textContent = tips[Math.floor(Math.random() * tips.length)];
-
-      // Carica statistiche
-      await loadDashboardStats();
-      await loadRecentActivity();
-      await loadUserInfo();
+      // Carica dati dashboard
+      loadDashboardData();
   });
 
-  async function loadUserInfo() {
+  async function loadDashboardData() {
+      // Nome utente
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const welcomeEl = document.getElementById('welcomeName');
+      if (welcomeEl && user.firstName) {
+          welcomeEl.textContent = user.firstName;
+      }
+
+      // Statistiche
       try {
-          const response = await apiFetch('/auth/me');
-          if (response.ok) {
-              const user = await response.json();
-              document.getElementById('userName').textContent =
-                  `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email;
-              document.getElementById('userAvatar').textContent =
-                  (user.firstName?.[0] || user.email[0]).toUpperCase();
-              document.getElementById('userLevel').textContent = `Livello ${user.level || 1}`;
-          }
-      } catch (e) {
-          console.warn('Errore caricamento user info:', e);
-      }
-  }
+          const token = localStorage.getItem('token');
+          if (!token) return;
 
-  async function loadDashboardStats() {
-      try {
-          // Statistiche Quiz
-          const quizResponse = await apiFetch('/ai/quiz/stats');
-          if (quizResponse.ok) {
-              const quizStats = await quizResponse.json();
-              document.getElementById('statQuizCompleted').textContent = quizStats.completedQuizzes || 0;
-              document.getElementById('statQuizPassed').textContent = quizStats.passedQuizzes || 0;
-              document.getElementById('statAvgScore').textContent =
-                  quizStats.averageScore ? `${Math.round(quizStats.averageScore)}%` : '0%';
-
-              // Progress bar quiz
-              const passRate = quizStats.passRate || 0;
-              document.getElementById('quizPassRate').textContent = `${Math.round(passRate)}%`;
-              document.getElementById('quizPassBar').style.width = `${passRate}%`;
-          }
-      } catch (e) {
-          console.warn('Errore caricamento quiz stats:', e);
-          document.getElementById('statQuizCompleted').textContent = '0';
-          document.getElementById('statQuizPassed').textContent = '0';
-          document.getElementById('statAvgScore').textContent = '0%';
-      }
-
-      try {
-          // Statistiche Flashcards
-          const flashcardResponse = await apiFetch('/flashcards/decks/stats');
-          if (flashcardResponse.ok) {
-              const flashcardStats = await flashcardResponse.json();
-              document.getElementById('statTotalCards').textContent = flashcardStats.totalCards || 0;
-
-              // Progress bar flashcards
-              const masteryRate = flashcardStats.overallMasteryPercentage || 0;
-              document.getElementById('cardsMasteredRate').textContent = `${Math.round(masteryRate)}%`;
-              document.getElementById('cardsMasteredBar').style.width = `${masteryRate}%`;
-          }
-      } catch (e) {
-          console.warn('Errore caricamento flashcard stats:', e);
-          document.getElementById('statTotalCards').textContent = '0';
-      }
-  }
-
-  async function loadRecentActivity() {
-      const container = document.getElementById('recentActivity');
-      let activities = [];
-
-      try {
-          // Carica quiz recenti
-          const quizResponse = await apiFetch('/ai/quiz/my');
-          if (quizResponse.ok) {
-              const quizzes = await quizResponse.json();
-              quizzes.slice(0, 3).forEach(quiz => {
-                  activities.push({
-                      type: 'quiz',
-                      title: quiz.title || `Quiz: ${quiz.topic}`,
-                      date: new Date(quiz.createdAt),
-                      status: quiz.isCompleted ?
-                          (quiz.percentage >= 60 ? 'success' : 'danger') : 'warning',
-                      statusText: quiz.isCompleted ?
-                          `${Math.round(quiz.percentage || 0)}%` : 'In corso',
-                      icon: 'bi-patch-question'
-                  });
-              });
-          }
-      } catch (e) {
-          console.warn('Errore caricamento quiz recenti:', e);
-      }
-
-      try {
-          // Carica deck recenti
-          const deckResponse = await apiFetch('/flashcards/decks');
-          if (deckResponse.ok) {
-              const decks = await deckResponse.json();
-              decks.slice(0, 3).forEach(deck => {
-                  activities.push({
-                      type: 'flashcard',
-                      title: deck.name,
-                      date: new Date(deck.updatedAt || deck.createdAt),
-                      status: 'info',
-                      statusText: `${deck.totalCards || 0} carte`,
-                      icon: 'bi-stack'
-                  });
-              });
-          }
-      } catch (e) {
-          console.warn('Errore caricamento deck recenti:', e);
-      }
-
-      // Ordina per data
-      activities.sort((a, b) => b.date - a.date);
-
-      if (activities.length === 0) {
-          container.innerHTML = `
-              <div class="text-muted text-center py-3">
-                  <i class="bi bi-inbox fs-3 d-block mb-2"></i>
-                  Nessuna attività recente. Inizia a studiare!
-              </div>
-          `;
-          return;
-      }
-
-      let html = '<div class="list-group list-group-flush">';
-      activities.slice(0, 5).forEach(activity => {
-          const dateStr = activity.date.toLocaleDateString('it-IT', {
-              day: 'numeric', month: 'short'
+          const response = await fetch('/api/gamification/stats', {
+              headers: { 'Authorization': `Bearer ${token}` }
           });
-          html += `
-              <div class="list-group-item d-flex align-items-center gap-3 px-0 border-0">
-                  <div class="card-icon ${activity.type === 'quiz' ? 'primary' : 'success'}"
-                       style="width: 36px; height: 36px; font-size: 0.9rem;">
-                      <i class="bi ${activity.icon}"></i>
-                  </div>
-                  <div class="flex-grow-1">
-                      <div class="fw-medium">${activity.title}</div>
-                      <small class="text-muted">${dateStr}</small>
-                  </div>
-                  <span class="badge bg-${activity.status}">${activity.statusText}</span>
-              </div>
-          `;
-      });
-      html += '</div>';
-      container.innerHTML = html;
+
+          if (response.ok) {
+              const stats = await response.json();
+              document.getElementById('statXp').textContent = (stats.totalXp || 0).toLocaleString();
+              document.getElementById('statStreak').textContent = stats.currentStreak || 0;
+              document.getElementById('statQuiz').textContent = stats.quizzesCompleted || 0;
+              document.getElementById('statFlashcards').textContent = stats.flashcardsStudied || 0;
+          }
+      } catch (error) {
+          console.error('Errore caricamento stats:', error);
+      }
   }
 </script>
 </body>

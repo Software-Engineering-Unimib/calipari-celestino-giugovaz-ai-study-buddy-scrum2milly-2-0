@@ -1,6 +1,7 @@
 package com.ai.studybuddy.controller;
 
 import com.ai.studybuddy.dto.flashcard.GenerateFlashcardsResponse;
+import com.ai.studybuddy.dto.gamification.GamificationDTO.XpEventResponse;
 import com.ai.studybuddy.dto.quiz.QuizAnswerRequest;
 import com.ai.studybuddy.dto.quiz.QuizGenerateRequest;
 import com.ai.studybuddy.dto.quiz.QuizResultResponse;
@@ -9,6 +10,7 @@ import com.ai.studybuddy.model.quiz.Quiz;
 import com.ai.studybuddy.model.user.User;
 import com.ai.studybuddy.service.impl.AIServiceImpl;
 import com.ai.studybuddy.service.impl.FlashcardServiceImpl;
+import com.ai.studybuddy.service.impl.GamificationServiceImpl;
 import com.ai.studybuddy.service.inter.QuizService;
 import com.ai.studybuddy.service.inter.UserService;
 import com.ai.studybuddy.util.enums.DifficultyLevel;
@@ -18,7 +20,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -31,33 +35,61 @@ public class AIController {
     private final FlashcardServiceImpl flashcardServiceImpl;
     private final QuizService quizService;
     private final UserService userService;
+    private final GamificationServiceImpl gamificationService;  // AGGIUNTO
 
-    // Constructor injection (best practice)
+    // Constructor injection
     public AIController(AIServiceImpl aiServiceImpl,
-                       FlashcardServiceImpl flashcardServiceImpl,
-                       QuizService quizService,
-                       UserService userService) {
+                        FlashcardServiceImpl flashcardServiceImpl,
+                        QuizService quizService,
+                        UserService userService,
+                        GamificationServiceImpl gamificationService) {  // AGGIUNTO
         this.aiServiceImpl = aiServiceImpl;
         this.flashcardServiceImpl = flashcardServiceImpl;
         this.quizService = quizService;
         this.userService = userService;
+        this.gamificationService = gamificationService;  // AGGIUNTO
     }
 
     // ==================== EXPLANATION ====================
 
+    /**
+     * Genera una spiegazione e assegna XP (+10)
+     */
     @GetMapping("/explain")
-    public ResponseEntity<String> getExplanation(
+    public ResponseEntity<Map<String, Object>> getExplanation(
             @RequestParam String topic,
             @RequestParam(defaultValue = "università") String level,
+            @RequestParam(required = false) String subject,
             Principal principal) {
+
         User user = userService.getCurrentUser(principal);
         logger.info("Richiesta spiegazione '{}' da utente: {}", topic, user.getEmail());
 
+        // Genera la spiegazione
         String explanation = aiServiceImpl.generateExplanation(topic, level);
-        return ResponseEntity.ok(explanation);
+
+        // ✅ ASSEGNA XP PER SPIEGAZIONE (+10 XP)
+        XpEventResponse xpEvent = gamificationService.recordExplanationXp(user, topic, subject);
+
+        logger.info("Utente {} ha guadagnato {} XP per spiegazione. Totale: {}",
+                user.getEmail(), xpEvent.getXpEarned(), xpEvent.getNewTotalXp());
+
+        // Costruisci risposta con XP info
+        Map<String, Object> response = new HashMap<>();
+        response.put("explanation", explanation);
+        response.put("xpEarned", xpEvent.getXpEarned());
+        response.put("totalXp", xpEvent.getNewTotalXp());
+        response.put("level", xpEvent.getNewLevel());
+        response.put("leveledUp", xpEvent.isLeveledUp());
+
+        if (xpEvent.getNewBadges() != null && !xpEvent.getNewBadges().isEmpty()) {
+            response.put("newBadges", xpEvent.getNewBadges());
+        }
+
+        return ResponseEntity.ok(response);
     }
 
-    // ==================== QUIZ (NUOVO - SALVA NEL DB) ====================
+    // ==================== QUIZ ====================
 
     /**
      * Genera un quiz E lo salva nel database
@@ -104,6 +136,7 @@ public class AIController {
 
     /**
      * Invia le risposte del quiz e ottieni il risultato
+     * ✅ ASSEGNA XP PER QUIZ COMPLETATO (+20 XP base, +10 bonus se superato)
      */
     @PostMapping("/quiz/submit")
     public ResponseEntity<QuizResultResponse> submitQuizAnswers(
@@ -113,9 +146,49 @@ public class AIController {
         User user = userService.getCurrentUser(principal);
         logger.info("Invio risposte quiz {} per utente: {}", request.getQuizId(), user.getEmail());
 
+        // Processa le risposte
         QuizResultResponse result = quizService.submitAnswers(request, user.getId());
 
-        logger.info("Quiz completato - Score: {}/{}", result.getScore(), result.getTotalQuestions());
+        // ✅ ASSEGNA XP PER QUIZ COMPLETATO
+        boolean passed = result.isPassed();
+        String topic = result.getTopic();
+        String subject = result.getSubject();
+        double scorePercentage = result.getScorePercentage();
+        int totalQuestions = result.getTotalQuestions();
+        int correctAnswers = result.getScore();
+
+        XpEventResponse xpEvent = gamificationService.recordQuizXp(
+                user,
+                passed,
+                topic,
+                subject,
+                scorePercentage,
+                totalQuestions,
+                correctAnswers
+        );
+
+        // Aggiungi info XP alla risposta
+        result.setXpEarned(xpEvent.getXpEarned());
+        result.setTotalXp(xpEvent.getNewTotalXp());
+        result.setLevel(xpEvent.getNewLevel());
+        result.setLeveledUp(xpEvent.isLeveledUp());
+
+        if (xpEvent.getNewBadges() != null && !xpEvent.getNewBadges().isEmpty()) {
+            List<Map<String, Object>> badgesList = new java.util.ArrayList<>();
+            for (var badge : xpEvent.getNewBadges()) {
+                Map<String, Object> badgeMap = new HashMap<>();
+                badgeMap.put("name", badge.getName());
+                badgeMap.put("icon", badge.getIcon());
+                badgeMap.put("description", badge.getDescription());
+                badgeMap.put("xpReward", badge.getXpReward() != null ? badge.getXpReward() : 0);
+                badgesList.add(badgeMap);
+            }
+            result.setNewBadges(badgesList);
+        }
+
+        logger.info("Quiz completato - Score: {}/{}, XP guadagnati: {}",
+                result.getScore(), result.getTotalQuestions(), xpEvent.getXpEarned());
+
         return ResponseEntity.ok(result);
     }
 
@@ -221,6 +294,10 @@ public class AIController {
         return ResponseEntity.ok(flashcards);
     }
 
+    /**
+     * Genera e salva flashcards con AI
+     * ✅ ASSEGNA XP PER FLASHCARDS GENERATE (+2 XP per card)
+     */
     @PostMapping("/flashcards/generate")
     public ResponseEntity<GenerateFlashcardsResponse> generateAndSaveFlashcards(
             @RequestParam UUID deckId,
@@ -241,11 +318,23 @@ public class AIController {
                 user
         );
 
-        return ResponseEntity.ok(new GenerateFlashcardsResponse(
+        // ✅ ASSEGNA XP PER FLASHCARDS GENERATE
+        // Nota: le flashcards generate danno XP come se fossero "studiate"
+        XpEventResponse xpEvent = gamificationService.recordFlashcardXp(user, createdCards.size());
+
+        GenerateFlashcardsResponse response = new GenerateFlashcardsResponse(
                 true,
-                String.format("Generate %d flashcard con successo", createdCards.size()),
+                String.format("Generate %d flashcard con successo (+%d XP)",
+                        createdCards.size(), xpEvent.getXpEarned()),
                 createdCards
-        ));
+        );
+
+        // Aggiungi info XP alla risposta
+        response.setXpEarned(xpEvent.getXpEarned());
+        response.setTotalXp(xpEvent.getNewTotalXp());
+        response.setLeveledUp(xpEvent.isLeveledUp());
+
+        return ResponseEntity.ok(response);
     }
 
     // ==================== HEALTH CHECK ====================

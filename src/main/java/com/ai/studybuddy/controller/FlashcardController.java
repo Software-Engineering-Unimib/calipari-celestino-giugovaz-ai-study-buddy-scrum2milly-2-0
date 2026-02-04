@@ -2,9 +2,11 @@ package com.ai.studybuddy.controller;
 
 import com.ai.studybuddy.dto.flashcard.FlashcardCreateRequest;
 import com.ai.studybuddy.dto.flashcard.FlashcardDeckCreateRequest;
+import com.ai.studybuddy.dto.gamification.GamificationDTO.XpEventResponse;
 import com.ai.studybuddy.model.flashcard.Flashcard;
 import com.ai.studybuddy.model.flashcard.FlashcardDeck;
 import com.ai.studybuddy.model.user.User;
+import com.ai.studybuddy.service.impl.GamificationServiceImpl;
 import com.ai.studybuddy.service.inter.FlashcardDeckService;
 import com.ai.studybuddy.service.inter.FlashcardService;
 import com.ai.studybuddy.service.inter.UserService;
@@ -16,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -29,14 +32,17 @@ public class FlashcardController {
     private final FlashcardService flashcardService;
     private final FlashcardDeckService deckService;
     private final UserService userService;
+    private final GamificationServiceImpl gamificationService;  // AGGIUNTO
 
     // Constructor injection
-    public FlashcardController(FlashcardService flashcardService, 
-                               FlashcardDeckService deckService, 
-                               UserService userService) {
+    public FlashcardController(FlashcardService flashcardService,
+                               FlashcardDeckService deckService,
+                               UserService userService,
+                               GamificationServiceImpl gamificationService) {  // AGGIUNTO
         this.flashcardService = flashcardService;
         this.deckService = deckService;
         this.userService = userService;
+        this.gamificationService = gamificationService;  // AGGIUNTO
     }
 
     // ==================== DECK ENDPOINTS ====================
@@ -148,15 +154,109 @@ public class FlashcardController {
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * Registra una revisione di flashcard
+     * ✅ ASSEGNA XP PER FLASHCARD STUDIATA (+2 XP per card)
+     */
     @PostMapping("/cards/{cardId}/review")
-    public ResponseEntity<Flashcard> reviewFlashcard(
+    public ResponseEntity<Map<String, Object>> reviewFlashcard(
             @PathVariable UUID cardId,
             @RequestBody Map<String, Boolean> body,
             Principal principal) {
+
         User user = userService.getCurrentUser(principal);
         Boolean wasCorrect = body.get("wasCorrect");
+
+        // Registra la revisione
         Flashcard card = flashcardService.reviewFlashcard(cardId, wasCorrect, user.getId());
-        return ResponseEntity.ok(card);
+
+        // ✅ ASSEGNA XP PER FLASHCARD STUDIATA (+2 XP)
+        XpEventResponse xpEvent = gamificationService.recordFlashcardXp(user, 1);
+
+        logger.info("Flashcard {} reviewata da {}, XP guadagnati: {}",
+                cardId, user.getEmail(), xpEvent.getXpEarned());
+
+        // Costruisci risposta con info flashcard + XP
+        Map<String, Object> response = new HashMap<>();
+        response.put("flashcard", card);
+        response.put("xpEarned", xpEvent.getXpEarned());
+        response.put("totalXp", xpEvent.getNewTotalXp());
+        response.put("level", xpEvent.getNewLevel());
+        response.put("leveledUp", xpEvent.isLeveledUp());
+
+        if (xpEvent.getNewBadges() != null && !xpEvent.getNewBadges().isEmpty()) {
+            List<Map<String, Object>> badgesList = new java.util.ArrayList<>();
+            for (var badge : xpEvent.getNewBadges()) {
+                Map<String, Object> badgeMap = new HashMap<>();
+                badgeMap.put("name", badge.getName());
+                badgeMap.put("icon", badge.getIcon());
+                badgeMap.put("description", badge.getDescription());
+                badgesList.add(badgeMap);
+            }
+            response.put("newBadges", badgesList);
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Completa una sessione di studio di più flashcards
+     * ✅ ASSEGNA XP PER TUTTE LE FLASHCARDS STUDIATE
+     */
+    @PostMapping("/decks/{deckId}/complete-session")
+    public ResponseEntity<Map<String, Object>> completeStudySession(
+            @PathVariable UUID deckId,
+            @RequestBody Map<String, Object> body,
+            Principal principal) {
+
+        User user = userService.getCurrentUser(principal);
+
+        // Numero di carte studiate nella sessione
+        int cardsStudied = body.containsKey("cardsStudied")
+                ? ((Number) body.get("cardsStudied")).intValue()
+                : 0;
+
+        // Durata sessione in minuti (opzionale, per future sessioni focus)
+        int durationMinutes = body.containsKey("durationMinutes")
+                ? ((Number) body.get("durationMinutes")).intValue()
+                : 0;
+
+        // Registra la sessione di studio nel deck
+        deckService.recordStudySession(deckId, user.getId());
+
+        // ✅ ASSEGNA XP PER TUTTE LE FLASHCARDS STUDIATE
+        XpEventResponse xpEvent = null;
+        if (cardsStudied > 0) {
+            xpEvent = gamificationService.recordFlashcardXp(user, cardsStudied);
+            logger.info("Sessione studio completata: {} carte, {} XP guadagnati",
+                    cardsStudied, xpEvent.getXpEarned());
+        }
+
+        // Costruisci risposta
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("cardsStudied", cardsStudied);
+
+        if (xpEvent != null) {
+            response.put("xpEarned", xpEvent.getXpEarned());
+            response.put("totalXp", xpEvent.getNewTotalXp());
+            response.put("level", xpEvent.getNewLevel());
+            response.put("leveledUp", xpEvent.isLeveledUp());
+
+            if (xpEvent.getNewBadges() != null && !xpEvent.getNewBadges().isEmpty()) {
+                List<Map<String, Object>> badgesList = new java.util.ArrayList<>();
+                for (var badge : xpEvent.getNewBadges()) {
+                    Map<String, Object> badgeMap = new HashMap<>();
+                    badgeMap.put("name", badge.getName());
+                    badgeMap.put("icon", badge.getIcon());
+                    badgeMap.put("description", badge.getDescription());
+                    badgesList.add(badgeMap);
+                }
+                response.put("newBadges", badgesList);
+            }
+        }
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/decks/{deckId}/study-session")

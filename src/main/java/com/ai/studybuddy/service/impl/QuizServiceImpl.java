@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -38,8 +39,8 @@ public class QuizServiceImpl implements QuizService {
     private final AIService aiService;
     private final QuizMapper quizMapper;
     private final Gson gson = new Gson();
-    
-    private QuizService selfProxy; // Campo per l'auto-iniezione
+
+    private QuizService selfProxy;
 
     public QuizServiceImpl(QuizRepository quizRepository,
                            QuestionRepository questionRepository,
@@ -51,7 +52,6 @@ public class QuizServiceImpl implements QuizService {
         this.quizMapper = quizMapper;
     }
 
-    // Auto-iniezione del proxy (con @Lazy per evitare problemi di ciclo)
     @Autowired
     public void setSelfProxy(@Lazy QuizService quizService) {
         this.selfProxy = quizService;
@@ -97,7 +97,6 @@ public class QuizServiceImpl implements QuizService {
                 .numberOfQuestions(numberOfQuestions)
                 .difficultyLevel(DifficultyLevel.fromString(difficulty))
                 .build();
-        // Usa selfProxy invece di this per assicurarti che le transazioni funzionino
         return selfProxy.generateQuiz(request, user);
     }
 
@@ -116,30 +115,91 @@ public class QuizServiceImpl implements QuizService {
 
         Quiz quiz = findQuizByIdAndUser(request.getQuizId(), userId);
 
+        // Verifica se già completato
         if (Boolean.TRUE.equals(quiz.getIsCompleted())) {
-            return QuizResultResponse.error("Il quiz è già stato completato");
+            log.warn("Quiz {} già completato", request.getQuizId());
+            // Restituisce comunque il risultato esistente
+            return buildQuizResultResponse(quiz);
         }
 
         // Applica le risposte
         Map<UUID, String> answers = request.getAnswers();
+        int correctCount = 0;
+
         for (Question question : quiz.getQuestions()) {
             String answer = answers.get(question.getId());
             if (answer != null) {
-                question.checkAnswer(answer);
+                question.setUserAnswer(answer);
+                boolean isCorrect = question.checkAnswer(answer);
+                if (isCorrect) {
+                    correctCount++;
+                }
             }
         }
 
         // Completa e calcola punteggio
         quiz.complete();
-        quizRepository.save(quiz);
-
-        // Prepara risposta
-        List<QuizResultResponse.QuestionResult> results = quizMapper.toQuestionResults(quiz.getQuestions());
+        quiz = quizRepository.save(quiz);
 
         log.info("Quiz completato - Score: {}/{} ({}%)",
                 quiz.getScore(), quiz.getTotalPoints(), quiz.getPercentage());
 
-        return QuizResultResponse.success(quiz, results);
+        return buildQuizResultResponse(quiz);
+    }
+
+    /**
+     * Costruisce il QuizResultResponse dal Quiz completato
+     */
+    private QuizResultResponse buildQuizResultResponse(Quiz quiz) {
+        QuizResultResponse response = new QuizResultResponse();
+
+        response.setQuizId(quiz.getId());
+        response.setTopic(quiz.getTopic());
+        response.setSubject(quiz.getSubject());
+        response.setScore(quiz.getScore() != null ? quiz.getScore() : 0);
+        response.setTotalQuestions(quiz.getNumberOfQuestions() != null ? quiz.getNumberOfQuestions() : 0);
+
+        // Calcola percentuale
+        double percentage = 0;
+        if (quiz.getNumberOfQuestions() != null && quiz.getNumberOfQuestions() > 0) {
+            percentage = (double) response.getScore() / response.getTotalQuestions() * 100;
+        }
+        response.setScorePercentage(percentage);
+
+        // Quiz superato se >= 60%
+        boolean passed = percentage >= 60;
+        response.setPassed(passed);
+
+        // Feedback
+        String feedback;
+        if (percentage >= 90) {
+            feedback = "Eccellente! 🏆 Ottima padronanza dell'argomento!";
+        } else if (percentage >= 70) {
+            feedback = "Molto bene! 👍 Continua così!";
+        } else if (percentage >= 60) {
+            feedback = "Buono! ✅ Hai superato il quiz.";
+        } else if (percentage >= 40) {
+            feedback = "Quasi! 📚 Ripassa un po' e riprova.";
+        } else {
+            feedback = "Da migliorare 💪 Ti consiglio di ripassare l'argomento.";
+        }
+        response.setFeedback(feedback);
+
+        // Risultati delle singole domande
+        List<QuizResultResponse.QuestionResult> questionResults = new ArrayList<>();
+        for (Question q : quiz.getQuestions()) {
+            QuizResultResponse.QuestionResult qr = new QuizResultResponse.QuestionResult();
+            qr.setQuestionId(q.getId());
+            qr.setQuestionText(q.getQuestionText());
+            qr.setUserAnswer(q.getUserAnswer());
+            qr.setCorrectAnswer(q.getCorrectAnswer());
+            qr.setCorrect(Boolean.TRUE.equals(q.getIsCorrect()));
+            qr.setExplanation(q.getExplanation());
+            questionResults.add(qr);
+        }
+        response.setQuestionResults(questionResults);
+
+        return response;
     }
 
     @Override

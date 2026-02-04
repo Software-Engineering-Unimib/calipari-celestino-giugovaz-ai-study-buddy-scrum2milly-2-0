@@ -10,11 +10,18 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Service per il sistema di gamification
+ * Service interface per il sistema di gamification
+ *
+ * XP Rewards:
+ * - Spiegazione richiesta: +10 XP
+ * - Quiz completato: +20 XP
+ * - Quiz superato (bonus): +10 XP
+ * - Flashcard studiata: +2 XP per card
+ * - Sessione focus: +15 XP
  */
 public interface GamificationService {
 
-    // ==================== XP & STATISTICHE ====================
+    // ==================== USER STATS ====================
 
     /**
      * Ottiene o crea le statistiche dell'utente
@@ -26,54 +33,56 @@ public interface GamificationService {
      */
     UserStatsResponse getUserStatsResponse(UUID userId);
 
+    // ==================== XP TRACKING ====================
+
     /**
-     * Registra XP per una spiegazione richiesta (+10 XP)
+     * Registra XP per spiegazione richiesta (+10 XP)
      */
     XpEventResponse recordExplanationXp(User user);
 
     /**
-     * Registra XP per un quiz completato (+20 XP)
+     * Registra XP per quiz completato (+20 XP base, +10 bonus se superato)
      */
     XpEventResponse recordQuizXp(User user, boolean passed);
 
     /**
-     * Registra XP per flashcards studiate
+     * Registra XP per flashcards studiate (+2 XP per card)
      */
     XpEventResponse recordFlashcardXp(User user, int cardsStudied);
 
     /**
-     * Registra XP per una sessione focus (+15 XP)
+     * Registra XP per sessione focus completata (+15 XP)
      */
     XpEventResponse recordFocusSessionXp(User user, int durationMinutes);
 
-    // ==================== BADGE ====================
+    // ==================== BADGES ====================
 
     /**
-     * Ottiene tutti i badge disponibili con stato di sblocco
+     * Ottiene tutti i badge con stato di sblocco e progresso
      */
     List<BadgeResponse> getAllBadgesWithStatus(UUID userId);
 
     /**
-     * Ottiene solo i badge sbloccati dall'utente
+     * Ottiene solo i badge sbloccati
      */
     List<BadgeResponse> getUnlockedBadges(UUID userId);
 
     /**
-     * Ottiene i badge nuovi (non ancora visti)
+     * Ottiene i badge non ancora visti dall'utente
      */
     List<BadgeResponse> getNewBadges(UUID userId);
 
     /**
-     * Marca i badge come visti
+     * Marca tutti i badge come visti
      */
     void markBadgesAsSeen(UUID userId);
 
     /**
-     * Verifica e sblocca eventuali nuovi badge
+     * Verifica e sblocca badge in base alle statistiche
      */
     List<Badge> checkAndUnlockBadges(User user, UserStats stats);
 
-    // ==================== RACCOMANDAZIONI ====================
+    // ==================== RECOMMENDATIONS ====================
 
     /**
      * Ottiene le raccomandazioni attive per l'utente
@@ -98,22 +107,22 @@ public interface GamificationService {
     // ==================== LEADERBOARD ====================
 
     /**
-     * Ottiene la leaderboard per XP totale
+     * Ottiene la classifica per XP totali
      */
     List<LeaderboardEntry> getXpLeaderboard(int limit);
 
     /**
-     * Ottiene la leaderboard per XP settimanale
+     * Ottiene la classifica per XP settimanali
      */
     List<LeaderboardEntry> getWeeklyLeaderboard(int limit);
 
     /**
-     * Ottiene la leaderboard per streak
+     * Ottiene la classifica per streak
      */
     List<LeaderboardEntry> getStreakLeaderboard(int limit);
 
     /**
-     * Ottiene la posizione dell'utente nella leaderboard
+     * Ottiene la posizione dell'utente nella classifica
      */
     int getUserRank(UUID userId, String type);
 }

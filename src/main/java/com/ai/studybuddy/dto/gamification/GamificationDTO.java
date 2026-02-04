@@ -1,9 +1,7 @@
 package com.ai.studybuddy.dto.gamification;
 
-import com.ai.studybuddy.model.gamification.Badge;
-import com.ai.studybuddy.model.gamification.UserBadge;
+import com.ai.studybuddy.model.gamification.*;
 import com.ai.studybuddy.model.gamification.UserStats;
-import com.ai.studybuddy.model.gamification.Recommendation;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -11,43 +9,149 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * DTO per le risposte del sistema di gamification
+ * DTO classes per Gamification API
  */
 public class GamificationDTO {
 
-    // ==================== BADGE DTOs ====================
+    // ==================== XP EVENT RESPONSE ====================
 
+    /**
+     * Risposta dopo un evento che assegna XP
+     */
+    public static class XpEventResponse {
+        private String eventType;
+        private int xpEarned;
+        private int newTotalXp;
+        private int newLevel;
+        private boolean leveledUp;
+        private List<Badge> newBadges;
+
+        public XpEventResponse(String eventType, int xpEarned, UserStats stats,
+                               boolean leveledUp, List<Badge> newBadges) {
+            this.eventType = eventType;
+            this.xpEarned = xpEarned;
+            this.newTotalXp = stats.getTotalXp();
+            this.newLevel = stats.getLevel();
+            this.leveledUp = leveledUp;
+            this.newBadges = newBadges;
+        }
+
+        // Getters
+        public String getEventType() { return eventType; }
+        public int getXpEarned() { return xpEarned; }
+        public int getNewTotalXp() { return newTotalXp; }
+        public int getNewLevel() { return newLevel; }
+        public boolean isLeveledUp() { return leveledUp; }
+        public List<Badge> getNewBadges() { return newBadges; }
+    }
+
+    // ==================== USER STATS RESPONSE ====================
+
+    /**
+     * Risposta con statistiche complete dell'utente
+     */
+    public static class UserStatsResponse {
+        private UUID userId;
+        private int totalXp;
+        private int weeklyXp;
+        private int monthlyXp;
+        private int level;
+        private double levelProgress;
+        private int xpForNextLevel;
+        private int xpInCurrentLevel;
+
+        private int currentStreak;
+        private int longestStreak;
+
+        private int explanationsRequested;
+        private int quizzesCompleted;
+        private int quizzesPassed;
+        private int flashcardsStudied;
+        private int focusSessionsCompleted;
+        private int totalStudyTimeMinutes;
+
+        private long badgesUnlocked;
+
+        public static UserStatsResponse fromUserStats(UserStats stats, long badgeCount) {
+            UserStatsResponse response = new UserStatsResponse();
+            response.userId = stats.getUser().getId();
+            response.totalXp = stats.getTotalXp() != null ? stats.getTotalXp() : 0;
+            response.weeklyXp = stats.getWeeklyXp() != null ? stats.getWeeklyXp() : 0;
+            response.monthlyXp = stats.getMonthlyXp() != null ? stats.getMonthlyXp() : 0;
+            response.level = stats.getLevel() != null ? stats.getLevel() : 1;
+            response.levelProgress = stats.getLevelProgressPercentage();
+            response.xpForNextLevel = stats.getXpForNextLevel() != null ? stats.getXpForNextLevel() : 100;
+
+            // Calcola XP nel livello corrente
+            int xpForCurrentLevel = response.level > 1 ? (int)(100 * Math.pow(response.level, 1.5)) : 0;
+            response.xpInCurrentLevel = response.totalXp - xpForCurrentLevel;
+
+            response.currentStreak = stats.getCurrentStreak() != null ? stats.getCurrentStreak() : 0;
+            response.longestStreak = stats.getLongestStreak() != null ? stats.getLongestStreak() : 0;
+
+            response.explanationsRequested = stats.getExplanationsRequested() != null ? stats.getExplanationsRequested() : 0;
+            response.quizzesCompleted = stats.getQuizzesCompleted() != null ? stats.getQuizzesCompleted() : 0;
+            response.quizzesPassed = stats.getQuizzesPassed() != null ? stats.getQuizzesPassed() : 0;
+            response.flashcardsStudied = stats.getFlashcardsStudied() != null ? stats.getFlashcardsStudied() : 0;
+            response.focusSessionsCompleted = stats.getFocusSessionsCompleted() != null ? stats.getFocusSessionsCompleted() : 0;
+            response.totalStudyTimeMinutes = stats.getTotalStudyTimeMinutes() != null ? stats.getTotalStudyTimeMinutes() : 0;
+
+            response.badgesUnlocked = badgeCount;
+
+            return response;
+        }
+
+        // Getters
+        public UUID getUserId() { return userId; }
+        public int getTotalXp() { return totalXp; }
+        public int getWeeklyXp() { return weeklyXp; }
+        public int getMonthlyXp() { return monthlyXp; }
+        public int getLevel() { return level; }
+        public double getLevelProgress() { return levelProgress; }
+        public int getXpForNextLevel() { return xpForNextLevel; }
+        public int getXpInCurrentLevel() { return xpInCurrentLevel; }
+        public int getCurrentStreak() { return currentStreak; }
+        public int getLongestStreak() { return longestStreak; }
+        public int getExplanationsRequested() { return explanationsRequested; }
+        public int getQuizzesCompleted() { return quizzesCompleted; }
+        public int getQuizzesPassed() { return quizzesPassed; }
+        public int getFlashcardsStudied() { return flashcardsStudied; }
+        public int getFocusSessionsCompleted() { return focusSessionsCompleted; }
+        public int getTotalStudyTimeMinutes() { return totalStudyTimeMinutes; }
+        public long getBadgesUnlocked() { return badgesUnlocked; }
+    }
+
+    // ==================== BADGE RESPONSE ====================
+
+    /**
+     * Risposta badge con stato di sblocco e progresso
+     */
     public static class BadgeResponse {
         private UUID id;
-        private String code;
         private String name;
         private String description;
         private String icon;
         private String color;
-        private String category;
         private String rarity;
-        private Integer requirementValue;
         private Integer xpReward;
         private boolean unlocked;
         private LocalDateTime unlockedAt;
-        private Double progress;  // Percentuale progresso (0-100)
+        private Double progress;
 
-        public static BadgeResponse fromBadge(Badge badge, boolean unlocked, LocalDateTime unlockedAt, Double progress) {
-            BadgeResponse dto = new BadgeResponse();
-            dto.id = badge.getId();
-            dto.code = badge.getCode();
-            dto.name = badge.getName();
-            dto.description = badge.getDescription();
-            dto.icon = badge.getIcon();
-            dto.color = badge.getColor();
-            dto.category = badge.getCategory() != null ? badge.getCategory().name() : null;
-            dto.rarity = badge.getRarity() != null ? badge.getRarity().name() : null;
-            dto.requirementValue = badge.getRequirementValue();
-            dto.xpReward = badge.getXpReward();
-            dto.unlocked = unlocked;
-            dto.unlockedAt = unlockedAt;
-            dto.progress = progress;
-            return dto;
+        public static BadgeResponse fromBadge(Badge badge, boolean unlocked,
+                                              LocalDateTime unlockedAt, Double progress) {
+            BadgeResponse response = new BadgeResponse();
+            response.id = badge.getId();
+            response.name = badge.getName();
+            response.description = badge.getDescription();
+            response.icon = badge.getIcon();
+            response.color = badge.getColor();
+            response.rarity = badge.getRarity() != null ? badge.getRarity().name() : "COMMON";
+            response.xpReward = badge.getXpReward();
+            response.unlocked = unlocked;
+            response.unlockedAt = unlockedAt;
+            response.progress = progress;
+            return response;
         }
 
         public static BadgeResponse fromUserBadge(UserBadge userBadge) {
@@ -56,82 +160,22 @@ public class GamificationDTO {
 
         // Getters
         public UUID getId() { return id; }
-        public String getCode() { return code; }
         public String getName() { return name; }
         public String getDescription() { return description; }
         public String getIcon() { return icon; }
         public String getColor() { return color; }
-        public String getCategory() { return category; }
         public String getRarity() { return rarity; }
-        public Integer getRequirementValue() { return requirementValue; }
         public Integer getXpReward() { return xpReward; }
         public boolean isUnlocked() { return unlocked; }
         public LocalDateTime getUnlockedAt() { return unlockedAt; }
         public Double getProgress() { return progress; }
     }
 
-    // ==================== STATS DTOs ====================
+    // ==================== RECOMMENDATION RESPONSE ====================
 
-    public static class UserStatsResponse {
-        private Integer totalXp;
-        private Integer weeklyXp;
-        private Integer monthlyXp;
-        private Integer level;
-        private Double levelProgress;
-        private Integer xpForNextLevel;
-        private Integer currentStreak;
-        private Integer longestStreak;
-        private Integer explanationsRequested;
-        private Integer quizzesCompleted;
-        private Integer quizzesPassed;
-        private Integer flashcardsStudied;
-        private Integer flashcardsMastered;
-        private Integer focusSessionsCompleted;
-        private Integer totalStudyTimeMinutes;
-        private Integer badgesUnlocked;
-
-        public static UserStatsResponse fromUserStats(UserStats stats, long badgeCount) {
-            UserStatsResponse dto = new UserStatsResponse();
-            dto.totalXp = stats.getTotalXp();
-            dto.weeklyXp = stats.getWeeklyXp();
-            dto.monthlyXp = stats.getMonthlyXp();
-            dto.level = stats.getLevel();
-            dto.levelProgress = stats.getLevelProgressPercentage();
-            dto.xpForNextLevel = stats.getXpForNextLevel();
-            dto.currentStreak = stats.getCurrentStreak();
-            dto.longestStreak = stats.getLongestStreak();
-            dto.explanationsRequested = stats.getExplanationsRequested();
-            dto.quizzesCompleted = stats.getQuizzesCompleted();
-            dto.quizzesPassed = stats.getQuizzesPassed();
-            dto.flashcardsStudied = stats.getFlashcardsStudied();
-            dto.flashcardsMastered = stats.getFlashcardsMastered();
-            dto.focusSessionsCompleted = stats.getFocusSessionsCompleted();
-            dto.totalStudyTimeMinutes = stats.getTotalStudyTimeMinutes();
-            dto.badgesUnlocked = (int) badgeCount;
-            return dto;
-        }
-
-        // Getters
-        public Integer getTotalXp() { return totalXp; }
-        public Integer getWeeklyXp() { return weeklyXp; }
-        public Integer getMonthlyXp() { return monthlyXp; }
-        public Integer getLevel() { return level; }
-        public Double getLevelProgress() { return levelProgress; }
-        public Integer getXpForNextLevel() { return xpForNextLevel; }
-        public Integer getCurrentStreak() { return currentStreak; }
-        public Integer getLongestStreak() { return longestStreak; }
-        public Integer getExplanationsRequested() { return explanationsRequested; }
-        public Integer getQuizzesCompleted() { return quizzesCompleted; }
-        public Integer getQuizzesPassed() { return quizzesPassed; }
-        public Integer getFlashcardsStudied() { return flashcardsStudied; }
-        public Integer getFlashcardsMastered() { return flashcardsMastered; }
-        public Integer getFocusSessionsCompleted() { return focusSessionsCompleted; }
-        public Integer getTotalStudyTimeMinutes() { return totalStudyTimeMinutes; }
-        public Integer getBadgesUnlocked() { return badgesUnlocked; }
-    }
-
-    // ==================== RECOMMENDATION DTOs ====================
-
+    /**
+     * Risposta raccomandazione
+     */
     public static class RecommendationResponse {
         private UUID id;
         private String type;
@@ -140,29 +184,25 @@ public class GamificationDTO {
         private String topic;
         private String reason;
         private String priority;
-        private String actionUrl;
-        private String actionType;
-        private UUID relatedEntityId;
         private LocalDateTime createdAt;
+        private LocalDateTime expiresAt;
 
         public static RecommendationResponse fromRecommendation(Recommendation rec) {
-            RecommendationResponse dto = new RecommendationResponse();
-            dto.id = rec.getId();
-            dto.type = rec.getType().name();
-            dto.title = rec.getTitle();
-            dto.description = rec.getDescription();
-            dto.topic = rec.getTopic();
-            dto.reason = rec.getReason();
-            dto.priority = rec.getPriority().name();
-            dto.actionUrl = rec.getActionUrl();
-            dto.actionType = rec.getActionType();
-            dto.relatedEntityId = rec.getRelatedEntityId();
-            dto.createdAt = rec.getCreatedAt();
-            return dto;
+            RecommendationResponse response = new RecommendationResponse();
+            response.id = rec.getId();
+            response.type = rec.getType() != null ? rec.getType().name() : null;
+            response.title = rec.getTitle();
+            response.description = rec.getDescription();
+            response.topic = rec.getTopic();
+            response.reason = rec.getReason();
+            response.priority = rec.getPriority() != null ? rec.getPriority().name() : "MEDIUM";
+            response.createdAt = rec.getCreatedAt();
+            response.expiresAt = rec.getExpiresAt();
+            return response;
         }
 
-        public static List<RecommendationResponse> fromList(List<Recommendation> recs) {
-            return recs.stream()
+        public static List<RecommendationResponse> fromList(List<Recommendation> recommendations) {
+            return recommendations.stream()
                     .map(RecommendationResponse::fromRecommendation)
                     .collect(Collectors.toList());
         }
@@ -175,77 +215,50 @@ public class GamificationDTO {
         public String getTopic() { return topic; }
         public String getReason() { return reason; }
         public String getPriority() { return priority; }
-        public String getActionUrl() { return actionUrl; }
-        public String getActionType() { return actionType; }
-        public UUID getRelatedEntityId() { return relatedEntityId; }
         public LocalDateTime getCreatedAt() { return createdAt; }
+        public LocalDateTime getExpiresAt() { return expiresAt; }
     }
 
-    // ==================== XP EVENT DTOs ====================
+    // ==================== LEADERBOARD ENTRY ====================
 
-    public static class XpEventResponse {
-        private String event;
-        private Integer xpEarned;
-        private Integer totalXp;
-        private Integer level;
-        private boolean leveledUp;
-        private List<BadgeResponse> newBadges;
-
-        public XpEventResponse(String event, int xpEarned, UserStats stats,
-                               boolean leveledUp, List<Badge> newBadges) {
-            this.event = event;
-            this.xpEarned = xpEarned;
-            this.totalXp = stats.getTotalXp();
-            this.level = stats.getLevel();
-            this.leveledUp = leveledUp;
-            this.newBadges = newBadges.stream()
-                    .map(b -> BadgeResponse.fromBadge(b, true, LocalDateTime.now(), 100.0))
-                    .collect(Collectors.toList());
-        }
-
-        // Getters
-        public String getEvent() { return event; }
-        public Integer getXpEarned() { return xpEarned; }
-        public Integer getTotalXp() { return totalXp; }
-        public Integer getLevel() { return level; }
-        public boolean isLeveledUp() { return leveledUp; }
-        public List<BadgeResponse> getNewBadges() { return newBadges; }
-    }
-
-    // ==================== LEADERBOARD DTOs ====================
-
+    /**
+     * Entry per la leaderboard
+     */
     public static class LeaderboardEntry {
         private int rank;
-        private UUID odificativUserId;
+        private UUID userId;
         private String userName;
         private String avatarUrl;
-        private Integer value;
-        private Integer level;
+        private int value;
+        private int level;
+        private String type;
 
         public LeaderboardEntry(int rank, UserStats stats, String type) {
             this.rank = rank;
-            this.odificativUserId = stats.getUser().getId();
-            this.userName = stats.getUser().getFirstName() + " " +
-                    (stats.getUser().getLastName() != null ?
-                            stats.getUser().getLastName().charAt(0) + "." : "");
+            this.userId = stats.getUser().getId();
+            this.userName = stats.getUser().getFullName();
             this.avatarUrl = stats.getUser().getAvatarUrl();
-            this.level = stats.getLevel();
+            this.level = stats.getLevel() != null ? stats.getLevel() : 1;
+            this.type = type;
 
-            switch (type) {
-                case "XP" -> this.value = stats.getTotalXp();
-                case "WEEKLY_XP" -> this.value = stats.getWeeklyXp();
-                case "STREAK" -> this.value = stats.getCurrentStreak();
-                case "LEVEL" -> this.value = stats.getLevel();
-                default -> this.value = 0;
-            }
+            this.value = switch (type) {
+                case "XP" -> stats.getTotalXp() != null ? stats.getTotalXp() : 0;
+                case "WEEKLY_XP" -> stats.getWeeklyXp() != null ? stats.getWeeklyXp() : 0;
+                case "STREAK" -> stats.getCurrentStreak() != null ? stats.getCurrentStreak() : 0;
+                default -> stats.getTotalXp() != null ? stats.getTotalXp() : 0;
+            };
         }
 
         // Getters
         public int getRank() { return rank; }
-        public UUID getUserId() { return odificativUserId; }
+        public UUID getUserId() { return userId; }
         public String getUserName() { return userName; }
         public String getAvatarUrl() { return avatarUrl; }
-        public Integer getValue() { return value; }
-        public Integer getLevel() { return level; }
+        public int getValue() { return value; }
+        public int getLevel() { return level; }
+        public String getType() { return type; }
+
+        // Setter for rank (to set after ordering)
+        public void setRank(int rank) { this.rank = rank; }
     }
 }

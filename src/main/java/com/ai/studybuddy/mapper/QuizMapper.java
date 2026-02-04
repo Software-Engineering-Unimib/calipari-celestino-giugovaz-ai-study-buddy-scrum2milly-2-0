@@ -114,13 +114,14 @@ public class QuizMapper {
      * Crea singolo QuestionResult
      */
     public QuizResultResponse.QuestionResult toQuestionResult(Question question) {
-        return new QuizResultResponse.QuestionResult(
+       /* return new QuizResultResponse.QuestionResult(
                 question.getQuestionText(),
                 question.getUserAnswerText(),
                 question.getCorrectOptionText(),
                 Boolean.TRUE.equals(question.getIsCorrect()),
                 question.getExplanation()
-        );
+        );*/
+        return null;
     }
 
     // Helper per estrarre stringa da JSON in modo sicuro
