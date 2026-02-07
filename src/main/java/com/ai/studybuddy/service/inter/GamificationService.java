@@ -51,9 +51,12 @@ public interface GamificationService {
     XpEventResponse recordFlashcardXp(User user, int cardsStudied);
 
     /**
-     * Registra XP per sessione focus completata (+15 XP)
+     * Registra XP per sessione focus completata
+     * @param user utente
+     * @param durationMinutes durata in minuti
+     * @param xpToAward XP da assegnare (calcolati: +3 ogni 10 min + 1 bonus)
      */
-    XpEventResponse recordFocusSessionXp(User user, int durationMinutes);
+    XpEventResponse recordFocusSessionXp(User user, int durationMinutes, int xpToAward);
 
     // ==================== BADGES ====================
 

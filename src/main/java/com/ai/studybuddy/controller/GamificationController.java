@@ -180,4 +180,62 @@ public class GamificationController {
         int rank = gamificationService.getUserRank(user.getId(), type.toUpperCase());
         return ResponseEntity.ok(rank);
     }
+
+    // ==================== FOCUS SESSION ====================
+
+    /**
+     * Registra una sessione focus completata
+     * XP calcolati: +3 XP ogni 10 minuti + 1 XP bonus completamento
+     */
+    @PostMapping("/focus-session")
+    public ResponseEntity<XpEventResponse> recordFocusSession(
+            @RequestBody FocusSessionRequest request,
+            Principal principal) {
+
+        User user = userService.getCurrentUser(principal);
+        logger.info("Sessione focus completata da {}: {} minuti, {} XP",
+                user.getEmail(), request.getDurationMinutes(), request.getXpEarned());
+
+        // Usa XP dal frontend se presente, altrimenti calcola
+        Integer xpToAward = request.getXpEarned();
+        if (xpToAward == null || xpToAward <= 0) {
+            // Calcolo backend: +3 XP ogni 10 minuti + 1 bonus
+            xpToAward = (request.getDurationMinutes() / 10) * 3 + 1;
+        }
+
+        XpEventResponse xpEvent = gamificationService.recordFocusSessionXp(
+                user,
+                request.getDurationMinutes(),
+                xpToAward
+        );
+
+        logger.info("Focus session XP: +{}, Totale: {}",
+                xpEvent.getXpEarned(), xpEvent.getNewTotalXp());
+
+        return ResponseEntity.ok(xpEvent);
+    }
+
+    /**
+     * DTO per richiesta sessione focus
+     */
+    public static class FocusSessionRequest {
+        private int durationMinutes;
+        private Integer xpEarned; // XP calcolati dal frontend (opzionale)
+
+        public int getDurationMinutes() {
+            return durationMinutes;
+        }
+
+        public void setDurationMinutes(int durationMinutes) {
+            this.durationMinutes = durationMinutes;
+        }
+
+        public Integer getXpEarned() {
+            return xpEarned;
+        }
+
+        public void setXpEarned(Integer xpEarned) {
+            this.xpEarned = xpEarned;
+        }
+    }
 }

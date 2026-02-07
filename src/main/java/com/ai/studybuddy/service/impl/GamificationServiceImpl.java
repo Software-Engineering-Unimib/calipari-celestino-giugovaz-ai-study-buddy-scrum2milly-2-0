@@ -189,20 +189,20 @@ public class GamificationServiceImpl implements GamificationService {
 
     @Override
     @Transactional
-    public XpEventResponse recordFocusSessionXp(User user, int durationMinutes) {
+    public XpEventResponse recordFocusSessionXp(User user, int durationMinutes, int xpToAward) {
         UserStats stats = getOrCreateUserStats(user.getId());
 
         stats.incrementFocusSessions(durationMinutes);
         stats.updateStreak();
-        boolean leveledUp = stats.addXp(XP_FOCUS_SESSION);
+        boolean leveledUp = stats.addXp(xpToAward);
         userStatsRepository.save(stats);
 
         List<Badge> newBadges = checkAndUnlockBadges(user, stats);
 
-        logger.info("Utente {} ha guadagnato {} XP per sessione focus. Totale: {}",
-                user.getEmail(), XP_FOCUS_SESSION, stats.getTotalXp());
+        logger.info("Utente {} ha guadagnato {} XP per sessione focus ({} min). Totale: {}",
+                user.getEmail(), xpToAward, durationMinutes, stats.getTotalXp());
 
-        return new XpEventResponse("FOCUS_SESSION", XP_FOCUS_SESSION, stats, leveledUp, newBadges);
+        return new XpEventResponse("FOCUS_SESSION", xpToAward, stats, leveledUp, newBadges);
     }
 
     // ==================== INTEGRAZIONE USER PROGRESS ====================

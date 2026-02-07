@@ -1,5 +1,6 @@
 /**
  * AI Study Buddy - Layout Components
+ * Sidebar e Topbar unificati per tutte le pagine
  * Compatibile con style.css esistente
  */
 
@@ -7,22 +8,28 @@
 function renderSidebar(activePage = '') {
     const navItems = [
         { href: 'index.html', icon: 'bi-house-door', label: 'Dashboard', id: 'index' },
-        { href: 'spiegazioni.html', icon: 'bi-lightbulb', label: 'Spiegazioni', id: 'spiegazioni' },
+        { href: 'explanation.html', icon: 'bi-chat-dots', label: 'Spiegazioni AI', id: 'explanation' },
         { href: 'quiz.html', icon: 'bi-patch-question', label: 'Quiz', id: 'quiz' },
         { href: 'flashcards.html', icon: 'bi-stack', label: 'Flashcards', id: 'flashcards' },
-        { href: 'profile.html', icon: 'bi-person', label: 'Profilo', id: 'profilo' },
+        { href: 'focus.html', icon: 'bi-bullseye', label: 'Focus Mode', id: 'focus' },
+        { href: 'profile.html', icon: 'bi-person', label: 'Profilo', id: 'profile' },
         { href: 'leaderboard.html', icon: 'bi-trophy', label: 'Classifica', id: 'leaderboard' }
     ];
 
+    // Determina la pagina corrente
     const currentPage = activePage || window.location.pathname.split('/').pop().replace('.html', '') || 'index';
+
+    // Ottieni dati utente
     const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const initials = ((user.firstName?.charAt(0) || '') + (user.lastName?.charAt(0) || '')).toUpperCase() || '?';
+    const initials = ((user.firstName?.charAt(0) || '') + (user.lastName?.charAt(0) || '')).toUpperCase() || 'U';
     const displayName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Utente';
 
     const sidebarHTML = `
         <button class="mobile-menu-btn" id="mobileMenuBtn">
             <i class="bi bi-list"></i>
         </button>
+
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
         <aside class="sidebar" id="sidebar">
             <a href="index.html" class="sidebar-logo">
@@ -31,8 +38,17 @@ function renderSidebar(activePage = '') {
             </a>
 
             <nav class="sidebar-nav">
-                ${navItems.map(item => `
-                    <a href="${item.href}" class="nav-item ${item.id === currentPage ? 'active' : ''}">
+                <div class="nav-section-title">Studio</div>
+                ${navItems.slice(0, 5).map(item => `
+                    <a href="${item.href}" class="nav-item ${item.id === currentPage ? 'active' : ''}" data-page="${item.id}">
+                        <i class="bi ${item.icon}"></i>
+                        <span>${item.label}</span>
+                    </a>
+                `).join('')}
+
+                <div class="nav-section-title">Account</div>
+                ${navItems.slice(5).map(item => `
+                    <a href="${item.href}" class="nav-item ${item.id === currentPage ? 'active' : ''}" data-page="${item.id}">
                         <i class="bi ${item.icon}"></i>
                         <span>${item.label}</span>
                     </a>
@@ -47,18 +63,19 @@ function renderSidebar(activePage = '') {
                         <div class="user-level">Livello <span id="sidebarLevel">1</span></div>
                     </div>
                 </div>
-                <button class="btn btn-outline w-100 mt-3" onclick="logout()">
+                <button class="btn btn-outline" style="width: 100%; margin-top: 1rem;" onclick="logout()">
                     <i class="bi bi-box-arrow-right"></i> Logout
                 </button>
             </div>
         </aside>
-
-        <div class="sidebar-overlay" id="sidebarOverlay"></div>
     `;
 
     document.body.insertAdjacentHTML('afterbegin', sidebarHTML);
     setupSidebarEvents();
     loadSidebarStats();
+
+    // Intercetta i click sui link per gestire il Focus Mode
+    setupNavigationInterception();
 }
 
 function setupSidebarEvents() {
@@ -77,6 +94,27 @@ function setupSidebarEvents() {
     });
 }
 
+function setupNavigationInterception() {
+    // Intercetta tutti i link per gestire il Focus Mode
+    document.addEventListener('click', (e) => {
+        const link = e.target.closest('a[href]');
+        if (!link) return;
+
+        const href = link.getAttribute('href');
+        if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+
+        // Verifica se il Focus Mode è attivo
+        if (window.FocusManager && window.FocusManager.isInSession()) {
+            const isAllowed = window.FocusManager.isAllowedPage(href);
+
+            if (!isAllowed) {
+                e.preventDefault();
+                window.FocusManager.showNavigationConfirm(href);
+            }
+        }
+    });
+}
+
 async function loadSidebarStats() {
     try {
         const token = localStorage.getItem('token');
@@ -91,15 +129,18 @@ async function loadSidebarStats() {
             const levelEl = document.getElementById('sidebarLevel');
             if (levelEl) levelEl.textContent = stats.level || 1;
         }
-    } catch (e) { console.error('Errore stats sidebar:', e); }
+    } catch (e) {
+        console.error('Errore stats sidebar:', e);
+    }
 }
 
 // ==================== TOPBAR ====================
-function renderTopbar(pageTitle = '') {
+function renderTopbar(pageTitle = '', pageSubtitle = '') {
     const topbarHTML = `
-        <header class="topbar" id="topbar">
-            <div class="topbar-left">
-                <h1 class="topbar-title">${pageTitle}</h1>
+        <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h1 class="page-title">${pageTitle}</h1>
+                ${pageSubtitle ? `<p class="page-subtitle">${pageSubtitle}</p>` : ''}
             </div>
             <div class="topbar-right">
                 <div class="topbar-stat streak" title="Giorni consecutivi">
@@ -115,7 +156,7 @@ function renderTopbar(pageTitle = '') {
                     <span>Lv.<span id="topbarLevel">1</span></span>
                 </div>
             </div>
-        </header>
+        </div>
     `;
 
     const mainContent = document.querySelector('.main-content');
@@ -145,7 +186,9 @@ async function loadTopbarStats() {
             if (xpEl) xpEl.textContent = formatNumber(stats.totalXp || 0);
             if (levelEl) levelEl.textContent = stats.level || 1;
         }
-    } catch (e) { console.error('Errore stats topbar:', e); }
+    } catch (e) {
+        console.error('Errore stats topbar:', e);
+    }
 }
 
 function formatNumber(num) {
@@ -154,25 +197,14 @@ function formatNumber(num) {
     return num.toString();
 }
 
-// ==================== FOOTER ====================
-function renderFooter() {
-    const footerHTML = `
-        <footer class="app-footer">
-            <span>© ${new Date().getFullYear()} AI Study Buddy - Università Milano-Bicocca</span>
-        </footer>
-    `;
-    document.body.insertAdjacentHTML('beforeend', footerHTML);
-}
-
 // ==================== LAYOUT INIT ====================
 function initLayout(options = {}) {
-    const { pageTitle = '', activePage = '', showTopbar = true, showFooter = true } = options;
+    const { pageTitle = '', pageSubtitle = '', activePage = '', showTopbar = true } = options;
 
     if (!checkAuth()) return;
 
     renderSidebar(activePage);
-    if (showTopbar) renderTopbar(pageTitle);
-    if (showFooter) renderFooter();
+    if (showTopbar && pageTitle) renderTopbar(pageTitle, pageSubtitle);
 }
 
 // ==================== AUTH ====================
@@ -206,7 +238,20 @@ function checkAuth() {
 }
 
 function logout() {
+    // Se c'è una sessione focus attiva, chiedi conferma
+    if (window.FocusManager && window.FocusManager.isInSession()) {
+        window.FocusManager.showNavigationConfirm('login.html', true);
+        return;
+    }
+
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     window.location.href = 'login.html';
 }
+
+// Esporta per uso globale
+window.initLayout = initLayout;
+window.renderSidebar = renderSidebar;
+window.renderTopbar = renderTopbar;
+window.logout = logout;
+window.checkAuth = checkAuth;
