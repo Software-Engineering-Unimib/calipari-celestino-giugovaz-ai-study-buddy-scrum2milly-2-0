@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz - AI Study Buddy</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+<!-- Sidebar e Topbar generati da layout.js -->
+
+<main class="main-content">
+    <div id="alertContainer"></div>
+
+    <div class="quiz-container">
+        <!-- Quiz Setup -->
+        <div id="quizSetup" class="card">
+            <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="bi bi-gear text-primary"></i>
+                Configura il tuo Quiz
+            </h3>
+
+            <div style="margin-bottom: 1rem;">
+                <label class="form-label">Argomento</label>
+                <input
+                        type="text"
+                        class="form-control"
+                        id="quizTopic"
+                        placeholder="es. Seconda Guerra Mondiale, Derivate, Java..."
+                >
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                <div>
+                    <label class="form-label">Numero domande</label>
+                    <select class="form-control form-select" id="numQuestions">
+                        <option value="5" selected>5 domande</option>
+                        <option value="10">10 domande</option>
+                        <option value="15">15 domande</option>
+                        <option value="20">20 domande</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label">Difficoltà</label>
+                    <select class="form-control form-select" id="quizDifficulty">
+                        <option value="PRINCIPIANTE">Facile</option>
+                        <option value="INTERMEDIO" selected>Media</option>
+                        <option value="AVANZATO">Difficile</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-lg" id="generateBtn" onclick="generateQuiz()" style="width: 100%;">
+                <span id="generateBtnText">
+                    <i class="bi bi-magic"></i>
+                    Genera Quiz
+                </span>
+                <span id="generateBtnSpinner" style="display: none;">
+                    <span class="loading-spinner" style="width: 20px; height: 20px; display: inline-block; vertical-align: middle; margin-right: 0.5rem;"></span>
+                    Generazione...
+                </span>
+            </button>
+
+            <!-- Quiz History -->
+            <div id="quizHistorySection" style="margin-top: 2rem; display: none;">
+                <h4 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="bi bi-clock-history"></i>
+                    I tuoi Quiz recenti
+                </h4>
+                <div id="quizHistoryList" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;"></div>
+            </div>
+        </div>
+
+        <!-- Quiz Questions (hidden initially) -->
+        <div id="quizQuestionsContainer" style="display: none;">
+            <!-- Header -->
+            <div class="quiz-header">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <h4 style="margin-bottom: 0.25rem;" id="quizTitle">Quiz</h4>
+                        <span style="color: var(--text-muted); font-size: 0.9rem;" id="quizInfo"></span>
+                    </div>
+                    <button class="btn btn-outline" onclick="resetQuiz()">
+                        <i class="bi bi-arrow-left"></i>
+                        Nuovo Quiz
+                    </button>
+                </div>
+                <div class="quiz-progress">
+                    <div class="quiz-progress-bar">
+                        <div id="progressFill" class="quiz-progress-fill" style="width: 0%;"></div>
+                    </div>
+                    <div class="quiz-progress-text">
+                        <span id="progressText">Domanda 1 di 5</span>
+                        <span id="scoreText">Risposte: 0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question Card -->
+            <div id="questionContainer"></div>
+
+            <!-- Navigation -->
+            <div style="display: flex; justify-content: space-between; margin-top: 1rem;">
+                <button class="btn btn-outline" id="prevBtn" onclick="prevQuestion()" disabled>
+                    <i class="bi bi-arrow-left"></i>
+                    Precedente
+                </button>
+                <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()">
+                    Successiva
+                    <i class="bi bi-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Quiz Results (hidden initially) -->
+        <div id="quizResults" style="display: none;">
+            <div class="card quiz-result">
+                <div id="resultIcon" class="card-icon" style="width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 1.5rem; font-size: 2rem;"></div>
+                <div id="finalScore" class="quiz-result-score"></div>
+                <div id="finalLabel" class="quiz-result-label"></div>
+
+                <div style="display: flex; justify-content: center; gap: 2rem; margin-bottom: 2rem; flex-wrap: wrap;">
+                    <div class="stat-card" style="min-width: 100px; text-align: center;">
+                        <div class="stat-value" style="color: #10b981;" id="correctCount">0</div>
+                        <div class="stat-label">Corrette</div>
+                    </div>
+                    <div class="stat-card" style="min-width: 100px; text-align: center;">
+                        <div class="stat-value" style="color: #ef4444;" id="incorrectCount">0</div>
+                        <div class="stat-label">Sbagliate</div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                    <button class="btn btn-outline" onclick="reviewAnswers()">
+                        <i class="bi bi-eye"></i>
+                        Rivedi risposte
+                    </button>
+                    <button class="btn btn-primary" onclick="resetQuiz()">
+                        <i class="bi bi-arrow-repeat"></i>
+                        Nuovo Quiz
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="js/app.js"></script>
+<script src="js/layout.js"></script>
+<script src="js/focus-manager.js"></script>
+<script>
+    // Quiz state
+    let currentQuiz = null;
+    let quizQuestions = [];
+    let currentQuestion = 0;
+    let userAnswers = {};
+    let score = 0;
+
+    // On page load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inizializza layout con sidebar e topbar
+        initLayout({
+            pageTitle: 'Quiz AI',
+            pageSubtitle: 'Genera quiz personalizzati con l\'intelligenza artificiale',
+            activePage: 'quiz'
+        });
+
+        // Carica storico quiz
+        loadQuizHistory();
+    });
+
+    // Generate Quiz
+    async function generateQuiz() {
+        const topic = document.getElementById('quizTopic').value.trim();
+        const numQuestions = document.getElementById('numQuestions').value;
+        const difficulty = document.getElementById('quizDifficulty').value;
+
+        if (!topic) {
+            showAlert('Inserisci un argomento per il quiz', 'error');
+            return;
+        }
+
+        const btn = document.getElementById('generateBtn');
+        const btnText = document.getElementById('generateBtnText');
+        const btnSpinner = document.getElementById('generateBtnSpinner');
+
+        btn.disabled = true;
+        btnText.style.display = 'none';
+        btnSpinner.style.display = 'inline-flex';
+
+        try {
+            const response = await apiFetch(
+                `/ai/quiz/generate?topic=${encodeURIComponent(topic)}&numberOfQuestions=${numQuestions}&difficulty=${difficulty}`,
+                { method: 'POST' }
+            );
+
+            if (response.ok) {
+                const quiz = await response.json();
+                currentQuiz = quiz;
+                quizQuestions = quiz.questions || [];
+
+                if (quizQuestions.length === 0) {
+                    throw new Error('Nessuna domanda generata');
+                }
+
+                currentQuestion = 0;
+                userAnswers = {};
+                score = 0;
+
+                await startQuiz(quiz.id);
+
+                document.getElementById('quizTitle').textContent = quiz.title || `Quiz: ${topic}`;
+                document.getElementById('quizInfo').textContent =
+                    `${quizQuestions.length} domande • Difficoltà: ${getDifficultyLabel(difficulty)}`;
+
+                document.getElementById('quizSetup').style.display = 'none';
+                document.getElementById('quizQuestionsContainer').style.display = 'block';
+
+                renderQuestion();
+            } else {
+                const error = await response.text();
+                showAlert('Errore: ' + error, 'error');
+            }
+        } catch (error) {
+            console.error('Errore:', error);
+            showAlert('Errore nella generazione del quiz. Riprova.', 'error');
+        } finally {
+            btn.disabled = false;
+            btnText.style.display = 'inline-flex';
+            btnSpinner.style.display = 'none';
+        }
+    }
+
+    async function startQuiz(quizId) {
+        try {
+            await apiFetch(`/ai/quiz/${quizId}/start`, { method: 'POST' });
+        } catch (error) {
+            console.warn('Errore start quiz:', error);
+        }
+    }
+
+    function getDifficultyLabel(difficulty) {
+        const labels = {
+            'PRINCIPIANTE': 'Facile',
+            'INTERMEDIO': 'Media',
+            'AVANZATO': 'Difficile'
+        };
+        return labels[difficulty] || difficulty;
+    }
+
+    function renderQuestion() {
+        const q = quizQuestions[currentQuestion];
+        const container = document.getElementById('questionContainer');
+        const letters = ['A', 'B', 'C', 'D'];
+        const options = [q.optionA, q.optionB, q.optionC, q.optionD];
+
+        let optionsHtml = '';
+        options.forEach((option, index) => {
+            const letter = letters[index];
+            const isSelected = userAnswers[q.id] === letter;
+            optionsHtml += `
+                <div class="quiz-option ${isSelected ? 'selected' : ''}" onclick="selectOption('${q.id}', '${letter}')">
+                    <div class="quiz-option-letter">${letter}</div>
+                    <div class="quiz-option-text">${option}</div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = `
+            <div class="quiz-question-card">
+                <div class="quiz-question-number">Domanda ${currentQuestion + 1}</div>
+                <div class="quiz-question-text">${q.questionText}</div>
+                <div class="quiz-options">
+                    ${optionsHtml}
+                </div>
+            </div>
+        `;
+
+        updateProgress();
+        updateNavigation();
+    }
+
+    function selectOption(questionId, letter) {
+        userAnswers[questionId] = letter;
+        renderQuestion();
+    }
+
+    function updateProgress() {
+        const progress = ((currentQuestion + 1) / quizQuestions.length) * 100;
+        document.getElementById('progressFill').style.width = `${progress}%`;
+        document.getElementById('progressText').textContent = `Domanda ${currentQuestion + 1} di ${quizQuestions.length}`;
+
+        const answered = Object.keys(userAnswers).length;
+        document.getElementById('scoreText').textContent = `Risposte: ${answered}/${quizQuestions.length}`;
+    }
+
+    function updateNavigation() {
+        document.getElementById('prevBtn').disabled = currentQuestion === 0;
+
+        const nextBtn = document.getElementById('nextBtn');
+        if (currentQuestion === quizQuestions.length - 1) {
+            nextBtn.innerHTML = '<i class="bi bi-check-lg"></i> Termina Quiz';
+            nextBtn.onclick = finishQuiz;
+        } else {
+            nextBtn.innerHTML = 'Successiva <i class="bi bi-arrow-right"></i>';
+            nextBtn.onclick = nextQuestion;
+        }
+    }
+
+    function prevQuestion() {
+        if (currentQuestion > 0) {
+            currentQuestion--;
+            renderQuestion();
+        }
+    }
+
+    function nextQuestion() {
+        if (currentQuestion < quizQuestions.length - 1) {
+            currentQuestion++;
+            renderQuestion();
+        }
+    }
+
+    async function finishQuiz() {
+        try {
+            const answersPayload = {
+                quizId: currentQuiz.id,
+                answers: userAnswers
+            };
+
+            const response = await apiFetch('/ai/quiz/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(answersPayload)
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                score = result.score;
+                const percentage = Math.round(result.percentage);
+
+                document.getElementById('finalScore').textContent = `${percentage}%`;
+                document.getElementById('correctCount').textContent = result.score;
+                document.getElementById('incorrectCount').textContent = result.totalQuestions - result.score;
+
+                let label = 'Puoi fare di meglio!';
+                let iconBg = 'rgba(239, 68, 68, 0.2)';
+                let icon = '😅';
+                if (percentage >= 90) { label = 'Eccellente! 🎉'; iconBg = 'rgba(16, 185, 129, 0.2)'; icon = '🏆'; }
+                else if (percentage >= 70) { label = 'Ottimo lavoro! 👏'; iconBg = 'rgba(16, 185, 129, 0.2)'; icon = '🎯'; }
+                else if (percentage >= 50) { label = 'Buon risultato! 💪'; iconBg = 'rgba(245, 158, 11, 0.2)'; icon = '💪'; }
+
+                document.getElementById('finalLabel').textContent = label;
+                document.getElementById('resultIcon').style.background = iconBg;
+                document.getElementById('resultIcon').textContent = icon;
+
+                document.getElementById('quizQuestionsContainer').style.display = 'none';
+                document.getElementById('quizResults').style.display = 'block';
+
+                showAlert(`Quiz completato! Punteggio: ${percentage}%`, 'success');
+            } else {
+                throw new Error('Errore nel salvataggio');
+            }
+        } catch (error) {
+            console.error('Errore:', error);
+            calculateScoreLocally();
+        }
+    }
+
+    function calculateScoreLocally() {
+        score = 0;
+        quizQuestions.forEach(q => {
+            if (userAnswers[q.id] === q.correctAnswer) score++;
+        });
+
+        const percentage = Math.round((score / quizQuestions.length) * 100);
+        document.getElementById('finalScore').textContent = `${percentage}%`;
+        document.getElementById('correctCount').textContent = score;
+        document.getElementById('incorrectCount').textContent = quizQuestions.length - score;
+
+        document.getElementById('quizQuestionsContainer').style.display = 'none';
+        document.getElementById('quizResults').style.display = 'block';
+    }
+
+    function reviewAnswers() {
+        document.getElementById('quizResults').style.display = 'none';
+        document.getElementById('quizQuestionsContainer').style.display = 'block';
+        currentQuestion = 0;
+        renderQuestionReview();
+    }
+
+    function renderQuestionReview() {
+        const q = quizQuestions[currentQuestion];
+        const container = document.getElementById('questionContainer');
+        const letters = ['A', 'B', 'C', 'D'];
+        const options = [q.optionA, q.optionB, q.optionC, q.optionD];
+
+        const userAnswer = userAnswers[q.id];
+        const isUserCorrect = userAnswer === q.correctAnswer;
+
+        let optionsHtml = '';
+        options.forEach((option, index) => {
+            const letter = letters[index];
+            const isCorrect = letter === q.correctAnswer;
+            const isUserAnswer = userAnswer === letter;
+
+            let className = '';
+            if (isCorrect) className = 'correct';
+            else if (isUserAnswer && !isCorrect) className = 'incorrect';
+
+            optionsHtml += `
+                <div class="quiz-option ${className}" style="cursor: default;">
+                    <div class="quiz-option-letter">${letter}</div>
+                    <div class="quiz-option-text">
+                        ${option}
+                        ${isCorrect ? '<i class="bi bi-check-lg" style="color: #10b981; margin-left: 0.5rem;"></i>' : ''}
+                        ${isUserAnswer && !isCorrect ? '<i class="bi bi-x-lg" style="color: #ef4444; margin-left: 0.5rem;"></i>' : ''}
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = `
+            <div class="quiz-question-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <span class="quiz-question-number">Domanda ${currentQuestion + 1}</span>
+                    <span style="padding: 0.25rem 0.75rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 600; background: ${isUserCorrect ? '#10b981' : '#ef4444'}; color: white;">
+                        ${isUserCorrect ? 'Corretta' : 'Sbagliata'}
+                    </span>
+                </div>
+                <div class="quiz-question-text">${q.questionText}</div>
+                <div class="quiz-options">
+                    ${optionsHtml}
+                </div>
+            </div>
+        `;
+
+        updateProgress();
+
+        document.getElementById('prevBtn').disabled = currentQuestion === 0;
+        const nextBtn = document.getElementById('nextBtn');
+        if (currentQuestion === quizQuestions.length - 1) {
+            nextBtn.innerHTML = '<i class="bi bi-bar-chart"></i> Torna ai risultati';
+            nextBtn.onclick = () => {
+                document.getElementById('quizQuestionsContainer').style.display = 'none';
+                document.getElementById('quizResults').style.display = 'block';
+            };
+        } else {
+            nextBtn.innerHTML = 'Successiva <i class="bi bi-arrow-right"></i>';
+            nextBtn.onclick = () => { currentQuestion++; renderQuestionReview(); };
+        }
+
+        document.getElementById('prevBtn').onclick = () => {
+            if (currentQuestion > 0) { currentQuestion--; renderQuestionReview(); }
+        };
+    }
+
+    async function loadQuizHistory() {
+        try {
+            const response = await apiFetch('/ai/quiz/my');
+            if (response.ok) {
+                const quizzes = await response.json();
+                if (quizzes.length > 0) {
+                    renderQuizHistory(quizzes.slice(0, 6));
+                }
+            }
+        } catch (error) {
+            console.warn('Errore caricamento storico:', error);
+        }
+    }
+
+    function renderQuizHistory(quizzes) {
+        const section = document.getElementById('quizHistorySection');
+        const list = document.getElementById('quizHistoryList');
+
+        let html = '';
+        quizzes.forEach(quiz => {
+            const date = new Date(quiz.createdAt).toLocaleDateString('it-IT');
+            const statusBadge = quiz.isCompleted
+                ? `<span style="background: #10b981; color: white; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem;">${quiz.percentage}%</span>`
+                : '<span style="background: #f59e0b; color: white; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem;">In corso</span>';
+
+            html += `
+                <div class="card" style="cursor: pointer; padding: 1rem;" onclick="loadQuiz('${quiz.id}')">
+                    <h6 style="margin-bottom: 0.5rem; color: #fff;">${quiz.title || quiz.topic}</h6>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                        ${quiz.numberOfQuestions} domande • ${date}
+                    </p>
+                    ${statusBadge}
+                </div>
+            `;
+        });
+
+        list.innerHTML = html;
+        section.style.display = 'block';
+    }
+
+    async function loadQuiz(quizId) {
+        try {
+            const response = await apiFetch(`/ai/quiz/${quizId}`);
+            if (response.ok) {
+                const quiz = await response.json();
+                currentQuiz = quiz;
+                quizQuestions = quiz.questions || [];
+                currentQuestion = 0;
+
+                userAnswers = {};
+                quizQuestions.forEach(q => {
+                    if (q.userAnswer) userAnswers[q.id] = q.userAnswer;
+                });
+
+                document.getElementById('quizTitle').textContent = quiz.title;
+                document.getElementById('quizInfo').textContent =
+                    `${quizQuestions.length} domande • ${getDifficultyLabel(quiz.difficultyLevel)}`;
+
+                document.getElementById('quizSetup').style.display = 'none';
+
+                if (quiz.isCompleted) {
+                    score = quiz.score || 0;
+                    const percentage = Math.round(quiz.percentage || 0);
+                    document.getElementById('finalScore').textContent = `${percentage}%`;
+                    document.getElementById('correctCount').textContent = score;
+                    document.getElementById('incorrectCount').textContent = quizQuestions.length - score;
+                    document.getElementById('quizResults').style.display = 'block';
+                } else {
+                    document.getElementById('quizQuestionsContainer').style.display = 'block';
+                    renderQuestion();
+                }
+            }
+        } catch (error) {
+            console.error('Errore:', error);
+            showAlert('Errore nel caricamento del quiz', 'error');
+        }
+    }
+
+    function resetQuiz() {
+        currentQuiz = null;
+        quizQuestions = [];
+        currentQuestion = 0;
+        userAnswers = {};
+        score = 0;
+
+        document.getElementById('quizSetup').style.display = 'block';
+        document.getElementById('quizQuestionsContainer').style.display = 'none';
+        document.getElementById('quizResults').style.display = 'none';
+        document.getElementById('quizTopic').value = '';
+
+        loadQuizHistory();
+    }
+</script>
+</body>
+</html>
