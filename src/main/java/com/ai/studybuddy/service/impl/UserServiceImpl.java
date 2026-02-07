@@ -4,6 +4,7 @@ import com.ai.studybuddy.service.inter.UserService;
 import com.ai.studybuddy.util.Const;
 import com.ai.studybuddy.model.user.User;
 import com.ai.studybuddy.repository.UserRepository;
+import com.ai.studybuddy.util.enums.EducationLevel;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,7 +80,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     @Transactional
-    public User registerUser(String firstName, String lastName, String email, String password) {
+    public User registerUser(String firstName, String lastName, String email, String password, EducationLevel educationLevel) {
         if (existsByEmail(email)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, Const.EMAIL_EXISTS);
         }
@@ -89,6 +90,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         user.setLastName(lastName);
         user.setEmail(email);
         user.setPasswordHash(passwordEncoder.encode(password));
+        user.setEducationLevel(educationLevel);
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
 

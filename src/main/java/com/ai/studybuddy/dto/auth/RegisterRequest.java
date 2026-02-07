@@ -1,5 +1,6 @@
 package com.ai.studybuddy.dto.auth;
 
+import com.ai.studybuddy.util.enums.EducationLevel;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 
@@ -17,13 +18,18 @@ public class RegisterRequest {
     @Size(min = 8)
     private String password;
 
+
+    private EducationLevel educationLevel;
+
     public RegisterRequest() {}
 
-    public RegisterRequest(String firstName, String lastName, String email, String password) {
+
+    public RegisterRequest(String firstName, String lastName, String email, String password, EducationLevel educationLevel) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.password = password;
+        this.educationLevel = educationLevel;
     }
 
     public String getFirstName() {
@@ -44,6 +50,11 @@ public class RegisterRequest {
 
     public String getEmail() {
         return email;
+    }
+
+    public EducationLevel getEducationLevel(){
+
+        return educationLevel;
     }
 
     public void setEmail(String email) {

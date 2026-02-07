@@ -28,6 +28,7 @@ public class User {
     @NotBlank
     private String passwordHash;
 
+
     @Enumerated(EnumType.STRING)
     @Column(name = "education_level")
     private EducationLevel educationLevel;

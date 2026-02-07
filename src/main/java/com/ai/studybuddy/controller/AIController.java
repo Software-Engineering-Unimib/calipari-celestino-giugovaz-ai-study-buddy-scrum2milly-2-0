@@ -59,12 +59,18 @@ public class AIController {
     @GetMapping("/explain")
     public ResponseEntity<ExplanationResponse> getExplanation(
             @RequestParam String topic,
-            @RequestParam(defaultValue = "università") String level,
             @RequestParam(required = false) String subject,
             Principal principal) {
 
         User user = userService.getCurrentUser(principal);
-        logger.info("Richiesta spiegazione '{}' da utente: {}", topic, user.getEmail());
+
+        // Prende il livello dal profilo utente, NON più dal request
+        String level = user.getEducationLevel() != null
+                ? user.getEducationLevel().getDisplayName()
+                : "Università"; // Default se non impostato
+
+        logger.info("Richiesta spiegazione '{}' da utente: {} - Livello: {}",
+                topic, user.getEmail(), level);
 
         ExplanationResponse response = explanationService.generateExplanation(topic, level, subject, user);
 

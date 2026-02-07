@@ -1,6 +1,7 @@
 package com.ai.studybuddy.service.inter;
 
 import com.ai.studybuddy.model.user.User;
+import com.ai.studybuddy.util.enums.EducationLevel;
 
 import java.security.Principal;
 import java.util.List;
@@ -19,7 +20,7 @@ public interface UserService {
 
     void deleteById(UUID id);
 
-    User registerUser(String firstName, String lastName, String email, String password);
+    User registerUser(String firstName, String lastName, String email, String password, EducationLevel educationLevel);
 
     boolean existsByEmail(String email);
 

@@ -54,7 +54,8 @@ public class AuthController {
                 request.getFirstName(),
                 request.getLastName(),
                 request.getEmail(),
-                request.getPassword()
+                request.getPassword(),
+                request.getEducationLevel()
         );
 
         logger.info("Utente registrato con successo: {}", user.getEmail());
