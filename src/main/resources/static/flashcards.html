@@ -4,58 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flashcards - AI Study Buddy</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">
     <style>
-        .deck-card {
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .deck-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        }
         .deck-color-bar {
             height: 6px;
             border-radius: 4px 4px 0 0;
-        }
-        .flashcard-container {
-            perspective: 1000px;
-            height: 300px;
-        }
-        .flashcard-inner {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            transition: transform 0.6s;
-            transform-style: preserve-3d;
-        }
-        .flashcard-inner.flipped {
-            transform: rotateY(180deg);
-        }
-        .flashcard-front, .flashcard-back {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-            text-align: center;
-            font-size: 1.25rem;
-        }
-        .flashcard-front {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-        }
-        .flashcard-back {
-            background: var(--card-bg);
-            border: 2px solid var(--border-color);
-            transform: rotateY(180deg);
         }
         .color-option {
             width: 32px;
@@ -71,299 +26,215 @@
         .color-option.selected {
             border-color: var(--text-primary);
         }
+        .progress {
+            height: 6px;
+            background: var(--dark-border);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
     </style>
 </head>
 <body>
-<!-- Mobile Menu Button -->
-<button class="mobile-menu-btn" id="mobileMenuBtn">
-    <i class="bi bi-list"></i>
-</button>
+<!-- Sidebar e Topbar generati da layout.js -->
 
-<!-- Sidebar Overlay -->
-<div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-<!-- Sidebar -->
-<aside class="sidebar" id="sidebar">
-    <a href="index.html" class="sidebar-logo">
-        <i class="bi bi-mortarboard-fill"></i>
-        <h1>AI Study Buddy</h1>
-    </a>
-
-    <nav class="sidebar-nav">
-        <div class="nav-section-title">Studio</div>
-        <a href="explanation.html" class="nav-item">
-            <i class="bi bi-chat-dots"></i>
-            <span>Spiegazioni AI</span>
-        </a>
-        <a href="quiz.html" class="nav-item">
-            <i class="bi bi-patch-question"></i>
-            <span>Quiz</span>
-        </a>
-        <a href="flashcards.html" class="nav-item active">
-            <i class="bi bi-stack"></i>
-            <span>Flashcards</span>
-        </a>
-    </nav>
-
-    <div class="sidebar-footer">
-        <div class="user-info">
-            <div class="user-avatar" id="userAvatar">U</div>
-            <div class="user-details">
-                <div class="user-name" id="userName">Utente</div>
-                <div class="user-level">Livello 5</div>
-            </div>
-        </div>
-    </div>
-</aside>
-
-<!-- Main Content -->
 <main class="main-content">
-    <div class="page-header d-flex justify-content-between align-items-start">
-        <div>
-            <h1 class="page-title">
-                <i class="bi bi-stack text-primary me-2"></i>
-                Flashcards
-            </h1>
-            <p class="page-subtitle">Crea e studia deck di flashcards con l'aiuto dell'AI</p>
-        </div>
-        <button class="btn btn-primary" onclick="showCreateDeckModal()">
-            <i class="bi bi-plus-lg me-1"></i>
-            Nuovo Deck
-        </button>
-    </div>
-
     <div id="alertContainer"></div>
 
     <!-- Decks List View -->
     <div id="decksView">
         <!-- Stats -->
-        <div class="row mb-4">
-            <div class="col-6 col-md-3 mb-3">
-                <div class="card text-center">
-                    <div class="stat-value" id="statTotalDecks">0</div>
-                    <div class="stat-label">Deck Totali</div>
-                </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+            <div class="stat-card">
+                <div class="stat-value" id="statTotalDecks">0</div>
+                <div class="stat-label">Deck Totali</div>
             </div>
-            <div class="col-6 col-md-3 mb-3">
-                <div class="card text-center">
-                    <div class="stat-value" id="statTotalCards">0</div>
-                    <div class="stat-label">Flashcards</div>
-                </div>
+            <div class="stat-card">
+                <div class="stat-value" id="statTotalCards">0</div>
+                <div class="stat-label">Flashcards</div>
             </div>
-            <div class="col-6 col-md-3 mb-3">
-                <div class="card text-center">
-                    <div class="stat-value" id="statMastered">0</div>
-                    <div class="stat-label">Padroneggiate</div>
-                </div>
+            <div class="stat-card">
+                <div class="stat-value" id="statMastered">0</div>
+                <div class="stat-label">Padroneggiate</div>
             </div>
-            <div class="col-6 col-md-3 mb-3">
-                <div class="card text-center">
-                    <div class="stat-value" id="statStudySessions">0</div>
-                    <div class="stat-label">Sessioni Studio</div>
-                </div>
+            <div class="stat-card">
+                <div class="stat-value" id="statStudySessions">0</div>
+                <div class="stat-label">Sessioni Studio</div>
             </div>
         </div>
 
+        <!-- Actions -->
+        <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-bottom: 1.5rem;">
+            <button class="btn btn-primary" onclick="showCreateDeckModal()">
+                <i class="bi bi-plus-lg"></i>
+                Nuovo Deck
+            </button>
+        </div>
+
         <!-- Decks Grid -->
-        <div id="decksGrid" class="row">
-            <div class="col-12 text-center py-5">
-                <div class="spinner-border text-primary" role="status"></div>
-                <p class="mt-2 text-muted">Caricamento deck...</p>
+        <div id="decksGrid" class="deck-grid">
+            <div style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
+                <div class="loading-spinner" style="margin: 0 auto;"></div>
+                <p style="margin-top: 1rem; color: var(--text-muted);">Caricamento deck...</p>
             </div>
         </div>
     </div>
 
-    <!-- Deck Detail View (hidden initially) -->
-    <div id="deckDetailView" class="d-none">
-        <div class="d-flex align-items-center gap-3 mb-4">
+    <!-- Deck Detail View -->
+    <div id="deckDetailView" style="display: none;">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;">
             <button class="btn btn-outline" onclick="showDecksView()">
                 <i class="bi bi-arrow-left"></i>
             </button>
-            <div>
-                <h2 class="mb-0" id="deckDetailName">Nome Deck</h2>
-                <small class="text-muted" id="deckDetailInfo">0 carte</small>
+            <div style="flex: 1;">
+                <h2 style="margin-bottom: 0.25rem;" id="deckDetailName">Nome Deck</h2>
+                <small style="color: var(--text-muted);" id="deckDetailInfo">0 carte</small>
             </div>
-            <div class="ms-auto d-flex gap-2">
+            <div style="display: flex; gap: 0.5rem;">
                 <button class="btn btn-outline" onclick="showGenerateCardsModal()">
-                    <i class="bi bi-magic me-1"></i>
+                    <i class="bi bi-magic"></i>
                     Genera con AI
                 </button>
                 <button class="btn btn-primary" onclick="startStudySession()">
-                    <i class="bi bi-play-fill me-1"></i>
+                    <i class="bi bi-play-fill"></i>
                     Studia
                 </button>
             </div>
         </div>
-
-        <!-- Cards List -->
-        <div id="cardsList" class="row"></div>
+        <div id="cardsList" class="deck-grid"></div>
     </div>
 
-    <!-- Study Mode View (hidden initially) -->
-    <div id="studyView" class="d-none">
-        <div class="d-flex justify-content-between align-items-center mb-4">
+    <!-- Study Mode View -->
+    <div id="studyView" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
             <button class="btn btn-outline" onclick="exitStudyMode()">
-                <i class="bi bi-x-lg me-1"></i>
-                Esci
+                <i class="bi bi-x-lg"></i> Esci
             </button>
-            <div class="text-center">
-                <span id="studyProgress">1 / 10</span>
-            </div>
-            <div>
-                <span class="badge bg-success me-2" id="studyCorrect">0</span>
-                <span class="badge bg-danger" id="studyIncorrect">0</span>
+            <span id="studyProgress" style="font-weight: 600;">1 / 10</span>
+            <div style="display: flex; gap: 0.5rem;">
+                <span style="background: #10b981; color: white; padding: 0.25rem 0.75rem; border-radius: 0.5rem; font-weight: 600;" id="studyCorrect">0</span>
+                <span style="background: #ef4444; color: white; padding: 0.25rem 0.75rem; border-radius: 0.5rem; font-weight: 600;" id="studyIncorrect">0</span>
             </div>
         </div>
-
-        <!-- Flashcard -->
-        <div class="flashcard-container mx-auto" style="max-width: 500px;" onclick="flipCard()">
-            <div class="flashcard-inner" id="flashcardInner">
-                <div class="flashcard-front" id="cardFront">
-                    Domanda
+        <div class="flashcard-wrapper" onclick="flipCard()">
+            <div class="flashcard" id="flashcardElement">
+                <div class="flashcard-face flashcard-front">
+                    <span class="flashcard-label">Domanda</span>
+                    <div class="flashcard-content" id="cardFront">Domanda</div>
+                    <span class="flashcard-hint">Clicca per girare</span>
                 </div>
-                <div class="flashcard-back" id="cardBack">
-                    Risposta
+                <div class="flashcard-face flashcard-back">
+                    <span class="flashcard-label">Risposta</span>
+                    <div class="flashcard-content" id="cardBack">Risposta</div>
                 </div>
             </div>
         </div>
-
-        <p class="text-center text-muted mt-3">Clicca sulla carta per girarla</p>
-
-        <!-- Study Controls -->
-        <div class="d-flex justify-content-center gap-3 mt-4" id="studyControls">
+        <div class="flashcard-controls" style="margin-top: 2rem;">
             <button class="btn btn-danger btn-lg" onclick="answerCard(false)">
-                <i class="bi bi-x-lg me-1"></i>
-                Non la sapevo
+                <i class="bi bi-x-lg"></i> Non la sapevo
             </button>
             <button class="btn btn-success btn-lg" onclick="answerCard(true)">
-                <i class="bi bi-check-lg me-1"></i>
-                La sapevo
+                <i class="bi bi-check-lg"></i> La sapevo
             </button>
         </div>
     </div>
 </main>
 
 <!-- Create Deck Modal -->
-<div class="modal fade" id="createDeckModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="bi bi-plus-circle me-2"></i>
-                    Crea Nuovo Deck
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<div class="modal-overlay" id="createDeckModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Crea Nuovo Deck</h5>
+            <button class="modal-close" onclick="hideCreateDeckModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">Nome Deck *</label>
+                <input type="text" class="form-control" id="deckName" placeholder="es. Matematica - Derivate">
             </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label class="form-label">Nome Deck *</label>
-                    <input type="text" class="form-control" id="deckName" placeholder="es. Matematica - Derivate">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Descrizione</label>
-                    <textarea class="form-control" id="deckDescription" rows="2" placeholder="Descrizione opzionale..."></textarea>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Materia</label>
-                    <input type="text" class="form-control" id="deckSubject" placeholder="es. Matematica">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Colore</label>
-                    <div class="d-flex gap-2" id="colorPicker">
-                        <div class="color-option selected" style="background: #3B82F6;" data-color="#3B82F6"></div>
-                        <div class="color-option" style="background: #10B981;" data-color="#10B981"></div>
-                        <div class="color-option" style="background: #F59E0B;" data-color="#F59E0B"></div>
-                        <div class="color-option" style="background: #EF4444;" data-color="#EF4444"></div>
-                        <div class="color-option" style="background: #8B5CF6;" data-color="#8B5CF6"></div>
-                        <div class="color-option" style="background: #EC4899;" data-color="#EC4899"></div>
-                    </div>
+            <div class="form-group">
+                <label class="form-label">Descrizione</label>
+                <textarea class="form-control" id="deckDescription" rows="2" placeholder="Descrizione opzionale..."></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Materia</label>
+                <input type="text" class="form-control" id="deckSubject" placeholder="es. Matematica">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Colore</label>
+                <div style="display: flex; gap: 0.5rem;" id="colorPicker">
+                    <div class="color-option selected" style="background: #3B82F6;" data-color="#3B82F6"></div>
+                    <div class="color-option" style="background: #10B981;" data-color="#10B981"></div>
+                    <div class="color-option" style="background: #F59E0B;" data-color="#F59E0B"></div>
+                    <div class="color-option" style="background: #EF4444;" data-color="#EF4444"></div>
+                    <div class="color-option" style="background: #8B5CF6;" data-color="#8B5CF6"></div>
+                    <div class="color-option" style="background: #EC4899;" data-color="#EC4899"></div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
-                <button type="button" class="btn btn-primary" onclick="createDeck()">
-                    <i class="bi bi-plus-lg me-1"></i>
-                    Crea Deck
-                </button>
-            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="hideCreateDeckModal()">Annulla</button>
+            <button class="btn btn-primary" onclick="createDeck()"><i class="bi bi-plus-lg"></i> Crea Deck</button>
         </div>
     </div>
 </div>
 
 <!-- Generate Cards Modal -->
-<div class="modal fade" id="generateCardsModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="bi bi-magic me-2"></i>
-                    Genera Flashcards con AI
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<div class="modal-overlay" id="generateCardsModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h5 class="modal-title"><i class="bi bi-magic"></i> Genera Flashcards con AI</h5>
+            <button class="modal-close" onclick="hideGenerateCardsModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">Argomento *</label>
+                <input type="text" class="form-control" id="generateTopic" placeholder="es. Le derivate in matematica">
             </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label class="form-label">Argomento *</label>
-                    <input type="text" class="form-control" id="generateTopic" placeholder="es. Le derivate in matematica">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Numero carte</label>
+                    <select class="form-control form-select" id="generateCount">
+                        <option value="5" selected>5 carte</option>
+                        <option value="10">10 carte</option>
+                        <option value="15">15 carte</option>
+                        <option value="20">20 carte</option>
+                    </select>
                 </div>
-                <div class="row">
-                    <div class="col-6 mb-3">
-                        <label class="form-label">Numero carte</label>
-                        <select class="form-select" id="generateCount">
-                            <option value="5" selected>5 carte</option>
-                            <option value="10">10 carte</option>
-                            <option value="15">15 carte</option>
-                            <option value="20">20 carte</option>
-                        </select>
-                    </div>
-                    <div class="col-6 mb-3">
-                        <label class="form-label">Difficoltà</label>
-                        <select class="form-select" id="generateDifficulty">
-                            <option value="PRINCIPIANTE">Facile</option>
-                            <option value="INTERMEDIO" selected>Media</option>
-                            <option value="AVANZATO">Difficile</option>
-                        </select>
-                    </div>
+                <div class="form-group">
+                    <label class="form-label">Difficoltà</label>
+                    <select class="form-control form-select" id="generateDifficulty">
+                        <option value="PRINCIPIANTE">Facile</option>
+                        <option value="INTERMEDIO" selected>Media</option>
+                        <option value="AVANZATO">Difficile</option>
+                    </select>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
-                <button type="button" class="btn btn-primary" id="generateBtn" onclick="generateCards()">
-                    <span id="generateBtnText">
-                        <i class="bi bi-magic me-1"></i>
-                        Genera
-                    </span>
-                    <span id="generateBtnSpinner" class="d-none">
-                        <span class="spinner-border spinner-border-sm me-1"></span>
-                        Generazione...
-                    </span>
-                </button>
-            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="hideGenerateCardsModal()">Annulla</button>
+            <button class="btn btn-primary" id="generateBtn" onclick="generateCards()">
+                <span id="generateBtnText"><i class="bi bi-magic"></i> Genera</span>
+                <span id="generateBtnSpinner" style="display: none;">
+                    <span class="loading-spinner" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle;"></span> Generazione...
+                </span>
+            </button>
         </div>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="js/app.js"></script>
+<script src="js/layout.js"></script>
+<script src="js/focus-manager.js"></script>
 <script>
-    // State
-    let decks = [];
-    let currentDeck = null;
-    let currentCards = [];
-    let studyCards = [];
-    let studyIndex = 0;
-    let studyCorrect = 0;
-    let studyIncorrect = 0;
-    let selectedColor = '#3B82F6';
-
-    // Modals
-    let createDeckModal, generateCardsModal;
+    let decks = [], currentDeck = null, currentCards = [], studyCards = [];
+    let studyIndex = 0, studyCorrect = 0, studyIncorrect = 0, selectedColor = '#3B82F6';
 
     document.addEventListener('DOMContentLoaded', function() {
-        createDeckModal = new bootstrap.Modal(document.getElementById('createDeckModal'));
-        generateCardsModal = new bootstrap.Modal(document.getElementById('generateCardsModal'));
-
-        // Color picker
+        initLayout({ pageTitle: 'Flashcards', pageSubtitle: 'Crea e studia deck di flashcards con l\'aiuto dell\'AI', activePage: 'flashcards' });
         document.querySelectorAll('.color-option').forEach(el => {
             el.addEventListener('click', function() {
                 document.querySelectorAll('.color-option').forEach(c => c.classList.remove('selected'));
@@ -371,28 +242,29 @@
                 selectedColor = this.dataset.color;
             });
         });
-
         loadDecks();
         loadStats();
     });
 
-    // ==================== DECKS ====================
+    function showCreateDeckModal() {
+        document.getElementById('deckName').value = '';
+        document.getElementById('deckDescription').value = '';
+        document.getElementById('deckSubject').value = '';
+        document.getElementById('createDeckModal').classList.add('active');
+    }
+    function hideCreateDeckModal() { document.getElementById('createDeckModal').classList.remove('active'); }
+    function showGenerateCardsModal() {
+        document.getElementById('generateTopic').value = '';
+        document.getElementById('generateCardsModal').classList.add('active');
+    }
+    function hideGenerateCardsModal() { document.getElementById('generateCardsModal').classList.remove('active'); }
 
     async function loadDecks() {
         try {
             const response = await apiFetch('/flashcards/decks');
-            if (response.ok) {
-                decks = await response.json();
-                renderDecks();
-            }
+            if (response.ok) { decks = await response.json(); renderDecks(); }
         } catch (e) {
-            console.error('Errore caricamento deck:', e);
-            document.getElementById('decksGrid').innerHTML = `
-                <div class="col-12 text-center py-5">
-                    <i class="bi bi-exclamation-circle text-danger fs-1"></i>
-                    <p class="mt-2">Errore nel caricamento dei deck</p>
-                </div>
-            `;
+            document.getElementById('decksGrid').innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><i class="bi bi-exclamation-circle empty-state-icon"></i><p>Errore caricamento</p></div>';
         }
     }
 
@@ -406,433 +278,120 @@
                 document.getElementById('statMastered').textContent = stats.totalMastered || 0;
                 document.getElementById('statStudySessions').textContent = stats.totalStudySessions || 0;
             }
-        } catch (e) {
-            console.warn('Errore caricamento stats:', e);
-        }
+        } catch (e) {}
     }
 
     function renderDecks() {
         const grid = document.getElementById('decksGrid');
-
         if (decks.length === 0) {
-            grid.innerHTML = `
-                <div class="col-12 text-center py-5">
-                    <i class="bi bi-stack text-muted" style="font-size: 4rem;"></i>
-                    <h4 class="mt-3">Nessun deck ancora</h4>
-                    <p class="text-muted">Crea il tuo primo deck di flashcards!</p>
-                    <button class="btn btn-primary" onclick="showCreateDeckModal()">
-                        <i class="bi bi-plus-lg me-1"></i>
-                        Crea Deck
-                    </button>
-                </div>
-            `;
+            grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><i class="bi bi-stack empty-state-icon"></i><h4 class="empty-state-title">Nessun deck</h4><p class="empty-state-text">Crea il tuo primo deck!</p><button class="btn btn-primary" onclick="showCreateDeckModal()"><i class="bi bi-plus-lg"></i> Crea Deck</button></div>';
             return;
         }
-
-        let html = '';
-        decks.forEach(deck => {
-            const progress = deck.totalCards > 0
-                ? Math.round((deck.cardsMastered / deck.totalCards) * 100)
-                : 0;
-
-            html += `
-                <div class="col-md-4 col-lg-3 mb-4">
-                    <div class="card deck-card h-100" onclick="openDeck('${deck.id}')">
-                        <div class="deck-color-bar" style="background: ${deck.color || '#3B82F6'}"></div>
-                        <div class="card-body">
-                            <h5 class="card-title mb-1">${deck.name}</h5>
-                            <p class="text-muted small mb-3">${deck.subject || 'Nessuna materia'}</p>
-
-                            <div class="d-flex justify-content-between text-muted small mb-2">
-                                <span>${deck.totalCards || 0} carte</span>
-                                <span>${progress}% padroneggiato</span>
-                            </div>
-                            <div class="progress" style="height: 6px;">
-                                <div class="progress-bar" style="width: ${progress}%; background: ${deck.color || '#3B82F6'}"></div>
-                            </div>
-
-                            ${deck.lastStudiedAt ? `
-                                <small class="text-muted d-block mt-2">
-                                    <i class="bi bi-clock me-1"></i>
-                                    Studiato ${formatDate(deck.lastStudiedAt)}
-                                </small>
-                            ` : ''}
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-        grid.innerHTML = html;
-    }
-
-    function showCreateDeckModal() {
-        document.getElementById('deckName').value = '';
-        document.getElementById('deckDescription').value = '';
-        document.getElementById('deckSubject').value = '';
-        selectedColor = '#3B82F6';
-        document.querySelectorAll('.color-option').forEach(c => c.classList.remove('selected'));
-        document.querySelector('.color-option[data-color="#3B82F6"]').classList.add('selected');
-        createDeckModal.show();
+        grid.innerHTML = decks.map(deck => {
+            const progress = deck.totalCards > 0 ? Math.round((deck.cardsMastered / deck.totalCards) * 100) : 0;
+            return `<div class="deck-card" onclick="openDeck('${deck.id}')">
+                <div class="deck-color-bar" style="background:${deck.color||'#3B82F6'}"></div>
+                <div class="deck-header"><div class="deck-icon" style="background:${deck.color||'#3B82F6'}20;color:${deck.color||'#3B82F6'}"><i class="bi bi-stack"></i></div>
+                <div class="deck-info"><div class="deck-name">${deck.name}</div><div class="deck-subject">${deck.subject||'Nessuna materia'}</div></div></div>
+                <div class="deck-body"><div class="deck-stats"><span><i class="bi bi-card-text"></i> ${deck.totalCards||0} carte</span><span><i class="bi bi-check-circle"></i> ${progress}%</span></div>
+                <div class="progress" style="margin-top:0.75rem;"><div class="progress-bar" style="width:${progress}%;background:${deck.color||'#3B82F6'}"></div></div></div></div>`;
+        }).join('');
     }
 
     async function createDeck() {
         const name = document.getElementById('deckName').value.trim();
-        const description = document.getElementById('deckDescription').value.trim();
-        const subject = document.getElementById('deckSubject').value.trim();
-
-        if (!name) {
-            showAlert('Inserisci un nome per il deck', 'error');
-            return;
-        }
-
+        if (!name) { showAlert('Inserisci un nome', 'error'); return; }
         try {
-            const response = await apiFetch('/flashcards/decks', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name: name,
-                    description: description || null,
-                    subject: subject || null,
-                    color: selectedColor,
-                    isPublic: false
-                })
+            const response = await apiFetch('/flashcards/decks', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, description: document.getElementById('deckDescription').value.trim() || null, subject: document.getElementById('deckSubject').value.trim() || null, color: selectedColor, isPublic: false })
             });
-
-            if (response.ok) {
-                const newDeck = await response.json();
-                decks.unshift(newDeck);
-                renderDecks();
-                loadStats();
-                createDeckModal.hide();
-                showAlert('Deck creato con successo!', 'success');
-            } else {
-                const error = await response.text();
-                showAlert('Errore: ' + error, 'error');
-            }
-        } catch (e) {
-            console.error('Errore creazione deck:', e);
-            showAlert('Errore nella creazione del deck', 'error');
-        }
+            if (response.ok) { decks.unshift(await response.json()); renderDecks(); loadStats(); hideCreateDeckModal(); showAlert('Deck creato!', 'success'); }
+        } catch (e) { showAlert('Errore creazione deck', 'error'); }
     }
-
-    // ==================== DECK DETAIL ====================
 
     async function openDeck(deckId) {
         currentDeck = decks.find(d => d.id === deckId);
         if (!currentDeck) return;
-
         document.getElementById('deckDetailName').textContent = currentDeck.name;
-
         try {
             const response = await apiFetch(`/flashcards/decks/${deckId}/cards`);
-            if (response.ok) {
-                currentCards = await response.json();
-                document.getElementById('deckDetailInfo').textContent = `${currentCards.length} carte`;
-                renderCards();
-            }
-        } catch (e) {
-            console.error('Errore caricamento carte:', e);
-        }
-
-        document.getElementById('decksView').classList.add('d-none');
-        document.getElementById('deckDetailView').classList.remove('d-none');
+            if (response.ok) { currentCards = await response.json(); document.getElementById('deckDetailInfo').textContent = `${currentCards.length} carte`; renderCards(); }
+        } catch (e) {}
+        document.getElementById('decksView').style.display = 'none';
+        document.getElementById('deckDetailView').style.display = 'block';
     }
 
     function renderCards() {
         const container = document.getElementById('cardsList');
-
         if (currentCards.length === 0) {
-            container.innerHTML = `
-                <div class="col-12 text-center py-5">
-                    <i class="bi bi-card-text text-muted" style="font-size: 4rem;"></i>
-                    <h4 class="mt-3">Nessuna flashcard</h4>
-                    <p class="text-muted">Genera flashcards con l'AI!</p>
-                    <button class="btn btn-primary" onclick="showGenerateCardsModal()">
-                        <i class="bi bi-magic me-1"></i>
-                        Genera con AI
-                    </button>
-                </div>
-            `;
+            container.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><i class="bi bi-card-text empty-state-icon"></i><h4 class="empty-state-title">Nessuna flashcard</h4><button class="btn btn-primary" onclick="showGenerateCardsModal()"><i class="bi bi-magic"></i> Genera con AI</button></div>';
             return;
         }
-
-        let html = '';
-        currentCards.forEach((card, index) => {
-            const successRate = card.timesReviewed > 0
-                ? Math.round((card.timesCorrect / card.timesReviewed) * 100)
-                : 0;
-
-            html += `
-                <div class="col-md-6 col-lg-4 mb-3">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between mb-2">
-                                <small class="text-muted">#${index + 1}</small>
-                                ${card.timesReviewed > 0 ? `
-                                    <span class="badge ${successRate >= 80 ? 'bg-success' : successRate >= 50 ? 'bg-warning' : 'bg-danger'}">
-                                        ${successRate}%
-                                    </span>
-                                ` : '<span class="badge bg-secondary">Nuova</span>'}
-                            </div>
-                            <h6 class="card-title">${truncate(card.frontContent, 60)}</h6>
-                            <p class="card-text text-muted small">${truncate(card.backContent, 80)}</p>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-        container.innerHTML = html;
+        container.innerHTML = currentCards.map((card, i) => {
+            const rate = card.timesReviewed > 0 ? Math.round((card.timesCorrect / card.timesReviewed) * 100) : 0;
+            const badgeColor = card.timesReviewed > 0 ? (rate >= 80 ? '#10b981' : rate >= 50 ? '#f59e0b' : '#ef4444') : '#6b7280';
+            return `<div class="card" style="padding:1rem;"><div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;"><small style="color:var(--text-muted);">#${i+1}</small><span style="background:${badgeColor};color:white;padding:0.125rem 0.5rem;border-radius:0.25rem;font-size:0.75rem;">${card.timesReviewed > 0 ? rate+'%' : 'Nuova'}</span></div><h6 style="margin-bottom:0.5rem;color:#fff;">${truncate(card.frontContent,60)}</h6><p style="color:var(--text-muted);font-size:0.875rem;margin:0;">${truncate(card.backContent,80)}</p></div>`;
+        }).join('');
     }
 
     function showDecksView() {
-        document.getElementById('deckDetailView').classList.add('d-none');
-        document.getElementById('decksView').classList.remove('d-none');
-        currentDeck = null;
-        currentCards = [];
-    }
-
-    // ==================== GENERATE CARDS ====================
-
-    function showGenerateCardsModal() {
-        document.getElementById('generateTopic').value = '';
-        generateCardsModal.show();
+        document.getElementById('deckDetailView').style.display = 'none';
+        document.getElementById('decksView').style.display = 'block';
+        currentDeck = null; currentCards = [];
     }
 
     async function generateCards() {
         const topic = document.getElementById('generateTopic').value.trim();
-        const count = document.getElementById('generateCount').value;
-        const difficulty = document.getElementById('generateDifficulty').value;
-
-        if (!topic) {
-            showAlert('Inserisci un argomento', 'error');
-            return;
-        }
-
+        if (!topic) { showAlert('Inserisci un argomento', 'error'); return; }
         const btn = document.getElementById('generateBtn');
-        const btnText = document.getElementById('generateBtnText');
-        const btnSpinner = document.getElementById('generateBtnSpinner');
-
         btn.disabled = true;
-        btnText.classList.add('d-none');
-        btnSpinner.classList.remove('d-none');
-
+        document.getElementById('generateBtnText').style.display = 'none';
+        document.getElementById('generateBtnSpinner').style.display = 'inline-flex';
         try {
-            const response = await apiFetch(
-                `/ai/flashcards/generate?deckId=${currentDeck.id}&topic=${encodeURIComponent(topic)}&numberOfCards=${count}&difficulty=${difficulty}`,
-                { method: 'POST' }
-            );
-
-            if (response.ok) {
-                const result = await response.json();
-                generateCardsModal.hide();
-                showAlert(`Generate ${result.flashcards?.length || count} flashcards!`, 'success');
-
-                // Ricarica le carte
-                await openDeck(currentDeck.id);
-                loadStats();
-            } else {
-                const error = await response.text();
-                showAlert('Errore: ' + error, 'error');
-            }
-        } catch (e) {
-            console.error('Errore generazione:', e);
-            showAlert('Errore nella generazione delle flashcards', 'error');
-        } finally {
-            btn.disabled = false;
-            btnText.classList.remove('d-none');
-            btnSpinner.classList.add('d-none');
-        }
+            const response = await apiFetch(`/ai/flashcards/generate?deckId=${currentDeck.id}&topic=${encodeURIComponent(topic)}&numberOfCards=${document.getElementById('generateCount').value}&difficulty=${document.getElementById('generateDifficulty').value}`, { method: 'POST' });
+            if (response.ok) { hideGenerateCardsModal(); showAlert('Flashcards generate!', 'success'); await openDeck(currentDeck.id); loadStats(); }
+        } catch (e) { showAlert('Errore generazione', 'error'); }
+        finally { btn.disabled = false; document.getElementById('generateBtnText').style.display = 'inline-flex'; document.getElementById('generateBtnSpinner').style.display = 'none'; }
     }
 
-    // ==================== STUDY MODE ====================
-
     async function startStudySession() {
-        if (currentCards.length === 0) {
-            showAlert('Non ci sono carte da studiare', 'error');
-            return;
-        }
-
-        // Registra sessione di studio
-        try {
-            await apiFetch(`/flashcards/decks/${currentDeck.id}/study`, { method: 'POST' });
-        } catch (e) {
-            console.warn('Errore registrazione sessione:', e);
-        }
-
-        // Mescola le carte
+        if (currentCards.length === 0) { showAlert('Nessuna carta', 'error'); return; }
+        try { await apiFetch(`/flashcards/decks/${currentDeck.id}/study`, { method: 'POST' }); } catch (e) {}
         studyCards = [...currentCards].sort(() => Math.random() - 0.5);
-        studyIndex = 0;
-        studyCorrect = 0;
-        studyIncorrect = 0;
-
-        document.getElementById('deckDetailView').classList.add('d-none');
-        document.getElementById('studyView').classList.remove('d-none');
-
+        studyIndex = 0; studyCorrect = 0; studyIncorrect = 0;
+        document.getElementById('deckDetailView').style.display = 'none';
+        document.getElementById('studyView').style.display = 'block';
         showCurrentCard();
     }
 
     function showCurrentCard() {
-        if (studyIndex >= studyCards.length) {
-            endStudySession();
-            return;
-        }
-
+        if (studyIndex >= studyCards.length) { endStudySession(); return; }
         const card = studyCards[studyIndex];
         document.getElementById('cardFront').textContent = card.frontContent;
         document.getElementById('cardBack').textContent = card.backContent;
         document.getElementById('studyProgress').textContent = `${studyIndex + 1} / ${studyCards.length}`;
         document.getElementById('studyCorrect').textContent = studyCorrect;
         document.getElementById('studyIncorrect').textContent = studyIncorrect;
-
-        // Reset flip state
-        document.getElementById('flashcardInner').classList.remove('flipped');
+        document.getElementById('flashcardElement').classList.remove('flipped');
     }
 
-    function flipCard() {
-        document.getElementById('flashcardInner').classList.toggle('flipped');
-    }
+    function flipCard() { document.getElementById('flashcardElement').classList.toggle('flipped'); }
 
     async function answerCard(wasCorrect) {
-        const card = studyCards[studyIndex];
-
-        // Registra la revisione
-        try {
-            await apiFetch(`/flashcards/cards/${card.id}/review`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ wasCorrect: wasCorrect })
-            });
-        } catch (e) {
-            console.warn('Errore registrazione review:', e);
-        }
-
-        if (wasCorrect) {
-            studyCorrect++;
-        } else {
-            studyIncorrect++;
-        }
-
+        try { await apiFetch(`/flashcards/cards/${studyCards[studyIndex].id}/review`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ wasCorrect }) }); } catch (e) {}
+        wasCorrect ? studyCorrect++ : studyIncorrect++;
         studyIndex++;
         showCurrentCard();
     }
 
     function endStudySession() {
-        const total = studyCards.length;
-        const percentage = Math.round((studyCorrect / total) * 100);
-
-        document.getElementById('studyView').innerHTML = `
-            <div class="text-center py-5">
-                <div class="card-icon ${percentage >= 70 ? 'success' : 'warning'} mx-auto mb-4" style="width: 80px; height: 80px; font-size: 2rem;">
-                    <i class="bi ${percentage >= 70 ? 'bi-trophy' : 'bi-emoji-smile'}"></i>
-                </div>
-                <h2>${percentage >= 70 ? 'Ottimo lavoro!' : 'Continua così!'}</h2>
-                <p class="text-muted mb-4">Hai completato la sessione di studio</p>
-
-                <div class="row justify-content-center mb-4">
-                    <div class="col-auto">
-                        <div class="card text-center px-4 py-3">
-                            <div class="stat-value text-success">${studyCorrect}</div>
-                            <div class="stat-label">Corrette</div>
-                        </div>
-                    </div>
-                    <div class="col-auto">
-                        <div class="card text-center px-4 py-3">
-                            <div class="stat-value text-danger">${studyIncorrect}</div>
-                            <div class="stat-label">Da ripassare</div>
-                        </div>
-                    </div>
-                    <div class="col-auto">
-                        <div class="card text-center px-4 py-3">
-                            <div class="stat-value">${percentage}%</div>
-                            <div class="stat-label">Punteggio</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="d-flex gap-3 justify-content-center">
-                    <button class="btn btn-outline" onclick="exitStudyMode()">
-                        <i class="bi bi-arrow-left me-1"></i>
-                        Torna al deck
-                    </button>
-                    <button class="btn btn-primary" onclick="restartStudy()">
-                        <i class="bi bi-arrow-repeat me-1"></i>
-                        Studia ancora
-                    </button>
-                </div>
-            </div>
-        `;
-
+        const pct = Math.round((studyCorrect / studyCards.length) * 100);
+        document.getElementById('studyView').innerHTML = `<div class="card quiz-result"><div class="card-icon ${pct>=70?'success':'warning'}" style="width:80px;height:80px;border-radius:50%;margin:0 auto 1.5rem;font-size:2rem;"><i class="bi ${pct>=70?'bi-trophy':'bi-emoji-smile'}"></i></div><h2 style="text-align:center;">${pct>=70?'Ottimo lavoro!':'Continua così!'}</h2><p style="text-align:center;color:var(--text-muted);margin-bottom:2rem;">Sessione completata</p><div style="display:flex;justify-content:center;gap:2rem;margin-bottom:2rem;flex-wrap:wrap;"><div class="stat-card" style="min-width:100px;text-align:center;"><div class="stat-value" style="color:#10b981;">${studyCorrect}</div><div class="stat-label">Corrette</div></div><div class="stat-card" style="min-width:100px;text-align:center;"><div class="stat-value" style="color:#ef4444;">${studyIncorrect}</div><div class="stat-label">Da ripassare</div></div><div class="stat-card" style="min-width:100px;text-align:center;"><div class="stat-value">${pct}%</div><div class="stat-label">Punteggio</div></div></div><div style="display:flex;gap:1rem;justify-content:center;"><button class="btn btn-outline" onclick="location.reload()"><i class="bi bi-arrow-left"></i> Torna</button><button class="btn btn-primary" onclick="location.reload()"><i class="bi bi-arrow-repeat"></i> Studia ancora</button></div></div>`;
         loadStats();
     }
 
-    function exitStudyMode() {
-        document.getElementById('studyView').classList.add('d-none');
-        document.getElementById('deckDetailView').classList.remove('d-none');
-
-        // Ricarica le carte per aggiornare le statistiche
-        openDeck(currentDeck.id);
-    }
-
-    function restartStudy() {
-        // Ripristina la view originale dello studio
-        document.getElementById('studyView').innerHTML = `
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <button class="btn btn-outline" onclick="exitStudyMode()">
-                    <i class="bi bi-x-lg me-1"></i>
-                    Esci
-                </button>
-                <div class="text-center">
-                    <span id="studyProgress">1 / 10</span>
-                </div>
-                <div>
-                    <span class="badge bg-success me-2" id="studyCorrect">0</span>
-                    <span class="badge bg-danger" id="studyIncorrect">0</span>
-                </div>
-            </div>
-
-            <div class="flashcard-container mx-auto" style="max-width: 500px;" onclick="flipCard()">
-                <div class="flashcard-inner" id="flashcardInner">
-                    <div class="flashcard-front" id="cardFront">Domanda</div>
-                    <div class="flashcard-back" id="cardBack">Risposta</div>
-                </div>
-            </div>
-
-            <p class="text-center text-muted mt-3">Clicca sulla carta per girarla</p>
-
-            <div class="d-flex justify-content-center gap-3 mt-4" id="studyControls">
-                <button class="btn btn-danger btn-lg" onclick="answerCard(false)">
-                    <i class="bi bi-x-lg me-1"></i>
-                    Non la sapevo
-                </button>
-                <button class="btn btn-success btn-lg" onclick="answerCard(true)">
-                    <i class="bi bi-check-lg me-1"></i>
-                    La sapevo
-                </button>
-            </div>
-        `;
-
-        startStudySession();
-    }
-
-    // ==================== UTILS ====================
-
-    function truncate(str, length) {
-        if (!str) return '';
-        return str.length > length ? str.substring(0, length) + '...' : str;
-    }
-
-    function formatDate(dateStr) {
-        const date = new Date(dateStr);
-        const now = new Date();
-        const diff = now - date;
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-        if (days === 0) return 'oggi';
-        if (days === 1) return 'ieri';
-        if (days < 7) return `${days} giorni fa`;
-        return date.toLocaleDateString('it-IT');
-    }
+    function exitStudyMode() { location.reload(); }
+    function truncate(str, len) { return str && str.length > len ? str.substring(0, len) + '...' : str || ''; }
 </script>
-<script src="js/focus-manager.js"></script>
 </body>
 </html>
