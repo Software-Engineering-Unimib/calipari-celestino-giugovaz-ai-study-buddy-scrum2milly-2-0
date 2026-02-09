@@ -7,7 +7,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">
     <style>
-        /* Profile Header Card */
         .profile-header {
             background: var(--gradient-primary);
             border-radius: 1rem;
@@ -20,7 +19,6 @@
             position: relative;
             overflow: hidden;
         }
-
         .profile-header::before {
             content: '';
             position: absolute;
@@ -31,7 +29,6 @@
             background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
             pointer-events: none;
         }
-
         .avatar-large {
             width: 100px;
             height: 100px;
@@ -43,11 +40,10 @@
             font-size: 2.5rem;
             color: var(--primary-color);
             font-weight: 700;
-            position: relative;
             flex-shrink: 0;
             border: 4px solid rgba(255,255,255,0.3);
+            position: relative;
         }
-
         .level-badge-large {
             position: absolute;
             bottom: -5px;
@@ -64,56 +60,15 @@
             font-size: 0.85rem;
             border: 3px solid #ffffff;
         }
+        .profile-info { flex: 1; min-width: 200px; }
+        .profile-name { font-size: 1.75rem; font-weight: 700; color: #ffffff; margin-bottom: 0.25rem; }
+        .profile-email { color: rgba(255,255,255,0.8); margin-bottom: 0.75rem; }
+        .profile-meta { display: flex; gap: 1.5rem; flex-wrap: wrap; font-size: 0.9rem; color: rgba(255,255,255,0.9); }
+        .profile-meta i { margin-right: 0.4rem; }
+        .profile-xp { text-align: center; padding: 1rem 2rem; background: rgba(255,255,255,0.15); border-radius: 1rem; }
+        .profile-xp-value { font-size: 2.5rem; font-weight: 700; color: #ffffff; line-height: 1; }
+        .profile-xp-label { color: rgba(255,255,255,0.8); font-size: 0.85rem; }
 
-        .profile-info {
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .profile-name {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: #ffffff;
-            margin-bottom: 0.25rem;
-        }
-
-        .profile-email {
-            color: rgba(255,255,255,0.8);
-            margin-bottom: 0.75rem;
-        }
-
-        .profile-meta {
-            display: flex;
-            gap: 1.5rem;
-            flex-wrap: wrap;
-            font-size: 0.9rem;
-            color: rgba(255,255,255,0.9);
-        }
-
-        .profile-meta i {
-            margin-right: 0.4rem;
-        }
-
-        .profile-xp {
-            text-align: center;
-            padding: 1rem 2rem;
-            background: rgba(255,255,255,0.15);
-            border-radius: 1rem;
-        }
-
-        .profile-xp-value {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #ffffff;
-            line-height: 1;
-        }
-
-        .profile-xp-label {
-            color: rgba(255,255,255,0.8);
-            font-size: 0.85rem;
-        }
-
-        /* XP Progress Card */
         .xp-progress-card {
             background: var(--dark-card);
             border: 2px solid var(--dark-border);
@@ -121,70 +76,14 @@
             padding: 1.5rem;
             margin-bottom: 2rem;
         }
+        .xp-progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+        .xp-level { font-weight: 700; color: var(--primary-color); }
+        .xp-values { color: var(--text-muted); font-size: 0.875rem; }
+        .xp-bar { height: 12px; background: var(--dark-border); border-radius: 6px; overflow: hidden; }
+        .xp-fill { height: 100%; background: var(--gradient-primary); border-radius: 6px; transition: width 1s ease; }
+        .xp-remaining { text-align: center; margin-top: 0.75rem; color: var(--text-muted); font-size: 0.85rem; }
 
-        .xp-progress-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.75rem;
-        }
-
-        .xp-level {
-            font-weight: 700;
-            color: var(--primary-color);
-        }
-
-        .xp-values {
-            color: var(--text-muted);
-            font-size: 0.875rem;
-        }
-
-        .xp-bar {
-            height: 12px;
-            background: var(--dark-border);
-            border-radius: 6px;
-            overflow: hidden;
-        }
-
-        .xp-fill {
-            height: 100%;
-            background: var(--gradient-primary);
-            border-radius: 6px;
-            transition: width 1s ease;
-            position: relative;
-        }
-
-        .xp-fill::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            animation: shimmer 2s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-
-        .xp-remaining {
-            text-align: center;
-            margin-top: 0.75rem;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-        }
-
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
         .stat-card-profile {
             background: var(--dark-card);
             border: 2px solid var(--dark-border);
@@ -193,70 +92,51 @@
             text-align: center;
             transition: all 0.3s ease;
         }
-
-        .stat-card-profile:hover {
-            border-color: var(--primary-color);
-            transform: translateY(-4px);
-        }
-
+        .stat-card-profile:hover { border-color: var(--primary-color); transform: translateY(-4px); }
         .stat-card-profile .stat-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            margin: 0 auto 0.75rem;
-            color: #ffffff;
+            width: 50px; height: 50px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.25rem; margin: 0 auto 0.75rem; color: #ffffff;
         }
-
         .stat-card-profile .stat-icon.purple { background: var(--primary-color); }
         .stat-card-profile .stat-icon.red { background: #dc2626; }
         .stat-card-profile .stat-icon.blue { background: #3b82f6; }
         .stat-card-profile .stat-icon.green { background: #16a34a; }
         .stat-card-profile .stat-icon.yellow { background: #ca8a04; }
         .stat-card-profile .stat-icon.pink { background: #db2777; }
+        .stat-card-profile .stat-value { font-size: 1.75rem; font-weight: 700; color: #ffffff; line-height: 1; }
+        .stat-card-profile .stat-label { color: var(--text-muted); font-size: 0.8rem; margin-top: 0.25rem; }
 
-        .stat-card-profile .stat-value {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: #ffffff;
-            line-height: 1;
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+        .section-title { font-size: 1.25rem; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 0.5rem; }
+        .section-subtitle { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem; }
+
+        .badges-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; }
+        .badge-card {
+            background: var(--dark-card);
+            border: 2px solid var(--dark-border);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
         }
-
-        .stat-card-profile .stat-label {
-            color: var(--text-muted);
-            font-size: 0.8rem;
-            margin-top: 0.25rem;
+        .badge-card:hover { transform: translateY(-4px); border-color: var(--primary-color); }
+        .badge-card.unlocked { border-color: var(--accent-color); }
+        .badge-card.locked { opacity: 0.5; }
+        .badge-icon-container {
+            width: 70px; height: 70px; border-radius: 50%;
+            margin: 0 auto 1rem;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.75rem; color: #ffffff;
         }
+        .badge-name { font-weight: 700; font-size: 0.9rem; color: #ffffff; margin-bottom: 0.25rem; }
+        .badge-description { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem; line-height: 1.4; }
+        .badge-progress { margin-top: 0.5rem; }
+        .badge-progress-bar { height: 6px; background: var(--dark-border); border-radius: 3px; overflow: hidden; }
+        .badge-progress-fill { height: 100%; background: var(--primary-color); border-radius: 3px; }
+        .badge-progress-text { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.25rem; }
 
-        /* Section Header */
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .section-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .section-subtitle {
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            margin-top: 0.25rem;
-        }
-
-        /* Recommendations */
         .recommendation-card {
             background: var(--dark-card);
             border: 2px solid var(--dark-border);
@@ -270,216 +150,19 @@
             gap: 1rem;
             transition: all 0.3s ease;
         }
-
-        .recommendation-card:hover {
-            border-color: var(--primary-color);
-            transform: translateX(4px);
-        }
-
-        .recommendation-card.priority-high {
-            border-left-color: var(--danger-color);
-        }
-
-        .recommendation-card.priority-urgent {
-            border-left-color: #f97316;
-            animation: pulse-border 2s infinite;
-        }
-
-        @keyframes pulse-border {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.4); }
-            50% { box-shadow: 0 0 0 8px rgba(249, 115, 22, 0); }
-        }
-
-        .recommendation-content {
-            display: flex;
-            align-items: flex-start;
-            gap: 1rem;
-            flex: 1;
-        }
-
+        .recommendation-card:hover { border-color: var(--primary-color); transform: translateX(4px); }
+        .recommendation-content { display: flex; align-items: flex-start; gap: 1rem; flex: 1; }
         .recommendation-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
+            width: 40px; height: 40px; border-radius: 10px;
             background: rgba(139, 92, 246, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--primary-color);
-            flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--primary-color); flex-shrink: 0;
         }
+        .recommendation-text h4 { font-size: 0.95rem; font-weight: 600; color: #ffffff; margin-bottom: 0.25rem; }
+        .recommendation-text p { font-size: 0.8rem; color: var(--text-muted); margin: 0; }
+        .recommendation-actions { display: flex; gap: 0.5rem; }
+        .recommendation-actions .btn { padding: 0.4rem 0.6rem; font-size: 0.8rem; }
 
-        .recommendation-text h4 {
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: #ffffff;
-            margin-bottom: 0.25rem;
-        }
-
-        .recommendation-text p {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin: 0;
-        }
-
-        .recommendation-actions {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .recommendation-actions .btn {
-            padding: 0.4rem 0.6rem;
-            font-size: 0.8rem;
-        }
-
-        /* Badges Grid */
-        .badges-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 1rem;
-        }
-
-        .badge-card {
-            background: var(--dark-card);
-            border: 2px solid var(--dark-border);
-            border-radius: 1rem;
-            padding: 1.25rem;
-            text-align: center;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .badge-card:hover {
-            transform: translateY(-4px);
-            border-color: var(--primary-color);
-        }
-
-        .badge-card.unlocked {
-            border-color: var(--accent-color);
-        }
-
-        .badge-card.locked {
-            opacity: 0.5;
-        }
-
-        .badge-card.locked:hover {
-            opacity: 0.7;
-        }
-
-        .badge-rarity {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            font-size: 0.65rem;
-            padding: 2px 8px;
-            border-radius: 8px;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
-        .rarity-common { background: #6b7280; color: #fff; }
-        .rarity-uncommon { background: #16a34a; color: #fff; }
-        .rarity-rare { background: #2563eb; color: #fff; }
-        .rarity-epic { background: #7c3aed; color: #fff; }
-        .rarity-legendary { background: linear-gradient(135deg, #f59e0b, #d97706); color: #1f2937; }
-
-        .badge-icon-container {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            margin: 0 auto 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.75rem;
-            color: #ffffff;
-            position: relative;
-        }
-
-        .badge-card.locked .badge-icon-container::after {
-            content: '\F47A';
-            font-family: 'bootstrap-icons';
-            position: absolute;
-            font-size: 1.25rem;
-            color: #9ca3af;
-        }
-
-        .badge-name {
-            font-weight: 700;
-            font-size: 0.9rem;
-            color: #ffffff;
-            margin-bottom: 0.25rem;
-        }
-
-        .badge-description {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-bottom: 0.5rem;
-            line-height: 1.4;
-        }
-
-        .badge-progress {
-            margin-top: 0.5rem;
-        }
-
-        .badge-progress-bar {
-            height: 6px;
-            background: var(--dark-border);
-            border-radius: 3px;
-            overflow: hidden;
-        }
-
-        .badge-progress-fill {
-            height: 100%;
-            background: var(--primary-color);
-            border-radius: 3px;
-        }
-
-        .badge-progress-text {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            margin-top: 0.25rem;
-        }
-
-        .badge-unlocked-date {
-            font-size: 0.7rem;
-            color: var(--secondary-color);
-            margin-top: 0.5rem;
-        }
-
-        .badge-xp-reward {
-            font-size: 0.7rem;
-            color: var(--accent-color);
-            margin-top: 0.25rem;
-        }
-
-        /* Filter Buttons */
-        .filter-buttons {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .filter-buttons .btn {
-            padding: 0.4rem 0.8rem;
-            font-size: 0.8rem;
-        }
-
-        .filter-buttons .btn.active {
-            background: var(--primary-color);
-            border-color: var(--primary-color);
-        }
-
-        /* Streak animation */
-        .streak-fire {
-            animation: fire-flicker 0.5s ease infinite alternate;
-        }
-
-        @keyframes fire-flicker {
-            from { transform: scale(1); }
-            to { transform: scale(1.15); }
-        }
-
-        /* Empty State */
         .empty-recommendations {
             background: var(--dark-card);
             border: 2px solid var(--dark-border);
@@ -487,113 +170,33 @@
             padding: 2rem;
             text-align: center;
         }
+        .empty-recommendations i { font-size: 3rem; color: var(--secondary-color); margin-bottom: 1rem; display: block; }
 
-        .empty-recommendations i {
-            font-size: 3rem;
-            color: var(--secondary-color);
-            margin-bottom: 1rem;
-        }
+        .streak-fire { animation: fire-flicker 0.5s ease infinite alternate; }
+        @keyframes fire-flicker { from { transform: scale(1); } to { transform: scale(1.15); } }
 
-        /* Modal */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .badge-modal {
-            background: var(--gradient-primary);
-            border-radius: 1.5rem;
-            padding: 3rem 2rem;
-            text-align: center;
-            max-width: 400px;
-            width: 90%;
-            transform: scale(0.8);
-            transition: transform 0.3s ease;
-        }
-
-        .modal-overlay.active .badge-modal {
-            transform: scale(1);
-        }
-
-        .badge-modal-icon {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.2);
-            margin: 0 auto 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            color: #ffffff;
-        }
-
-        .badge-modal h3 {
-            color: #ffffff;
-            margin-bottom: 0.5rem;
-        }
-
-        .badge-modal p {
-            color: rgba(255,255,255,0.8);
-            margin-bottom: 1.5rem;
-        }
-
-        .badge-modal .xp-bonus {
-            background: rgba(255,255,255,0.2);
-            padding: 0.5rem 1rem;
-            border-radius: 2rem;
-            display: inline-block;
-            color: var(--accent-color);
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-        }
-
-        /* Responsive */
         @media (max-width: 768px) {
-            .profile-header {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .profile-meta {
-                justify-content: center;
-            }
-
-            .profile-xp {
-                width: 100%;
-            }
-
-            .section-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .badges-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+            .profile-header { flex-direction: column; text-align: center; }
+            .profile-meta { justify-content: center; }
+            .profile-xp { width: 100%; }
+            .badges-grid { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
 </head>
 <body>
+<!-- Sidebar generata da layout.js -->
+
 <main class="main-content">
+    <div id="alertContainer"></div>
+
     <!-- Profile Header -->
     <div class="profile-header">
-        <div class="avatar-large" id="profileAvatar">?</div>
+        <div class="avatar-large" id="profileAvatar">
+            <span id="profileInitials">...</span>
+            <div class="level-badge-large" id="levelBadge">1</div>
+        </div>
         <div class="profile-info">
-            <h1 class="profile-name" id="profileName">Caricamento...</h1>
+            <h1 class="profile-name" id="profileName">...</h1>
             <p class="profile-email" id="profileEmail">...</p>
             <div class="profile-meta">
                 <span><i class="bi bi-calendar3"></i> Membro da <span id="memberSince">-</span></span>
@@ -609,7 +212,7 @@
     <!-- XP Progress -->
     <div class="xp-progress-card">
         <div class="xp-progress-header">
-            <span class="xp-level"><i class="bi bi-star-fill me-1"></i> Livello <span id="currentLevel">1</span></span>
+            <span class="xp-level"><i class="bi bi-star-fill"></i> Livello <span id="currentLevel">1</span></span>
             <span class="xp-values"><span id="currentXpInLevel">0</span> / <span id="xpForNextLevel">100</span> XP</span>
         </div>
         <div class="xp-bar">
@@ -664,11 +267,10 @@
             <i class="bi bi-arrow-clockwise"></i> Aggiorna
         </button>
     </div>
-
     <div id="recommendationsContainer">
         <div class="empty-recommendations">
             <i class="bi bi-hourglass-split"></i>
-            <p class="text-muted">Caricamento raccomandazioni...</p>
+            <p style="color: var(--text-muted);">Caricamento...</p>
         </div>
     </div>
 
@@ -678,95 +280,47 @@
             <h2 class="section-title"><i class="bi bi-award text-warning"></i> Badge e Traguardi</h2>
             <p class="section-subtitle"><span id="unlockedCount">0</span> sbloccati su <span id="totalCount">0</span></p>
         </div>
-        <div class="filter-buttons">
-            <button class="btn btn-outline btn-sm active" onclick="filterBadges('all', this)">Tutti</button>
-            <button class="btn btn-outline btn-sm" onclick="filterBadges('unlocked', this)">Sbloccati</button>
-            <button class="btn btn-outline btn-sm" onclick="filterBadges('locked', this)">Da sbloccare</button>
-        </div>
     </div>
-
-    <div class="badges-grid" id="badgesContainer">
-        <!-- Badges caricati dinamicamente -->
-    </div>
+    <div class="badges-grid" id="badgesContainer"></div>
 </main>
 
-<!-- New Badge Modal -->
-<div class="modal-overlay" id="badgeModal">
-    <div class="badge-modal">
-        <div class="badge-modal-icon" id="modalBadgeIcon">
-            <i class="bi bi-trophy-fill"></i>
-        </div>
-        <h3>🎉 Nuovo Badge Sbloccato!</h3>
-        <h4 id="modalBadgeName">Badge Name</h4>
-        <p id="modalBadgeDescription">Descrizione del badge</p>
-        <div class="xp-bonus" id="modalBadgeXp">+50 XP</div>
-        <button class="btn btn-secondary" onclick="closeBadgeModal()">Fantastico!</button>
-    </div>
-</div>
-
+<script src="js/app.js"></script>
 <script src="js/layout.js"></script>
+<script src="js/focus-manager.js"></script>
 <script>
     let allBadges = [];
-    let currentFilter = 'all';
 
     document.addEventListener('DOMContentLoaded', function() {
         initLayout({
-            pageTitle: 'Profilo',
+            pageTitle: '',
             activePage: 'profile',
-            showTopbar: false,
-            showFooter: true
+            showTopbar: false
         });
 
         loadProfile();
         loadStats();
         loadBadges();
         loadRecommendations();
-        checkNewBadges();
     });
 
-    // API Fetch helper
-    async function apiFetch(endpoint, options = {}) {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`/api${endpoint}`, {
-            ...options,
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': token ? `Bearer ${token}` : '',
-                ...options.headers
-            }
-        });
-
-        if (response.status === 401) {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            window.location.href = 'login.html';
-            throw new Error('Non autorizzato');
-        }
-
-        return response;
-    }
-
     async function loadProfile() {
-        try {
-            const response = await apiFetch('/auth/me');
-            if (response.ok) {
-                const user = await response.json();
+        // Usa i dati salvati nel localStorage dal login
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
 
-                const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Utente';
-                const initials = ((user.firstName?.charAt(0) || '') + (user.lastName?.charAt(0) || '')).toUpperCase() || '?';
+        if (user && (user.firstName || user.lastName || user.email)) {
+            const fullName = getUserDisplayName(user);
+            const initials = getUserInitials(user);
 
-                document.getElementById('profileName').textContent = fullName;
-                document.getElementById('profileEmail').textContent = user.email || '';
-                document.getElementById('profileAvatar').textContent = initials;
+            document.getElementById('profileName').textContent = fullName;
+            document.getElementById('profileEmail').textContent = user.email || '';
+            document.getElementById('profileInitials').textContent = initials;
 
-                if (user.createdAt) {
-                    const date = new Date(user.createdAt);
-                    document.getElementById('memberSince').textContent =
-                        date.toLocaleDateString('it-IT', { month: 'short', year: 'numeric' });
-                }
-            }
-        } catch (error) {
-            console.error('Errore caricamento profilo:', error);
+            // Data di registrazione non disponibile nel localStorage, la nascondiamo o mettiamo un placeholder
+            document.getElementById('memberSince').textContent = '-';
+        } else {
+            document.getElementById('profileName').textContent = 'Utente';
+            document.getElementById('profileEmail').textContent = '';
+            document.getElementById('profileInitials').textContent = 'U';
         }
     }
 
@@ -776,12 +330,11 @@
             if (response.ok) {
                 const stats = await response.json();
 
-                // XP e Livello
                 document.getElementById('totalXp').textContent = (stats.totalXp || 0).toLocaleString();
                 document.getElementById('weeklyXp').textContent = (stats.weeklyXp || 0).toLocaleString();
                 document.getElementById('currentLevel').textContent = stats.level || 1;
+                document.getElementById('levelBadge').textContent = stats.level || 1;
 
-                // Progress bar
                 const xpInLevel = stats.xpInCurrentLevel || 0;
                 const xpNeeded = stats.xpForNextLevel || 100;
                 const progress = Math.min((xpInLevel / xpNeeded) * 100, 100);
@@ -791,22 +344,14 @@
                 document.getElementById('xpForNextLevel').textContent = xpNeeded;
                 document.getElementById('xpToNextLevel').textContent = Math.max(0, xpNeeded - xpInLevel);
 
-                // Streak
                 document.getElementById('currentStreak').textContent = stats.currentStreak || 0;
                 document.getElementById('longestStreak').textContent = stats.longestStreak || 0;
-
-                // Attività
                 document.getElementById('explanationsCount').textContent = stats.explanationsRequested || 0;
                 document.getElementById('quizzesCompleted').textContent = stats.quizzesCompleted || 0;
                 document.getElementById('flashcardsStudied').textContent = stats.flashcardsStudied || 0;
 
-                // Ore studio (converti minuti in ore)
                 const hours = Math.floor((stats.totalStudyTimeMinutes || 0) / 60);
                 document.getElementById('studyHours').textContent = hours;
-
-                // Aggiorna anche sidebar
-                const sidebarLevel = document.getElementById('sidebarLevel');
-                if (sidebarLevel) sidebarLevel.textContent = stats.level || 1;
             }
         } catch (error) {
             console.error('Errore caricamento statistiche:', error);
@@ -819,7 +364,6 @@
             if (response.ok) {
                 allBadges = await response.json();
                 renderBadges();
-
                 const unlocked = allBadges.filter(b => b.unlocked).length;
                 document.getElementById('unlockedCount').textContent = unlocked;
                 document.getElementById('totalCount').textContent = allBadges.length;
@@ -827,10 +371,9 @@
         } catch (error) {
             console.error('Errore caricamento badge:', error);
             document.getElementById('badgesContainer').innerHTML = `
-                <div class="empty-state" style="grid-column: 1 / -1;">
-                    <i class="bi bi-award empty-state-icon"></i>
-                    <p class="empty-state-title">Nessun badge disponibile</p>
-                    <p class="empty-state-text">Completa attività per sbloccare badge!</p>
+                <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 2rem;">
+                    <i class="bi bi-award" style="font-size: 3rem; color: var(--text-muted);"></i>
+                    <p style="color: var(--text-muted); margin-top: 1rem;">Completa attività per sbloccare badge!</p>
                 </div>
             `;
         }
@@ -838,211 +381,90 @@
 
     function renderBadges() {
         const container = document.getElementById('badgesContainer');
-        let badges = [...allBadges];
-
-        if (currentFilter === 'unlocked') {
-            badges = badges.filter(b => b.unlocked);
-        } else if (currentFilter === 'locked') {
-            badges = badges.filter(b => !b.unlocked);
-        }
-
-        if (badges.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state" style="grid-column: 1 / -1;">
-                    <i class="bi bi-search empty-state-icon"></i>
-                    <p class="empty-state-title">Nessun badge trovato</p>
-                    <p class="empty-state-text">Prova a cambiare filtro</p>
-                </div>
-            `;
+        if (allBadges.length === 0) {
+            container.innerHTML = `<div class="empty-state" style="grid-column:1/-1;text-align:center;padding:2rem;"><i class="bi bi-award" style="font-size:3rem;color:var(--text-muted);"></i><p style="color:var(--text-muted);margin-top:1rem;">Nessun badge disponibile</p></div>`;
             return;
         }
-
-        container.innerHTML = badges.map(badge => `
+        container.innerHTML = allBadges.map(badge => `
             <div class="badge-card ${badge.unlocked ? 'unlocked' : 'locked'}">
-                <span class="badge-rarity rarity-${(badge.rarity || 'common').toLowerCase()}">
-                    ${getRarityLabel(badge.rarity)}
-                </span>
                 <div class="badge-icon-container" style="background: ${badge.color || '#6366F1'}">
-                    ${badge.unlocked ? `<i class="bi ${badge.icon || 'bi-award'}"></i>` : ''}
+                    ${badge.unlocked ? `<i class="bi ${badge.icon || 'bi-award'}"></i>` : '<i class="bi bi-lock"></i>'}
                 </div>
                 <div class="badge-name">${badge.name}</div>
                 <div class="badge-description">${badge.description}</div>
                 ${!badge.unlocked ? `
                     <div class="badge-progress">
-                        <div class="badge-progress-bar">
-                            <div class="badge-progress-fill" style="width: ${badge.progress || 0}%"></div>
-                        </div>
-                        <div class="badge-progress-text">${Math.round(badge.progress || 0)}% completato</div>
+                        <div class="badge-progress-bar"><div class="badge-progress-fill" style="width: ${badge.progress || 0}%"></div></div>
+                        <div class="badge-progress-text">${Math.round(badge.progress || 0)}%</div>
                     </div>
-                ` : `
-                    <div class="badge-unlocked-date">
-                        <i class="bi bi-check-circle-fill"></i>
-                        ${badge.unlockedAt ? new Date(badge.unlockedAt).toLocaleDateString('it-IT') : 'Sbloccato'}
-                    </div>
-                `}
-                ${badge.xpReward ? `
-                    <div class="badge-xp-reward"><i class="bi bi-lightning-charge"></i> +${badge.xpReward} XP</div>
                 ` : ''}
             </div>
         `).join('');
-    }
-
-    function filterBadges(filter, btn) {
-        currentFilter = filter;
-
-        // Aggiorna stato bottoni
-        document.querySelectorAll('.filter-buttons .btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-
-        renderBadges();
-    }
-
-    function getRarityLabel(rarity) {
-        const labels = {
-            'COMMON': 'Comune',
-            'UNCOMMON': 'Non Comune',
-            'RARE': 'Raro',
-            'EPIC': 'Epico',
-            'LEGENDARY': 'Leggendario'
-        };
-        return labels[rarity] || 'Comune';
     }
 
     async function loadRecommendations() {
         try {
             const response = await apiFetch('/gamification/recommendations');
             if (response.ok) {
-                const recommendations = await response.json();
-                renderRecommendations(recommendations);
+                const recs = await response.json();
+                renderRecommendations(recs);
             }
         } catch (error) {
-            console.error('Errore caricamento raccomandazioni:', error);
             renderRecommendations([]);
         }
     }
 
     function renderRecommendations(recommendations) {
         const container = document.getElementById('recommendationsContainer');
-
         if (!recommendations || recommendations.length === 0) {
             container.innerHTML = `
                 <div class="empty-recommendations">
                     <i class="bi bi-check-circle"></i>
                     <h4 style="color: #fff; margin-bottom: 0.5rem;">Ottimo lavoro!</h4>
-                    <p class="text-muted">Nessuna raccomandazione al momento. Continua così!</p>
+                    <p style="color: var(--text-muted);">Nessuna raccomandazione. Continua così!</p>
                 </div>
             `;
             return;
         }
-
         container.innerHTML = recommendations.map(rec => `
-            <div class="recommendation-card priority-${(rec.priority || 'medium').toLowerCase()}">
+            <div class="recommendation-card">
                 <div class="recommendation-content">
-                    <div class="recommendation-icon">
-                        <i class="bi ${getRecIcon(rec.type)}"></i>
-                    </div>
+                    <div class="recommendation-icon"><i class="bi ${getRecIcon(rec.type)}"></i></div>
                     <div class="recommendation-text">
                         <h4>${rec.title}</h4>
                         <p>${rec.description}</p>
                     </div>
                 </div>
                 <div class="recommendation-actions">
-                    <button class="btn btn-success btn-sm" onclick="completeRec('${rec.id}')" title="Completata">
-                        <i class="bi bi-check-lg"></i>
-                    </button>
-                    <button class="btn btn-secondary btn-sm" onclick="dismissRec('${rec.id}')" title="Ignora">
-                        <i class="bi bi-x-lg"></i>
-                    </button>
+                    <button class="btn btn-success btn-sm" onclick="dismissRec('${rec.id}')"><i class="bi bi-check-lg"></i></button>
                 </div>
             </div>
         `).join('');
     }
 
     function getRecIcon(type) {
-        const icons = {
-            'REVIEW_TOPIC': 'bi-arrow-repeat',
-            'RETRY_QUIZ': 'bi-patch-question',
-            'STUDY_FLASHCARDS': 'bi-stack',
-            'NEW_TOPIC': 'bi-plus-circle',
-            'STREAK_REMINDER': 'bi-fire',
-            'WEAKNESS_FOCUS': 'bi-exclamation-triangle',
-            'DAILY_GOAL': 'bi-bullseye'
-        };
+        const icons = { 'REVIEW_TOPIC': 'bi-arrow-repeat', 'RETRY_QUIZ': 'bi-patch-question', 'STUDY_FLASHCARDS': 'bi-stack', 'STREAK_REMINDER': 'bi-fire' };
         return icons[type] || 'bi-lightbulb';
     }
 
     async function generateRecommendations() {
+        const btn = event.target.closest('button');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading-spinner" style="width:16px;height:16px;"></span>';
         try {
-            const btn = event.target.closest('button');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="loading-spinner" style="width:16px;height:16px;border-width:2px;"></span>';
-
-            const response = await apiFetch('/gamification/recommendations/generate', { method: 'POST' });
-            if (response.ok) {
-                await loadRecommendations();
-            }
-        } catch (error) {
-            console.error('Errore:', error);
-        } finally {
-            const btn = document.querySelector('.section-header button');
-            btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Aggiorna';
-        }
+            await apiFetch('/gamification/recommendations/generate', { method: 'POST' });
+            await loadRecommendations();
+        } catch (e) {}
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Aggiorna';
     }
 
     async function dismissRec(id) {
         try {
             await apiFetch(`/gamification/recommendations/${id}/dismiss`, { method: 'POST' });
             loadRecommendations();
-        } catch (error) {
-            console.error('Errore:', error);
-        }
+        } catch (e) {}
     }
-
-    async function completeRec(id) {
-        try {
-            await apiFetch(`/gamification/recommendations/${id}/complete`, { method: 'POST' });
-            loadRecommendations();
-            loadStats(); // Aggiorna XP
-        } catch (error) {
-            console.error('Errore:', error);
-        }
-    }
-
-    async function checkNewBadges() {
-        try {
-            const response = await apiFetch('/gamification/badges/new');
-            if (response.ok) {
-                const newBadges = await response.json();
-                if (newBadges && newBadges.length > 0) {
-                    showBadgeModal(newBadges[0]);
-                    await apiFetch('/gamification/badges/seen', { method: 'POST' });
-                }
-            }
-        } catch (error) {
-            console.error('Errore:', error);
-        }
-    }
-
-    function showBadgeModal(badge) {
-        document.getElementById('modalBadgeIcon').innerHTML = `<i class="bi ${badge.icon || 'bi-award'}"></i>`;
-        document.getElementById('modalBadgeIcon').style.background = badge.color || '#6366F1';
-        document.getElementById('modalBadgeName').textContent = badge.name;
-        document.getElementById('modalBadgeDescription').textContent = badge.description;
-        document.getElementById('modalBadgeXp').textContent = `+${badge.xpReward || 0} XP`;
-        document.getElementById('modalBadgeXp').style.display = badge.xpReward ? 'inline-block' : 'none';
-
-        document.getElementById('badgeModal').classList.add('active');
-    }
-
-    function closeBadgeModal() {
-        document.getElementById('badgeModal').classList.remove('active');
-    }
-
-    // Chiudi modal cliccando fuori
-    document.getElementById('badgeModal').addEventListener('click', function(e) {
-        if (e.target === this) closeBadgeModal();
-    });
 </script>
 </body>
 </html>

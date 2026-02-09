@@ -106,8 +106,8 @@
       <button type="submit" class="btn btn-primary w-100 py-2" id="loginBtn">
         <span id="loginBtnText"><i class="bi bi-box-arrow-in-right me-2"></i>Accedi</span>
         <span id="loginBtnSpinner" class="d-none">
-                        <span class="spinner-border spinner-border-sm me-2"></span>Accesso...
-                    </span>
+          <span class="spinner-border spinner-border-sm me-2"></span>Accesso...
+        </span>
       </button>
     </form>
 
@@ -190,8 +190,18 @@
           const data = await response.json();
 
           if (response.ok && data.token) {
+              // Salva il token
               localStorage.setItem('token', data.token);
-              if (data.user) localStorage.setItem('user', JSON.stringify(data.user));
+
+              // IMPORTANTE: Salva i dati utente dalla risposta (sono al primo livello, non in data.user)
+              const userData = {
+                  id: data.userId,
+                  firstName: data.firstName,
+                  lastName: data.lastName,
+                  email: data.email
+              };
+              localStorage.setItem('user', JSON.stringify(userData));
+
               showAlert('Login riuscito!', 'success');
               setTimeout(() => window.location.href = 'index.html', 500);
           } else {

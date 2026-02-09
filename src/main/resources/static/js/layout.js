@@ -4,6 +4,23 @@
  * Compatibile con style.css esistente
  */
 
+// ==================== HELPER FUNCTIONS ====================
+function getUserInitials(user) {
+    if (!user) return 'U';
+    const first = user.firstName?.charAt(0) || '';
+    const last = user.lastName?.charAt(0) || '';
+    return (first + last).toUpperCase() || 'U';
+}
+
+function getUserDisplayName(user) {
+    if (!user) return 'Utente';
+    if (user.firstName || user.lastName) {
+        return `${user.firstName || ''} ${user.lastName || ''}`.trim();
+    }
+    if (user.email) return user.email.split('@')[0];
+    return 'Utente';
+}
+
 // ==================== SIDEBAR ====================
 function renderSidebar(activePage = '') {
     const navItems = [
@@ -18,11 +35,11 @@ function renderSidebar(activePage = '') {
 
     // Determina la pagina corrente
     const currentPage = activePage || window.location.pathname.split('/').pop().replace('.html', '') || 'index';
-
-    // Ottieni dati utente
+    
+    // Ottieni dati utente da localStorage
     const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const initials = ((user.firstName?.charAt(0) || '') + (user.lastName?.charAt(0) || '')).toUpperCase() || 'U';
-    const displayName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Utente';
+    const initials = getUserInitials(user);
+    const displayName = getUserDisplayName(user);
 
     const sidebarHTML = `
         <button class="mobile-menu-btn" id="mobileMenuBtn">
@@ -45,7 +62,7 @@ function renderSidebar(activePage = '') {
                         <span>${item.label}</span>
                     </a>
                 `).join('')}
-
+                
                 <div class="nav-section-title">Account</div>
                 ${navItems.slice(5).map(item => `
                     <a href="${item.href}" class="nav-item ${item.id === currentPage ? 'active' : ''}" data-page="${item.id}">
@@ -73,7 +90,7 @@ function renderSidebar(activePage = '') {
     document.body.insertAdjacentHTML('afterbegin', sidebarHTML);
     setupSidebarEvents();
     loadSidebarStats();
-
+    
     // Intercetta i click sui link per gestire il Focus Mode
     setupNavigationInterception();
 }
@@ -99,14 +116,14 @@ function setupNavigationInterception() {
     document.addEventListener('click', (e) => {
         const link = e.target.closest('a[href]');
         if (!link) return;
-
+        
         const href = link.getAttribute('href');
         if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
-
+        
         // Verifica se il Focus Mode è attivo
         if (window.FocusManager && window.FocusManager.isInSession()) {
             const isAllowed = window.FocusManager.isAllowedPage(href);
-
+            
             if (!isAllowed) {
                 e.preventDefault();
                 window.FocusManager.showNavigationConfirm(href);
@@ -129,8 +146,8 @@ async function loadSidebarStats() {
             const levelEl = document.getElementById('sidebarLevel');
             if (levelEl) levelEl.textContent = stats.level || 1;
         }
-    } catch (e) {
-        console.error('Errore stats sidebar:', e);
+    } catch (e) { 
+        console.error('Errore stats sidebar:', e); 
     }
 }
 
@@ -186,8 +203,8 @@ async function loadTopbarStats() {
             if (xpEl) xpEl.textContent = formatNumber(stats.totalXp || 0);
             if (levelEl) levelEl.textContent = stats.level || 1;
         }
-    } catch (e) {
-        console.error('Errore stats topbar:', e);
+    } catch (e) { 
+        console.error('Errore stats topbar:', e); 
     }
 }
 
@@ -243,7 +260,7 @@ function logout() {
         window.FocusManager.showNavigationConfirm('login.html', true);
         return;
     }
-
+    
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     window.location.href = 'login.html';
