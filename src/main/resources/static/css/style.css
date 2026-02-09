@@ -824,9 +824,6 @@ body {
 .text-danger { color: var(--danger-color) !important; }
 .text-muted { color: #9ca3af !important; }
 
-
-/* ==================== TOPBAR & FOOTER (aggiungere a style.css) ==================== */
-
 /* TOPBAR */
 .topbar {
     display: flex;
@@ -938,3 +935,4 @@ body {
         padding: 0.5rem;
     }
 }
+

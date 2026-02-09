@@ -68,7 +68,7 @@
             border-radius: 0.75rem;
             background: rgba(255,255,255,0.95);
             font-size: 1rem;
-            color: var(--text-primary);
+            color: var(--dark-bg);
             transition: all 0.3s ease;
         }
 
@@ -79,7 +79,7 @@
         }
 
         .search-input::placeholder {
-            color: var(--text-muted);
+            color: #6b7280;
         }
 
         .level-select {
@@ -88,7 +88,7 @@
             border-radius: 0.75rem;
             background: rgba(255,255,255,0.95);
             font-size: 1rem;
-            color: var(--text-primary);
+            color: var(--dark-bg);
             cursor: pointer;
             min-width: 180px;
         }
@@ -148,14 +148,8 @@
         }
 
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .explanation-header {
@@ -176,9 +170,7 @@
             gap: 0.75rem;
         }
 
-        .explanation-topic i {
-            color: var(--primary-color);
-        }
+        .explanation-topic i { color: var(--primary-color); }
 
         .explanation-meta {
             display: flex;
@@ -196,20 +188,9 @@
             font-weight: 500;
         }
 
-        .meta-badge.level {
-            background: rgba(59, 130, 246, 0.2);
-            color: #60a5fa;
-        }
-
-        .meta-badge.xp {
-            background: rgba(139, 92, 246, 0.2);
-            color: #a78bfa;
-        }
-
-        .meta-badge.time {
-            background: rgba(107, 114, 128, 0.2);
-            color: #9ca3af;
-        }
+        .meta-badge.level { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .meta-badge.xp { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
+        .meta-badge.time { background: rgba(107, 114, 128, 0.2); color: #9ca3af; }
 
         .explanation-content {
             color: var(--text-secondary);
@@ -217,9 +198,7 @@
             font-size: 1rem;
         }
 
-        .explanation-content h1,
-        .explanation-content h2,
-        .explanation-content h3 {
+        .explanation-content h1, .explanation-content h2, .explanation-content h3 {
             color: #ffffff;
             margin-top: 1.5rem;
             margin-bottom: 0.75rem;
@@ -228,20 +207,9 @@
         .explanation-content h1 { font-size: 1.5rem; }
         .explanation-content h2 { font-size: 1.25rem; }
         .explanation-content h3 { font-size: 1.1rem; }
-
-        .explanation-content p {
-            margin-bottom: 1rem;
-        }
-
-        .explanation-content ul,
-        .explanation-content ol {
-            margin-bottom: 1rem;
-            padding-left: 1.5rem;
-        }
-
-        .explanation-content li {
-            margin-bottom: 0.5rem;
-        }
+        .explanation-content p { margin-bottom: 1rem; }
+        .explanation-content ul, .explanation-content ol { margin-bottom: 1rem; padding-left: 1.5rem; }
+        .explanation-content li { margin-bottom: 0.5rem; }
 
         .explanation-content code {
             background: rgba(139, 92, 246, 0.2);
@@ -261,11 +229,7 @@
             margin-bottom: 1rem;
         }
 
-        .explanation-content pre code {
-            background: none;
-            padding: 0;
-        }
-
+        .explanation-content pre code { background: none; padding: 0; }
         .explanation-content blockquote {
             border-left: 4px solid var(--primary-color);
             padding-left: 1rem;
@@ -273,10 +237,7 @@
             color: var(--text-muted);
             font-style: italic;
         }
-
-        .explanation-content strong {
-            color: #ffffff;
-        }
+        .explanation-content strong { color: #ffffff; }
 
         /* Actions */
         .explanation-actions {
@@ -301,29 +262,13 @@
             border: none;
         }
 
-        .action-btn.primary {
-            background: var(--primary-color);
-            color: #ffffff;
-        }
-
-        .action-btn.primary:hover {
-            background: var(--primary-hover);
-        }
-
-        .action-btn.secondary {
-            background: var(--dark-border);
-            color: var(--text-secondary);
-        }
-
-        .action-btn.secondary:hover {
-            background: rgba(107, 114, 128, 0.3);
-            color: #ffffff;
-        }
+        .action-btn.primary { background: var(--primary-color); color: #ffffff; }
+        .action-btn.primary:hover { background: var(--primary-hover); }
+        .action-btn.secondary { background: var(--dark-border); color: var(--text-secondary); }
+        .action-btn.secondary:hover { background: rgba(107, 114, 128, 0.3); color: #ffffff; }
 
         /* History Section */
-        .history-section {
-            margin-top: 2rem;
-        }
+        .history-section { margin-top: 2rem; }
 
         .section-header {
             display: flex;
@@ -341,11 +286,7 @@
             gap: 0.5rem;
         }
 
-        .history-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
+        .history-list { display: flex; flex-direction: column; gap: 0.75rem; }
 
         .history-item {
             background: var(--dark-card);
@@ -359,16 +300,9 @@
             transition: all 0.3s ease;
         }
 
-        .history-item:hover {
-            border-color: var(--primary-color);
-            transform: translateX(4px);
-        }
+        .history-item:hover { border-color: var(--primary-color); transform: translateX(4px); }
 
-        .history-item-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
+        .history-item-info { display: flex; align-items: center; gap: 1rem; }
 
         .history-icon {
             width: 40px;
@@ -381,24 +315,11 @@
             color: var(--primary-color);
         }
 
-        .history-topic {
-            font-weight: 600;
-            color: #ffffff;
-            margin-bottom: 0.25rem;
-        }
+        .history-topic { font-weight: 600; color: #ffffff; margin-bottom: 0.25rem; }
+        .history-date { font-size: 0.8rem; color: var(--text-muted); }
+        .history-item-meta { display: flex; align-items: center; gap: 0.5rem; }
 
-        .history-date {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
-
-        .history-item-meta {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        /* Loading State */
+        /* Loading */
         .loading-container {
             display: flex;
             flex-direction: column;
@@ -418,38 +339,15 @@
             margin-bottom: 1rem;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        .loading-text {
-            font-size: 1rem;
-            color: var(--text-secondary);
-        }
-
-        .loading-subtext {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-top: 0.5rem;
-        }
+        .loading-text { font-size: 1rem; color: var(--text-secondary); }
+        .loading-subtext { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; }
 
         /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 3rem;
-            color: var(--text-muted);
-        }
-
-        .empty-state i {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
-        }
-
-        .empty-state h3 {
-            color: #ffffff;
-            margin-bottom: 0.5rem;
-        }
+        .empty-state { text-align: center; padding: 3rem; color: var(--text-muted); }
+        .empty-state i { font-size: 4rem; margin-bottom: 1rem; opacity: 0.5; }
+        .empty-state h3 { color: #ffffff; margin-bottom: 0.5rem; }
 
         /* XP Notification */
         .xp-notification {
@@ -469,39 +367,19 @@
         }
 
         @keyframes slideInRight {
-            from {
-                opacity: 0;
-                transform: translateX(100px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
+            from { opacity: 0; transform: translateX(100px); }
+            to { opacity: 1; transform: translateX(0); }
         }
 
         @keyframes fadeOut {
-            to {
-                opacity: 0;
-                transform: translateX(100px);
-            }
+            to { opacity: 0; transform: translateX(100px); }
         }
 
-        .xp-notification i {
-            font-size: 1.5rem;
-        }
-
-        .xp-notification .xp-amount {
-            font-size: 1.25rem;
-            font-weight: 700;
-        }
+        .xp-notification i { font-size: 1.5rem; }
+        .xp-notification .xp-amount { font-size: 1.25rem; font-weight: 700; }
 
         /* Quick Topics */
-        .quick-topics {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-            margin-top: 1rem;
-        }
+        .quick-topics { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem; }
 
         .quick-topic {
             padding: 0.5rem 1rem;
@@ -514,39 +392,16 @@
             transition: all 0.3s ease;
         }
 
-        .quick-topic:hover {
-            background: rgba(255,255,255,0.2);
-            transform: translateY(-2px);
-        }
+        .quick-topic:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); }
 
         /* Responsive */
         @media (max-width: 768px) {
-            .search-section {
-                padding: 1.5rem;
-            }
-
-            .search-form {
-                flex-direction: column;
-            }
-
-            .level-select,
-            .search-btn {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .explanation-header {
-                flex-direction: column;
-            }
-
-            .explanation-actions {
-                flex-direction: column;
-            }
-
-            .action-btn {
-                width: 100%;
-                justify-content: center;
-            }
+            .search-section { padding: 1.5rem; }
+            .search-form { flex-direction: column; }
+            .level-select, .search-btn { width: 100%; justify-content: center; }
+            .explanation-header { flex-direction: column; }
+            .explanation-actions { flex-direction: column; }
+            .action-btn { width: 100%; justify-content: center; }
         }
     </style>
 </head>
@@ -566,14 +421,9 @@
         <form class="search-form" id="explanationForm" onsubmit="requestExplanation(event)">
             <div class="search-input-wrapper">
                 <i class="bi bi-search"></i>
-                <input
-                        type="text"
-                        class="search-input"
-                        id="topicInput"
-                        placeholder="Es: Teorema di Pitagora, Fotosintesi, Guerra Fredda..."
-                        required
-                        autocomplete="off"
-                >
+                <input type="text" class="search-input" id="topicInput"
+                       placeholder="Es: Teorema di Pitagora, Fotosintesi, Guerra Fredda..."
+                       required autocomplete="off">
             </div>
 
 
@@ -593,9 +443,7 @@
     </div>
 
     <!-- Current Explanation -->
-    <div id="explanationContainer">
-        <!-- Le spiegazioni appariranno qui -->
-    </div>
+    <div id="explanationContainer"></div>
 
     <!-- History Section -->
     <div class="history-section" id="historySection">
@@ -608,41 +456,47 @@
                 <i class="bi bi-trash3"></i> Cancella
             </button>
         </div>
-        <div class="history-list" id="historyList">
-            <!-- Storico caricato dinamicamente -->
-        </div>
+        <div class="history-list" id="historyList"></div>
     </div>
 </main>
 
 <script src="js/layout.js"></script>
+<script src="js/focus-manager.js"></script>
 <script>
-    // Storico locale delle spiegazioni
     let explanationHistory = [];
 
     document.addEventListener('DOMContentLoaded', function() {
         initLayout({
-            pageTitle: 'Spiegazioni',
+            pageTitle: 'Spiegazioni AI',
             activePage: 'spiegazioni',
             showTopbar: true,
             showFooter: true
         });
 
         loadHistory();
+
+        const savedTopic = sessionStorage.getItem('explanationTopic');
+        if (savedTopic) {
+            document.getElementById('topicInput').value = savedTopic;
+            sessionStorage.removeItem('explanationTopic');
+        }
     });
 
-    // API Fetch helper
     async function apiFetch(endpoint, options = {}) {
         const token = localStorage.getItem('token');
-        const response = await fetch(`/api${endpoint}`, {
-            ...options,
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': token ? `Bearer ${token}` : '',
-                ...options.headers
-            }
-        });
 
-        if (response.status === 401) {
+        const headers = {
+            'Authorization': token ? `Bearer ${token}` : '',
+            ...options.headers
+        };
+
+        if (options.body && !headers['Content-Type']) {
+            headers['Content-Type'] = 'application/json';
+        }
+
+        const response = await fetch(`/api${endpoint}`, { ...options, headers });
+
+        if (response.status === 401 || response.status === 403) {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             window.location.href = 'login.html';
@@ -652,13 +506,11 @@
         return response;
     }
 
-    // Imposta topic da quick topics
     function setTopic(topic) {
         document.getElementById('topicInput').value = topic;
         document.getElementById('topicInput').focus();
     }
 
-    // Richiedi spiegazione
     async function requestExplanation(event) {
         event.preventDefault();
 
@@ -673,7 +525,6 @@
         const submitBtn = document.getElementById('submitBtn');
         const container = document.getElementById('explanationContainer');
 
-        // Loading state
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<span class="loading-spinner" style="width:20px;height:20px;border-width:2px;"></span> Generando...';
 
@@ -682,7 +533,7 @@
                 <div class="loading-container">
                     <div class="loading-spinner-large"></div>
                     <div class="loading-text">Sto generando la spiegazione...</div>
-                    <div class="loading-subtext">L'AI sta elaborando "${topic}"</div>
+                    <div class="loading-subtext">L'AI sta elaborando "${escapeHtml(topic)}"</div>
                 </div>
             </div>
         `;
@@ -692,31 +543,22 @@
 
             if (response.ok) {
                 const data = await response.json();
-
-                // Mostra spiegazione
                 displayExplanation(topic, level, data.explanation, data);
 
-                // Mostra notifica XP
                 if (data.xpEarned) {
                     showXpNotification(data.xpEarned, data.leveledUp);
                 }
 
-                // Aggiorna stats nella topbar
                 if (typeof loadTopbarStats === 'function') {
                     loadTopbarStats();
                 }
 
-                // Salva in cronologia
                 saveToHistory(topic, level, data.explanation);
-
-                // Pulisci input
                 document.getElementById('topicInput').value = '';
-
             } else {
                 const error = await response.text();
                 throw new Error(error || 'Errore nella generazione');
             }
-
         } catch (error) {
             console.error('Errore:', error);
             container.innerHTML = `
@@ -737,7 +579,6 @@
         }
     }
 
-    // Mostra spiegazione
     function displayExplanation(topic, level, explanation, xpData = {}) {
         const container = document.getElementById('explanationContainer');
         const levelLabels = {
@@ -747,8 +588,8 @@
             'esperto': 'Esperto'
         };
 
-        // Converti markdown semplice in HTML
         const formattedExplanation = formatExplanation(explanation);
+        const safeTopic = escapeHtml(topic).replace(/'/g, "\\'");
 
         container.innerHTML = `
             <div class="explanation-card">
@@ -775,84 +616,54 @@
                     </div>
                 </div>
 
-                <div class="explanation-content">
-                    ${formattedExplanation}
-                </div>
+                <div class="explanation-content">${formattedExplanation}</div>
 
                 <div class="explanation-actions">
-                    <button class="action-btn primary" onclick="generateQuizFromTopic('${escapeHtml(topic)}')">
-                        <i class="bi bi-patch-question"></i>
-                        Genera Quiz
+                    <button class="action-btn primary" onclick="generateQuizFromTopic('${safeTopic}')">
+                        <i class="bi bi-patch-question"></i> Genera Quiz
                     </button>
-                    <button class="action-btn primary" onclick="generateFlashcardsFromTopic('${escapeHtml(topic)}')">
-                        <i class="bi bi-stack"></i>
-                        Crea Flashcards
+                    <button class="action-btn primary" onclick="generateFlashcardsFromTopic('${safeTopic}')">
+                        <i class="bi bi-stack"></i> Crea Flashcards
                     </button>
                     <button class="action-btn secondary" onclick="copyExplanation()">
-                        <i class="bi bi-clipboard"></i>
-                        Copia
+                        <i class="bi bi-clipboard"></i> Copia
                     </button>
-                    <button class="action-btn secondary" onclick="requestExplanationAgain('${escapeHtml(topic)}', '${level}')">
-                        <i class="bi bi-arrow-clockwise"></i>
-                        Rigenera
+                    <button class="action-btn secondary" onclick="requestExplanationAgain('${safeTopic}', '${level}')">
+                        <i class="bi bi-arrow-clockwise"></i> Rigenera
                     </button>
                 </div>
             </div>
         `;
 
-        // Salva contenuto per copia
         container.dataset.rawContent = explanation;
     }
 
-    // Formatta spiegazione (markdown semplice -> HTML)
     function formatExplanation(text) {
         if (!text) return '';
-
         return text
-            // Headers
             .replace(/^### (.*$)/gm, '<h3>$1</h3>')
             .replace(/^## (.*$)/gm, '<h2>$1</h2>')
             .replace(/^# (.*$)/gm, '<h1>$1</h1>')
-            // Bold
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            // Italic
             .replace(/\*(.*?)\*/g, '<em>$1</em>')
-            // Code blocks
             .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
-            // Inline code
             .replace(/`(.*?)`/g, '<code>$1</code>')
-            // Lists
             .replace(/^\- (.*$)/gm, '<li>$1</li>')
-            .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
-            // Numbered lists
             .replace(/^\d+\. (.*$)/gm, '<li>$1</li>')
-            // Blockquotes
             .replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>')
-            // Paragraphs
             .replace(/\n\n/g, '</p><p>')
-            .replace(/^(.+)$/gm, '<p>$1</p>')
-            // Clean up
-            .replace(/<p><h/g, '<h')
-            .replace(/<\/h(\d)><\/p>/g, '</h$1>')
-            .replace(/<p><ul>/g, '<ul>')
-            .replace(/<\/ul><\/p>/g, '</ul>')
-            .replace(/<p><\/p>/g, '')
-            .replace(/<p><pre>/g, '<pre>')
-            .replace(/<\/pre><\/p>/g, '</pre>');
+            .replace(/<p><\/p>/g, '');
     }
 
-    // Escape HTML
     function escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
     }
 
-    // Copia spiegazione
     function copyExplanation() {
         const container = document.getElementById('explanationContainer');
         const rawContent = container.dataset.rawContent;
-
         if (rawContent) {
             navigator.clipboard.writeText(rawContent).then(() => {
                 showNotification('Spiegazione copiata!', 'success');
@@ -860,27 +671,22 @@
         }
     }
 
-    // Rigenera spiegazione
     function requestExplanationAgain(topic, level) {
         document.getElementById('topicInput').value = topic;
         document.getElementById('levelSelect').value = level;
         document.getElementById('explanationForm').dispatchEvent(new Event('submit'));
     }
 
-    // Genera quiz da topic
     function generateQuizFromTopic(topic) {
-        // Salva topic e reindirizza
         sessionStorage.setItem('quizTopic', topic);
         window.location.href = 'quiz.html';
     }
 
-    // Genera flashcards da topic
     function generateFlashcardsFromTopic(topic) {
         sessionStorage.setItem('flashcardTopic', topic);
         window.location.href = 'flashcards.html';
     }
 
-    // Mostra notifica XP
     function showXpNotification(xpEarned, leveledUp = false) {
         const notification = document.createElement('div');
         notification.className = 'xp-notification';
@@ -892,47 +698,28 @@
             </div>
         `;
         document.body.appendChild(notification);
-
         setTimeout(() => notification.remove(), 3000);
     }
 
-    // Mostra notifica generica
     function showNotification(message, type = 'info') {
         const toast = document.createElement('div');
-        toast.className = `alert alert-${type} position-fixed bottom-0 end-0 m-3`;
-        toast.style.zIndex = '9999';
+        toast.className = `alert alert-${type}`;
+        toast.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999;padding:1rem 1.5rem;border-radius:0.5rem;';
         toast.innerHTML = message;
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
     }
 
-    // ==================== CRONOLOGIA ====================
-
     function loadHistory() {
         const saved = localStorage.getItem('explanationHistory');
-        if (saved) {
-            explanationHistory = JSON.parse(saved);
-        }
+        if (saved) explanationHistory = JSON.parse(saved);
         renderHistory();
     }
 
     function saveToHistory(topic, level, explanation) {
-        const item = {
-            id: Date.now(),
-            topic,
-            level,
-            explanation,
-            timestamp: new Date().toISOString()
-        };
-
-        // Aggiungi all'inizio
+        const item = { id: Date.now(), topic, level, explanation, timestamp: new Date().toISOString() };
         explanationHistory.unshift(item);
-
-        // Mantieni solo le ultime 20
-        if (explanationHistory.length > 20) {
-            explanationHistory = explanationHistory.slice(0, 20);
-        }
-
+        if (explanationHistory.length > 20) explanationHistory = explanationHistory.slice(0, 20);
         localStorage.setItem('explanationHistory', JSON.stringify(explanationHistory));
         renderHistory();
     }
@@ -951,27 +738,20 @@
         container.innerHTML = explanationHistory.map(item => {
             const date = new Date(item.timestamp);
             const formattedDate = date.toLocaleDateString('it-IT', {
-                day: 'numeric',
-                month: 'short',
-                hour: '2-digit',
-                minute: '2-digit'
+                day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
             });
 
             return `
                 <div class="history-item" onclick="loadFromHistory(${item.id})">
                     <div class="history-item-info">
-                        <div class="history-icon">
-                            <i class="bi bi-lightbulb"></i>
-                        </div>
+                        <div class="history-icon"><i class="bi bi-lightbulb"></i></div>
                         <div>
                             <div class="history-topic">${escapeHtml(item.topic)}</div>
                             <div class="history-date">${formattedDate}</div>
                         </div>
                     </div>
                     <div class="history-item-meta">
-                        <span class="meta-badge level">
-                            ${item.level}
-                        </span>
+                        <span class="meta-badge level">${item.level}</span>
                         <i class="bi bi-chevron-right text-muted"></i>
                     </div>
                 </div>
