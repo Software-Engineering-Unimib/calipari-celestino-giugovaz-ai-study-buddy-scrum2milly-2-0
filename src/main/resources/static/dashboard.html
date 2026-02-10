@@ -3,209 +3,260 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Study Buddy</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <title>Dashboard - AI Study Buddy</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="css/style.css" rel="stylesheet">
+  <link href="css/topbar-footer.css" rel="stylesheet">
+  <style>
+    /* Focus Button Special Style */
+    .focus-btn {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem;
+      color: #ffffff;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    .focus-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+    }
+
+    .focus-btn i {
+      font-size: 1.2rem;
+    }
+  </style>
 </head>
 <body>
-<!-- Mobile Menu Button -->
-<button class="mobile-menu-btn" id="mobileMenuBtn">
-  <i class="bi bi-list"></i>
-</button>
+<!-- Sidebar, Topbar generati da layout.js -->
 
-<!-- Sidebar Overlay -->
-<div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-<!-- Sidebar -->
-<aside class="sidebar" id="sidebar">
-  <a href="index.html" class="sidebar-logo">
-    <i class="bi bi-mortarboard-fill"></i>
-    <h1>AI Study Buddy</h1>
-  </a>
-
-  <nav class="sidebar-nav">
-    <div class="nav-section-title">Studio</div>
-    <a href="explanation.html" class="nav-item">
-      <i class="bi bi-chat-dots"></i>
-      <span>Spiegazioni AI</span>
-    </a>
-    <a href="quiz.html" class="nav-item">
-      <i class="bi bi-patch-question"></i>
-      <span>Quiz</span>
-    </a>
-    <a href="flashcards.html" class="nav-item">
-      <i class="bi bi-stack"></i>
-      <span>Flashcards</span>
-    </a>
-  </nav>
-
-  <div class="sidebar-footer">
-    <div class="user-info">
-      <div class="user-avatar" id="userAvatar">MC</div>
-      <div class="user-details">
-        <div class="user-name" id="userName">Mario Calipari</div>
-        <div class="user-level">Livello 5</div>
+<main class="main-content">
+  <!-- Welcome Card -->
+  <div class="card" style="background: var(--gradient-primary); border: none; margin-bottom: 1.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">
+          Ciao, <span id="welcomeName">Studente</span>! 👋
+        </h2>
+        <p style="opacity: 0.9; margin: 0;">Pronto per una nuova sessione di studio?</p>
+      </div>
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <!-- Focus Button -->
+        <a href="focus.html" class="focus-btn">
+          <i class="bi bi-bullseye"></i> Focus
+        </a>
       </div>
     </div>
   </div>
-</aside>
 
-<!-- Main Content -->
-<main class="main-content">
-  <div class="page-header">
-    <h1 class="page-title">Benvenuto su AI Study Buddy! 👋</h1>
-    <p class="page-subtitle">Il tuo tutor personale basato sull'Intelligenza Artificiale</p>
+  <!-- Stats Grid -->
+  <h3 class="page-title" style="font-size: 1.25rem; margin-bottom: 1rem;">
+    <i class="bi bi-graph-up-arrow text-primary"></i> Le tue statistiche
+  </h3>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+    <div class="stat-card">
+      <div class="card-icon primary"><i class="bi bi-lightning-charge-fill"></i></div>
+      <div>
+        <div class="stat-value" id="statXp">0</div>
+        <div class="stat-label">XP Totali</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="card-icon" style="background: #dc2626;"><i class="bi bi-fire"></i></div>
+      <div>
+        <div class="stat-value" id="statStreak">0</div>
+        <div class="stat-label">Giorni Streak</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="card-icon success"><i class="bi bi-patch-check-fill"></i></div>
+      <div>
+        <div class="stat-value" id="statQuiz">0</div>
+        <div class="stat-label">Quiz Completati</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="card-icon warning"><i class="bi bi-stack"></i></div>
+      <div>
+        <div class="stat-value" id="statFlashcards">0</div>
+        <div class="stat-label">Flashcards</div>
+      </div>
+    </div>
   </div>
 
   <!-- Quick Actions -->
-  <div class="row mb-5">
-    <div class="col-md-4 mb-4">
-      <a href="explanation.html" class="card text-decoration-none" style="height: 100%;">
-        <div class="d-flex align-items-start gap-3">
-          <div class="card-icon primary">
-            <i class="bi bi-chat-dots"></i>
-          </div>
-          <div>
-            <h3 class="card-title mb-2">Spiegazioni AI</h3>
-            <p class="text-muted mb-0">Chiedi spiegazioni su qualsiasi argomento e ricevi risposte personalizzate.</p>
-          </div>
-        </div>
-        <div class="mt-4">
-                        <span class="btn btn-primary">
-                            Inizia a chiedere
-                            <i class="bi bi-arrow-right ms-1"></i>
-                        </span>
-        </div>
-      </a>
-    </div>
+  <h3 class="page-title" style="font-size: 1.25rem; margin-bottom: 1rem;">
+    <i class="bi bi-rocket-takeoff text-primary"></i> Azioni rapide
+  </h3>
 
-    <div class="col-md-4 mb-4">
-      <a href="quiz.html" class="card text-decoration-none" style="height: 100%;">
-        <div class="d-flex align-items-start gap-3">
-          <div class="card-icon warning">
-            <i class="bi bi-patch-question"></i>
-          </div>
-          <div>
-            <h3 class="card-title mb-2">Quiz</h3>
-            <p class="text-muted mb-0">Genera quiz personalizzati per testare le tue conoscenze.</p>
-          </div>
-        </div>
-        <div class="mt-4">
-                        <span class="btn btn-primary">
-                            Genera un quiz
-                            <i class="bi bi-arrow-right ms-1"></i>
-                        </span>
-        </div>
-      </a>
-    </div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
+    <a href="explanation.html" class="card" style="text-decoration: none; text-align: center; padding: 1.5rem;">
+      <i class="bi bi-lightbulb text-warning" style="font-size: 2.5rem; display: block; margin-bottom: 0.75rem;"></i>
+      <strong style="color: #fff;">Chiedi Spiegazione</strong>
+      <small style="display: block; color: var(--text-muted);">+10 XP</small>
+    </a>
+    <a href="quiz.html" class="card" style="text-decoration: none; text-align: center; padding: 1.5rem;">
+      <i class="bi bi-patch-question text-primary" style="font-size: 2.5rem; display: block; margin-bottom: 0.75rem;"></i>
+      <strong style="color: #fff;">Genera Quiz</strong>
+      <small style="display: block; color: var(--text-muted);">+20 XP</small>
+    </a>
+    <a href="flashcards.html" class="card" style="text-decoration: none; text-align: center; padding: 1.5rem;">
+      <i class="bi bi-stack text-success" style="font-size: 2.5rem; display: block; margin-bottom: 0.75rem;"></i>
+      <strong style="color: #fff;">Studia Flashcards</strong>
+      <small style="display: block; color: var(--text-muted);">+2 XP/carta</small>
+    </a>
+    <a href="focus.html" class="card" style="text-decoration: none; text-align: center; padding: 1.5rem; border: 2px solid rgba(16, 185, 129, 0.3);">
+      <i class="bi bi-bullseye" style="font-size: 2.5rem; display: block; margin-bottom: 0.75rem; color: #10b981;"></i>
+      <strong style="color: #fff;">Modalità Focus</strong>
+      <small style="display: block; color: var(--text-muted);">+15 XP/sessione</small>
+    </a>
+  </div>
 
-    <div class="col-md-4 mb-4">
-      <a href="flashcards.html" class="card text-decoration-none" style="height: 100%;">
-        <div class="d-flex align-items-start gap-3">
-          <div class="card-icon success">
-            <i class="bi bi-stack"></i>
-          </div>
-          <div>
-            <h3 class="card-title mb-2">Flashcards</h3>
-            <p class="text-muted mb-0">Crea deck di flashcards con l'AI per memorizzare concetti.</p>
-          </div>
-        </div>
-        <div class="mt-4">
-                        <span class="btn btn-primary">
-                            Studia flashcards
-                            <i class="bi bi-arrow-right ms-1"></i>
-                        </span>
-        </div>
-      </a>
+  <!-- Recent Activity Section -->
+  <h3 class="page-title" style="font-size: 1.25rem; margin: 2rem 0 1rem;">
+    <i class="bi bi-clock-history text-primary"></i> Attività recente
+  </h3>
+
+  <div class="card" id="recentActivityCard">
+    <div id="recentActivity" style="color: var(--text-muted); text-align: center; padding: 2rem;">
+      <i class="bi bi-inbox" style="font-size: 2rem; display: block; margin-bottom: 0.5rem; opacity: 0.5;"></i>
+      Nessuna attività recente
     </div>
   </div>
 
-  <!-- Features Section -->
-  <div class="card mb-4">
-    <h3 class="card-title mb-4">
-      <i class="bi bi-stars text-primary me-2"></i>
-      Come posso aiutarti?
-    </h3>
-
-    <div class="row">
-      <div class="col-md-6 mb-3">
-        <div class="d-flex gap-3 align-items-start">
-          <div class="card-icon primary" style="width: 40px; height: 40px; font-size: 1rem;">
-            <i class="bi bi-lightbulb"></i>
-          </div>
-          <div>
-            <h5 class="mb-1">Spiegazioni Personalizzate</h5>
-            <p class="text-muted mb-0" style="font-size: 0.875rem;">
-              Ricevi spiegazioni adattate al tuo livello di studio, con esempi pratici.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-6 mb-3">
-        <div class="d-flex gap-3 align-items-start">
-          <div class="card-icon warning" style="width: 40px; height: 40px; font-size: 1rem;">
-            <i class="bi bi-clipboard-check"></i>
-          </div>
-          <div>
-            <h5 class="mb-1">Quiz Intelligenti</h5>
-            <p class="text-muted mb-0" style="font-size: 0.875rem;">
-              Genera quiz su misura per verificare la tua preparazione.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-6 mb-3">
-        <div class="d-flex gap-3 align-items-start">
-          <div class="card-icon success" style="width: 40px; height: 40px; font-size: 1rem;">
-            <i class="bi bi-card-text"></i>
-          </div>
-          <div>
-            <h5 class="mb-1">Flashcards AI</h5>
-            <p class="text-muted mb-0" style="font-size: 0.875rem;">
-              Genera automaticamente flashcards da qualsiasi argomento.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-6 mb-3">
-        <div class="d-flex gap-3 align-items-start">
-          <div class="card-icon" style="width: 40px; height: 40px; font-size: 1rem; background: rgba(236, 72, 153, 0.2); color: #ec4899;">
-            <i class="bi bi-graph-up"></i>
-          </div>
-          <div>
-            <h5 class="mb-1">Traccia i Progressi</h5>
-            <p class="text-muted mb-0" style="font-size: 0.875rem;">
-              Monitora il tuo apprendimento e identifica le aree da migliorare.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Tips -->
-  <div class="card" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%); border-color: var(--primary-color);">
-    <div class="d-flex align-items-center gap-3">
-      <div class="card-icon primary">
-        <i class="bi bi-info-circle"></i>
-      </div>
-      <div>
-        <h5 class="mb-1">Suggerimento</h5>
-        <p class="text-muted mb-0">
-          Per ottenere spiegazioni migliori, sii specifico nelle tue domande.
-          Ad esempio, invece di "spiegami la matematica", prova "spiegami come risolvere le equazioni di secondo grado".
-        </p>
-      </div>
-    </div>
-  </div>
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="js/app.js"></script>
+<script src="js/layout.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      // Inizializza layout (sidebar + topbar + footer)
+      initLayout({
+          pageTitle: 'Dashboard',
+          activePage: 'index',
+          showTopbar: true,
+          showFooter: true
+      });
+
+      // Carica dati dashboard
+      loadDashboardData();
+  });
+
+  async function loadDashboardData() {
+      // Nome utente
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const welcomeEl = document.getElementById('welcomeName');
+      if (welcomeEl && user.firstName) {
+          welcomeEl.textContent = user.firstName;
+      }
+
+      // Statistiche
+      try {
+          const token = localStorage.getItem('token');
+          if (!token) return;
+
+          const response = await fetch('/api/gamification/stats', {
+              headers: { 'Authorization': `Bearer ${token}` }
+          });
+
+          if (response.ok) {
+              const stats = await response.json();
+              document.getElementById('statXp').textContent = (stats.totalXp || 0).toLocaleString();
+              document.getElementById('statStreak').textContent = stats.currentStreak || 0;
+              document.getElementById('statQuiz').textContent = stats.quizzesCompleted || 0;
+              document.getElementById('statFlashcards').textContent = stats.flashcardsStudied || 0;
+          }
+
+          // Carica attività recente
+          loadRecentActivity();
+
+      } catch (error) {
+          console.error('Errore caricamento stats:', error);
+      }
+  }
+
+  async function loadRecentActivity() {
+      try {
+          const token = localStorage.getItem('token');
+          if (!token) return;
+
+          // Carica quiz recenti
+          const quizResponse = await fetch('/api/ai/quiz/completed?limit=3', {
+              headers: { 'Authorization': `Bearer ${token}` }
+          });
+
+          let activities = [];
+
+          if (quizResponse.ok) {
+              const quizzes = await quizResponse.json();
+              quizzes.slice(0, 3).forEach(quiz => {
+                  activities.push({
+                      type: 'quiz',
+                      title: quiz.topic,
+                      score: `${quiz.score}/${quiz.numberOfQuestions}`,
+                      date: new Date(quiz.completedAt),
+                      icon: 'bi-patch-question',
+                      color: 'primary'
+                  });
+              });
+          }
+
+          // Ordina per data
+          activities.sort((a, b) => b.date - a.date);
+
+          // Mostra attività
+          const container = document.getElementById('recentActivity');
+
+          if (activities.length === 0) {
+              container.innerHTML = `
+                  <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                      <i class="bi bi-inbox" style="font-size: 2rem; display: block; margin-bottom: 0.5rem; opacity: 0.5;"></i>
+                      Nessuna attività recente. Inizia a studiare!
+                  </div>
+              `;
+              return;
+          }
+
+          container.innerHTML = activities.map(activity => `
+              <div style="display: flex; align-items: center; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid var(--dark-border);">
+                  <div class="card-icon ${activity.color}" style="width: 40px; height: 40px; min-width: 40px;">
+                      <i class="bi ${activity.icon}"></i>
+                  </div>
+                  <div style="flex: 1;">
+                      <div style="color: #fff; font-weight: 500;">${activity.title}</div>
+                      <div style="font-size: 0.8rem; color: var(--text-muted);">
+                          ${activity.score ? `Score: ${activity.score} • ` : ''}
+                          ${formatDate(activity.date)}
+                      </div>
+                  </div>
+              </div>
+          `).join('');
+
+      } catch (error) {
+          console.error('Errore caricamento attività:', error);
+      }
+  }
+
+  function formatDate(date) {
+      const now = new Date();
+      const diff = now - date;
+
+      if (diff < 60000) return 'Adesso';
+      if (diff < 3600000) return `${Math.floor(diff / 60000)} min fa`;
+      if (diff < 86400000) return `${Math.floor(diff / 3600000)} ore fa`;
+
+      return date.toLocaleDateString('it-IT', {
+          day: 'numeric',
+          month: 'short'
+      });
+  }
+</script>
+<script src="js/focus-manager.js"></script>
 </body>
 </html>

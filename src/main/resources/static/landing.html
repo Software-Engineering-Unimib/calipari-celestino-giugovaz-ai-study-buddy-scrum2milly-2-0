@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Study Buddy - Il Tuo Tutor Intelligente</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #8b5cf6;
+            --primary-dark: #7c3aed;
+            --primary-light: #a78bfa;
+            --secondary-color: #22c55e;
+            --accent-color: #eab308;
+            --danger-color: #ef4444;
+            --dark-bg: #111827;
+            --dark-card: #1f2937;
+            --dark-border: #374151;
+            --text-primary: #ffffff;
+            --text-secondary: #e5e7eb;
+            --text-muted: #9ca3af;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* ==================== NAVBAR ==================== */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(17, 24, 39, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--dark-border);
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .navbar-brand i {
+            font-size: 2rem;
+            color: var(--primary-color);
+        }
+
+        .navbar-brand span {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .navbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+        }
+
+        .btn-ghost:hover {
+            color: var(--text-primary);
+            background: var(--dark-card);
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-lg {
+            padding: 1rem 2rem;
+            font-size: 1rem;
+        }
+
+        /* ==================== HERO ==================== */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6rem 2rem 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 50%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 80%, rgba(34, 197, 94, 0.1) 0%, transparent 40%);
+            animation: gradientMove 20s ease-in-out infinite;
+        }
+
+        @keyframes gradientMove {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-5%, -5%); }
+        }
+
+        .hero-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-text {
+            max-width: 600px;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid var(--primary-color);
+            border-radius: 2rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--primary-light);
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-badge i {
+            color: var(--accent-color);
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-title .highlight {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            line-height: 1.7;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        /* Hero Visual */
+        .hero-visual {
+            position: relative;
+        }
+
+        .hero-card {
+            background: var(--dark-card);
+            border: 2px solid var(--dark-border);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .hero-card::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 1.5rem;
+            padding: 2px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0.5;
+        }
+
+        .demo-chat {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .demo-message {
+            max-width: 85%;
+            padding: 1rem 1.25rem;
+            border-radius: 1rem;
+            font-size: 0.95rem;
+        }
+
+        .demo-message.user {
+            align-self: flex-end;
+            background: var(--primary-color);
+            border-bottom-right-radius: 0.25rem;
+        }
+
+        .demo-message.ai {
+            align-self: flex-start;
+            background: #374151;
+            border-bottom-left-radius: 0.25rem;
+        }
+
+        .demo-typing {
+            align-self: flex-start;
+            display: flex;
+            gap: 6px;
+            padding: 1rem;
+            background: #374151;
+            border-radius: 1rem;
+        }
+
+        .demo-typing span {
+            width: 8px;
+            height: 8px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .demo-typing span:nth-child(2) { animation-delay: 0.2s; }
+        .demo-typing span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+            30% { transform: translateY(-6px); opacity: 1; }
+        }
+
+        /* Floating elements */
+        .floating-card {
+            position: absolute;
+            background: var(--dark-card);
+            border: 2px solid var(--dark-border);
+            border-radius: 1rem;
+            padding: 1rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .floating-card.quiz {
+            top: -2rem;
+            right: -1rem;
+            animation-delay: 0s;
+        }
+
+        .floating-card.streak {
+            bottom: 2rem;
+            left: -2rem;
+            animation-delay: 2s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .floating-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .floating-icon.purple { background: var(--primary-color); }
+        .floating-icon.red { background: var(--danger-color); }
+
+        .floating-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .floating-value {
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        /* ==================== FEATURES ==================== */
+        .features {
+            padding: 6rem 2rem;
+            background: var(--dark-card);
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto 4rem;
+        }
+
+        .section-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(139, 92, 246, 0.2);
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--primary-light);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .section-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.125rem;
+        }
+
+        .features-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: var(--dark-bg);
+            border: 2px solid var(--dark-border);
+            border-radius: 1.25rem;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-icon.purple { background: rgba(139, 92, 246, 0.2); color: var(--primary-color); }
+        .feature-icon.green { background: rgba(34, 197, 94, 0.2); color: var(--secondary-color); }
+        .feature-icon.yellow { background: rgba(234, 179, 8, 0.2); color: var(--accent-color); }
+        .feature-icon.red { background: rgba(239, 68, 68, 0.2); color: var(--danger-color); }
+        .feature-icon.blue { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+        .feature-icon.pink { background: rgba(236, 72, 153, 0.2); color: #ec4899; }
+
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-desc {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* ==================== HOW IT WORKS ==================== */
+        .how-it-works {
+            padding: 6rem 2rem;
+        }
+
+        .steps {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            padding: 2rem;
+            background: var(--dark-card);
+            border: 2px solid var(--dark-border);
+            border-radius: 1.25rem;
+            transition: all 0.3s ease;
+        }
+
+        .step:hover {
+            border-color: var(--primary-color);
+        }
+
+        .step-number {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-desc {
+            color: var(--text-secondary);
+        }
+
+        /* ==================== CTA ==================== */
+        .cta {
+            padding: 6rem 2rem;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(34, 197, 94, 0.1) 100%);
+            text-align: center;
+        }
+
+        .cta-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .cta-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .cta-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.125rem;
+            margin-bottom: 2rem;
+        }
+
+        .cta-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* ==================== FOOTER ==================== */
+        .footer {
+            padding: 3rem 2rem;
+            border-top: 1px solid var(--dark-border);
+            text-align: center;
+        }
+
+        .footer-brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer-brand i {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .footer-brand span {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .footer-text {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary-color);
+        }
+
+        /* ==================== RESPONSIVE ==================== */
+        @media (max-width: 1024px) {
+            .hero-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .hero-text {
+                max-width: 100%;
+            }
+
+            .hero-actions {
+                justify-content: center;
+            }
+
+            .hero-stats {
+                justify-content: center;
+            }
+
+            .hero-visual {
+                display: none;
+            }
+
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 1rem;
+            }
+
+            .navbar-brand span {
+                display: none;
+            }
+
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .step {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .cta-title {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .btn-lg {
+                padding: 0.875rem 1.5rem;
+                font-size: 0.875rem;
+            }
+
+            .hero-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .hero-actions .btn {
+                width: 100%;
+            }
+
+            .cta-actions {
+                flex-direction: column;
+            }
+
+            .cta-actions .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Navbar -->
+<nav class="navbar">
+    <a href="#" class="navbar-brand">
+        <i class="bi bi-mortarboard-fill"></i>
+        <span>AI Study Buddy</span>
+    </a>
+    <div class="navbar-actions">
+        <a href="login.html" class="btn btn-ghost">Accedi</a>
+        <a href="register.html" class="btn btn-primary">Registrati Gratis</a>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-content">
+        <div class="hero-text">
+            <div class="hero-badge">
+                <i class="bi bi-stars"></i>
+                Potenziato dall'Intelligenza Artificiale
+            </div>
+            <h1 class="hero-title">
+                Studia in modo <span class="highlight">più intelligente</span>, non più difficile
+            </h1>
+            <p class="hero-subtitle">
+                Il tuo tutor personale alimentato dall'AI. Ottieni spiegazioni personalizzate,
+                genera quiz interattivi e crea flashcard in pochi secondi.
+                Impara meglio, più velocemente.
+            </p>
+            <div class="hero-actions">
+                <a href="register.html" class="btn btn-primary btn-lg">
+                    <i class="bi bi-rocket-takeoff"></i>
+                    Inizia Gratis
+                </a>
+                <a href="login.html" class="btn btn-outline btn-lg">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    Accedi
+                </a>
+            </div>
+
+        </div>
+
+        <div class="hero-visual">
+            <div class="hero-card">
+                <div class="demo-chat">
+                    <div class="demo-message user">
+                        Spiegami il teorema di Pitagora in modo semplice
+                    </div>
+                    <div class="demo-message ai">
+                        Il teorema di Pitagora dice che in un triangolo rettangolo,
+                        il quadrato del lato più lungo (ipotenusa) è uguale alla somma
+                        dei quadrati degli altri due lati. In formula: a² + b² = c² ✨
+                    </div>
+                    <div class="demo-typing">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="floating-card quiz">
+                <div class="floating-icon purple">
+                    <i class="bi bi-patch-question-fill"></i>
+                </div>
+                <div class="floating-label">Quiz completati</div>
+                <div class="floating-value">127</div>
+            </div>
+
+            <div class="floating-card streak">
+                <div class="floating-icon red">
+                    <i class="bi bi-fire"></i>
+                </div>
+                <div class="floating-label">Streak attuale</div>
+                <div class="floating-value">14 giorni 🔥</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features">
+    <div class="section-header">
+        <div class="section-badge">
+            <i class="bi bi-lightning-charge-fill"></i>
+            Funzionalità
+        </div>
+        <h2 class="section-title">Tutto ciò di cui hai bisogno per studiare</h2>
+        <p class="section-subtitle">
+            Strumenti potenti alimentati dall'AI per rendere il tuo studio più efficace e coinvolgente
+        </p>
+    </div>
+
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon purple">
+                <i class="bi bi-chat-dots-fill"></i>
+            </div>
+            <h3 class="feature-title">Spiegazioni AI</h3>
+            <p class="feature-desc">
+                Chiedi qualsiasi cosa e ottieni spiegazioni chiare e personalizzate
+                al tuo livello di comprensione.
+            </p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon green">
+                <i class="bi bi-patch-question-fill"></i>
+            </div>
+            <h3 class="feature-title">Quiz Intelligenti</h3>
+            <p class="feature-desc">
+                Genera quiz personalizzati su qualsiasi argomento con difficoltà
+                adattiva e feedback immediato.
+            </p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon yellow">
+                <i class="bi bi-stack"></i>
+            </div>
+            <h3 class="feature-title">Flashcard AI</h3>
+            <p class="feature-desc">
+                Crea flashcard automaticamente dai tuoi appunti o da qualsiasi
+                argomento per memorizzare efficacemente.
+            </p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon red">
+                <i class="bi bi-bullseye"></i>
+            </div>
+            <h3 class="feature-title">Focus Mode</h3>
+            <p class="feature-desc">
+                Sessioni di studio temporizzate con tecnica Pomodoro per
+                massimizzare la concentrazione.
+            </p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon blue">
+                <i class="bi bi-graph-up-arrow"></i>
+            </div>
+            <h3 class="feature-title">Traccia i Progressi</h3>
+            <p class="feature-desc">
+                Dashboard completa per monitorare il tuo apprendimento,
+                streak di studio e punti deboli.
+            </p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon pink">
+                <i class="bi bi-trophy-fill"></i>
+            </div>
+            <h3 class="feature-title">Gamification</h3>
+            <p class="feature-desc">
+                Guadagna XP, sblocca badge e scala la classifica per
+                mantenere alta la motivazione.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- How it Works -->
+<section class="how-it-works">
+    <div class="section-header">
+        <div class="section-badge">
+            <i class="bi bi-gear-fill"></i>
+            Come Funziona
+        </div>
+        <h2 class="section-title">Inizia in 3 semplici passi</h2>
+        <p class="section-subtitle">
+            Nessuna configurazione complicata. Registrati e inizia subito a studiare.
+        </p>
+    </div>
+
+    <div class="steps">
+        <div class="step">
+            <div class="step-number">1</div>
+            <div class="step-content">
+                <h3 class="step-title">Crea il tuo account</h3>
+                <p class="step-desc">
+                    Registrati gratuitamente in pochi secondi. Nessuna carta di credito richiesta.
+                </p>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-number">2</div>
+            <div class="step-content">
+                <h3 class="step-title">Scegli cosa studiare</h3>
+                <p class="step-desc">
+                    Inserisci l'argomento che vuoi approfondire o carica i tuoi appunti.
+                </p>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-number">3</div>
+            <div class="step-content">
+                <h3 class="step-title">Lascia fare all'AI</h3>
+                <p class="step-desc">
+                    L'AI genererà spiegazioni, quiz e flashcard personalizzate per te.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta">
+    <div class="cta-content">
+        <h2 class="cta-title">Pronto a studiare meglio?</h2>
+        <p class="cta-subtitle">
+            Unisciti a migliaia di studenti che hanno già migliorato il loro modo di studiare con AI Study Buddy.
+        </p>
+        <div class="cta-actions">
+            <a href="register.html" class="btn btn-primary btn-lg">
+                <i class="bi bi-rocket-takeoff"></i>
+                Crea Account Gratis
+            </a>
+            <a href="login.html" class="btn btn-outline btn-lg">
+                <i class="bi bi-box-arrow-in-right"></i>
+                Ho già un account
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="footer-brand">
+        <i class="bi bi-mortarboard-fill"></i>
+        <span>AI Study Buddy</span>
+    </div>
+    <p class="footer-text">
+        © 2026 AI Study Buddy. Progetto accademico - Università degli Studi di Milano-Bicocca
+    </p>
+    <div class="footer-links">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Termini di Servizio</a>
+        <a href="#">Contatti</a>
+    </div>
+</footer>
+
+<script>
+    // Redirect se già loggato
+    document.addEventListener('DOMContentLoaded', function() {
+        const token = localStorage.getItem('token');
+        if (token) {
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                if (Date.now() < payload.exp * 1000) {
+                    // Token valido, redirect alla dashboard
+                    window.location.href = 'index.html';
+                }
+            } catch (e) {
+                // Token non valido, rimani sulla landing
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+            }
+        }
+    });
+</script>
+</body>
+</html>

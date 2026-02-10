@@ -131,7 +131,7 @@
       // Redirect se già loggato con token valido
       const token = localStorage.getItem('token');
       if (token && !isTokenExpired()) {
-          window.location.href = 'index.html';
+          window.location.href = 'dashboard.html';
       }
   });
 
@@ -203,7 +203,7 @@
               localStorage.setItem('user', JSON.stringify(userData));
 
               showAlert('Login riuscito!', 'success');
-              setTimeout(() => window.location.href = 'index.html', 500);
+              setTimeout(() => window.location.href = 'dashboard.html', 500);
           } else {
               showAlert(data.message || data.error || 'Credenziali non valide', 'error');
           }
