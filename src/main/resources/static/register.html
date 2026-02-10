@@ -216,7 +216,7 @@
       alert.classList.remove('d-none');
   }
 
-  // Form submit
+// Form submit
   document.getElementById('registerForm').addEventListener('submit', async function(e) {
       e.preventDefault();
 
@@ -236,12 +236,15 @@
       btnText.textContent = 'Registrazione in corso...';
       btnSpinner.classList.remove('d-none');
 
+
       const data = {
           firstName: document.getElementById('firstName').value,
           lastName: document.getElementById('lastName').value,
           email: document.getElementById('email').value,
-          password: password
+          password: password,
+          educationLevel: document.getElementById('educationLevel').value
       };
+
 
       try {
           const response = await fetch('/api/auth/register', {
@@ -250,17 +253,20 @@
               body: JSON.stringify(data)
           });
 
+          // Qui sotto uso response.json() una volta sola per evitare errori
           const result = await response.json();
 
-          if (result.success) {
-              showAlert('<i class="bi bi-check-circle me-2"></i>' + result.message, 'success');
+          // Se il backend restituisce response.ok o result.success (adatto al tuo codice precedente)
+          if (response.ok || result.success) {
+              showAlert('<i class="bi bi-check-circle me-2"></i>Registrazione completata! Reindirizzamento...', 'success');
               setTimeout(() => {
-                  window.location.href = '/login.html';
+                  window.location.href = '/login.html'; // Mantiene il redirect al login
               }, 2000);
           } else {
-              showAlert('<i class="bi bi-exclamation-circle me-2"></i>' + result.message, 'danger');
+              showAlert('<i class="bi bi-exclamation-circle me-2"></i>' + (result.message || 'Errore durante la registrazione'), 'danger');
           }
       } catch (error) {
+          console.error(error);
           showAlert('<i class="bi bi-wifi-off me-2"></i>Errore di connessione al server', 'danger');
       }
 

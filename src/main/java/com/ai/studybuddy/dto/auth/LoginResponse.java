@@ -1,5 +1,7 @@
 package com.ai.studybuddy.dto.auth;
 
+import com.ai.studybuddy.util.enums.EducationLevel;
+
 public class LoginResponse {
 
     private boolean success;
@@ -9,11 +11,12 @@ public class LoginResponse {
     private String firstName;
     private String lastName;
     private String email;
+    private EducationLevel educationLevel;
 
     public LoginResponse() {}
 
     public LoginResponse(boolean success, String message, String token,
-                         String userId, String firstName, String lastName, String email) {
+                         String userId, String firstName, String lastName, String email, EducationLevel educationLevel) {
         this.success = success;
         this.message = message;
         this.token = token;
@@ -21,6 +24,7 @@ public class LoginResponse {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
+        this.educationLevel = educationLevel;
     }
 
     // Getters e Setters
