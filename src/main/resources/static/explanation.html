@@ -485,8 +485,15 @@
     async function apiFetch(endpoint, options = {}) {
         const token = localStorage.getItem('token');
 
+        // Se non c'è token, reindirizza al login
+        if (!token) {
+            console.warn('Nessun token trovato, redirect al login');
+            window.location.href = 'login.html';
+            throw new Error('Token mancante');
+        }
+
         const headers = {
-            'Authorization': token ? `Bearer ${token}` : '',
+            'Authorization': `Bearer ${token}`,
             ...options.headers
         };
 
@@ -497,6 +504,7 @@
         const response = await fetch(`/api${endpoint}`, { ...options, headers });
 
         if (response.status === 401 || response.status === 403) {
+            console.error('Errore autenticazione:', response.status);
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             window.location.href = 'login.html';
@@ -517,28 +525,29 @@
         const topicInput = document.getElementById('topicInput');
         const topic = topicInput.value.trim();
 
-        // --- RECUPERO LIVELLO UTENTE ---
-        let level = 'scuola_superiore'; // Default
+        if (!topic) {
+            showNotification('Inserisci un argomento', 'warning');
+            return;
+        }
+
+        // Recupera il livello utente per la visualizzazione (non per l'API)
+        let displayLevel = 'Università';
         try {
             const userJson = localStorage.getItem('user');
             if (userJson) {
                 const user = JSON.parse(userJson);
                 if (user.educationLevel) {
-                    level = user.educationLevel;
+                    // Mappa per la visualizzazione
+                    const levelMap = {
+                        'MIDDLE_SCHOOL': 'Scuola Media',
+                        'HIGH_SCHOOL': 'Scuola Superiore',
+                        'UNIVERSITY': 'Università'
+                    };
+                    displayLevel = levelMap[user.educationLevel] || user.educationLevel;
                 }
             }
         } catch (e) {
             console.warn("Impossibile leggere il livello utente, uso default");
-        }
-
-        // Mappatura livelli (Backend -> API)
-        if (level === 'MIDDLE_SCHOOL') level = 'scuola_media';
-        if (level === 'HIGH_SCHOOL') level = 'scuola_superiore';
-        if (level === 'UNIVERSITY') level = 'università';
-
-        if (!topic) {
-            showNotification('Inserisci un argomento', 'warning');
-            return;
         }
 
         const submitBtn = document.getElementById('submitBtn');
@@ -553,26 +562,31 @@
                 <div class="loading-container">
                     <div class="loading-spinner-large"></div>
                     <div class="loading-text">Sto generando la spiegazione...</div>
-                    <div class="loading-subtext">Livello: ${level.replace('_', ' ')}</div>
                 </div>
             </div>
         `;
 
         try {
-            // Chiamata API
-            const response = await apiFetch(`/ai/explain?topic=${encodeURIComponent(topic)}&level=${encodeURIComponent(level)}`);
+            // Chiamata API - SENZA level, lo prende dal profilo utente
+            const response = await apiFetch(`/ai/explain?topic=${encodeURIComponent(topic)}`);
 
             if (response.ok) {
                 const data = await response.json();
-                displayExplanation(topic, level, data.explanation, data);
+
+                // Usa il livello dalla risposta del server
+                const responseLevel = data.level || displayLevel;
+
+                displayExplanation(topic, responseLevel, data.explanation, data);
 
                 if (data.xpEarned) showXpNotification(data.xpEarned, data.leveledUp);
                 if (typeof loadTopbarStats === 'function') loadTopbarStats();
 
-                saveToHistory(topic, level, data.explanation);
+                saveToHistory(topic, responseLevel, data.explanation);
                 topicInput.value = '';
             } else {
-                throw new Error('Errore nella risposta del server');
+                const errorData = await response.json().catch(() => ({}));
+                console.error('Errore risposta:', response.status, errorData);
+                throw new Error(errorData.message || 'Errore nella risposta del server');
             }
         } catch (error) {
             console.error('Errore:', error);
@@ -581,7 +595,7 @@
                     <div class="empty-state">
                         <i class="bi bi-exclamation-triangle text-danger"></i>
                         <h3>Si è verificato un errore</h3>
-                        <p class="text-muted">Assicurati che il database sia aggiornato (SQL Migration).</p>
+                        <p class="text-muted">${error.message || 'Riprova più tardi.'}</p>
                         <button class="btn btn-primary mt-3" onclick="location.reload()">Riprova</button>
                     </div>
                 </div>
@@ -594,15 +608,10 @@
 
     function displayExplanation(topic, level, explanation, xpData = {}) {
         const container = document.getElementById('explanationContainer');
-        const levelLabels = {
-            'scuola_media': 'Scuola Media',
-            'scuola_superiore': 'Scuola Superiore',
-            'università': 'Università',
-            'esperto': 'Esperto'
-        };
 
         const formattedExplanation = formatExplanation(explanation);
         const safeTopic = escapeHtml(topic).replace(/'/g, "\\'");
+        const safeLevel = escapeHtml(level).replace(/'/g, "\\'");
 
         container.innerHTML = `
             <div class="explanation-card">
@@ -614,7 +623,7 @@
                     <div class="explanation-meta">
                         <span class="meta-badge level">
                             <i class="bi bi-mortarboard"></i>
-                            ${levelLabels[level] || level}
+                            ${escapeHtml(level)}
                         </span>
                         ${xpData.xpEarned ? `
                             <span class="meta-badge xp">
@@ -641,7 +650,7 @@
                     <button class="action-btn secondary" onclick="copyExplanation()">
                         <i class="bi bi-clipboard"></i> Copia
                     </button>
-                    <button class="action-btn secondary" onclick="requestExplanationAgain('${safeTopic}', '${level}')">
+                    <button class="action-btn secondary" onclick="requestExplanationAgain('${safeTopic}')">
                         <i class="bi bi-arrow-clockwise"></i> Rigenera
                     </button>
                 </div>
@@ -684,10 +693,8 @@
         }
     }
 
-    // --- FUNZIONE CORRETTA: Rimosso il riferimento a levelSelect ---
-    function requestExplanationAgain(topic, level) {
+    function requestExplanationAgain(topic) {
         document.getElementById('topicInput').value = topic;
-        // document.getElementById('levelSelect').value = level; <--- RIMOSSA QUESTA RIGA
         document.getElementById('explanationForm').dispatchEvent(new Event('submit'));
     }
 
@@ -765,7 +772,7 @@
                         </div>
                     </div>
                     <div class="history-item-meta">
-                        <span class="meta-badge level">${item.level}</span>
+                        <span class="meta-badge level">${escapeHtml(item.level)}</span>
                         <i class="bi bi-chevron-right text-muted"></i>
                     </div>
                 </div>
