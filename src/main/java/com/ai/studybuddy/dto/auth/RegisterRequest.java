@@ -57,6 +57,10 @@ public class RegisterRequest {
         return educationLevel;
     }
 
+    public void setEducationLevel(EducationLevel educationLevel) {
+        this.educationLevel = educationLevel;
+    }
+
     public void setEmail(String email) {
         this.email = email;
     }

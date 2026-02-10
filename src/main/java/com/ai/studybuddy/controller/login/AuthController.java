@@ -42,13 +42,9 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
-        logger.info("Tentativo registrazione per email: {}", request.getEmail());
-
-        if (userService.existsByEmail(request.getEmail())) {
-            return ResponseEntity
-                    .status(HttpStatus.CONFLICT)
-                    .body(new RegisterResponse(false, Const.EMAIL_EXISTS, null));
-        }
+        logger.info("Richiesta registrazione per: {} - Livello: {}",
+                request.getEmail(),
+                request.getEducationLevel().getDisplayName());
 
         User user = userService.registerUser(
                 request.getFirstName(),
@@ -58,11 +54,14 @@ public class AuthController {
                 request.getEducationLevel()
         );
 
-        logger.info("Utente registrato con successo: {}", user.getEmail());
+        RegisterResponse response = new RegisterResponse(
+                true,
+                "Registrazione completata con successo!",
+                user.getId().toString()
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(new RegisterResponse(true, Const.REGISTRATION_SUCCESS, user.getId().toString()));
+        );
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     // ==================== LOGIN ====================
@@ -90,14 +89,15 @@ public class AuthController {
                     user.getId().toString(),
                     user.getFirstName(),
                     user.getLastName(),
-                    user.getEmail()
+                    user.getEmail(),
+                    user.getEducationLevel() != null ? user.getEducationLevel() : null
             ));
 
         } catch (BadCredentialsException e) {
             logger.warn("Login fallito per: {}", request.getEmail());
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
-                    .body(new LoginResponse(false, Const.INVALID_CREDENTIALS, null, null, null, null, null));
+                    .body(new LoginResponse(false, Const.INVALID_CREDENTIALS, null, null, null, null, null, null));
         }
     }
 
