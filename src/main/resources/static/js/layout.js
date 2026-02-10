@@ -24,7 +24,7 @@ function getUserDisplayName(user) {
 // ==================== SIDEBAR ====================
 function renderSidebar(activePage = '') {
     const navItems = [
-        { href: 'index.html', icon: 'bi-house-door', label: 'Dashboard', id: 'index' },
+        { href: 'dashboard.html', icon: 'bi-house-door', label: 'Dashboard', id: 'dashboard' },
         { href: 'explanation.html', icon: 'bi-chat-dots', label: 'Spiegazioni AI', id: 'explanation' },
         { href: 'quiz.html', icon: 'bi-patch-question', label: 'Quiz', id: 'quiz' },
         { href: 'flashcards.html', icon: 'bi-stack', label: 'Flashcards', id: 'flashcards' },
@@ -34,7 +34,7 @@ function renderSidebar(activePage = '') {
     ];
 
     // Determina la pagina corrente
-    const currentPage = activePage || window.location.pathname.split('/').pop().replace('.html', '') || 'index';
+    const currentPage = activePage || window.location.pathname.split('/').pop().replace('.html', '') || 'dashboard';
     
     // Ottieni dati utente da localStorage
     const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -49,7 +49,7 @@ function renderSidebar(activePage = '') {
         <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
         <aside class="sidebar" id="sidebar">
-            <a href="index.html" class="sidebar-logo">
+            <a href="dashboard.html" class="sidebar-logo">
                 <i class="bi bi-mortarboard-fill"></i>
                 <h1>AI Study Buddy</h1>
             </a>
