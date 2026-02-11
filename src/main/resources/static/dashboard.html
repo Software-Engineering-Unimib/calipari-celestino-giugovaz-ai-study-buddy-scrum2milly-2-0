@@ -6,137 +6,681 @@
   <title>Dashboard - AI Study Buddy</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
   <link href="css/style.css" rel="stylesheet">
-  <link href="css/topbar-footer.css" rel="stylesheet">
   <style>
-    /* Focus Button Special Style */
-    .focus-btn {
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-      border: none;
-      padding: 0.75rem 1.5rem;
-      border-radius: 0.75rem;
-      color: #ffffff;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      text-decoration: none;
-      transition: all 0.3s ease;
+    /* ==================== WELCOME HERO ==================== */
+    .welcome-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        border-radius: 1.5rem;
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(102, 126, 234, 0.4);
     }
 
-    .focus-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+    .welcome-hero::before {
+        content: '';
+        position: absolute;
+        top: -100px;
+        right: -100px;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+        pointer-events: none;
     }
 
-    .focus-btn i {
-      font-size: 1.2rem;
+    .welcome-hero::after {
+        content: '📚';
+        position: absolute;
+        right: 30px;
+        bottom: -10px;
+        font-size: 120px;
+        opacity: 0.15;
+        pointer-events: none;
+    }
+
+    .welcome-content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+    }
+
+    .welcome-text h1 {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #ffffff;
+        margin-bottom: 0.5rem;
+    }
+
+    .welcome-text h1 span {
+        background: linear-gradient(90deg, #fef3c7, #fde68a);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .welcome-text p {
+        color: rgba(255,255,255,0.9);
+        font-size: 1.1rem;
+        margin: 0;
+    }
+
+    .welcome-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .hero-btn {
+        padding: 0.875rem 1.75rem;
+        border-radius: 0.75rem;
+        font-weight: 700;
+        font-size: 0.95rem;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .hero-btn.primary {
+        background: #ffffff;
+        color: #7c3aed;
+    }
+
+    .hero-btn.primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .hero-btn.secondary {
+        background: rgba(255,255,255,0.2);
+        color: #ffffff;
+        border: 2px solid rgba(255,255,255,0.3);
+    }
+
+    .hero-btn.secondary:hover {
+        background: rgba(255,255,255,0.3);
+        transform: translateY(-3px);
+    }
+
+    /* ==================== STATS SECTION ==================== */
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.25rem;
+    }
+
+    .section-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    .section-title i {
+        color: var(--primary-color);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card-new {
+        background: var(--dark-card);
+        border: 1px solid var(--dark-border);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card-new::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .stat-card-new:hover {
+        transform: translateY(-4px);
+        border-color: transparent;
+    }
+
+    .stat-card-new:hover::before {
+        opacity: 1;
+    }
+
+    .stat-card-new.xp::before { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+    .stat-card-new.xp:hover { box-shadow: 0 10px 40px rgba(139, 92, 246, 0.3); border-color: #8b5cf6; }
+
+    .stat-card-new.streak::before { background: linear-gradient(90deg, #ef4444, #f87171); }
+    .stat-card-new.streak:hover { box-shadow: 0 10px 40px rgba(239, 68, 68, 0.3); border-color: #ef4444; }
+
+    .stat-card-new.quiz::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+    .stat-card-new.quiz:hover { box-shadow: 0 10px 40px rgba(59, 130, 246, 0.3); border-color: #3b82f6; }
+
+    .stat-card-new.flashcards::before { background: linear-gradient(90deg, #10b981, #34d399); }
+    .stat-card-new.flashcards:hover { box-shadow: 0 10px 40px rgba(16, 185, 129, 0.3); border-color: #10b981; }
+
+    .stat-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .stat-card-new.xp .stat-icon { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
+    .stat-card-new.streak .stat-icon { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+    .stat-card-new.quiz .stat-icon { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+    .stat-card-new.flashcards .stat-icon { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+
+    .stat-trend {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.375rem;
+    }
+
+    .stat-trend.up { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+    .stat-trend.neutral { background: rgba(107, 114, 128, 0.2); color: #9ca3af; }
+
+    .stat-value-large {
+        font-size: 2.25rem;
+        font-weight: 800;
+        color: #ffffff;
+        line-height: 1;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label-new {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+    }
+
+    /* ==================== QUICK ACTIONS ==================== */
+    .actions-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .action-card {
+        background: var(--dark-card);
+        border: 1px solid var(--dark-border);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        text-decoration: none;
+        text-align: center;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .action-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .action-card:hover {
+        transform: translateY(-4px);
+    }
+
+    .action-card:hover::before { opacity: 1; }
+
+    .action-card.explain::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .action-card.explain:hover { border-color: #f59e0b; box-shadow: 0 10px 40px rgba(245, 158, 11, 0.2); }
+
+    .action-card.quiz::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+    .action-card.quiz:hover { border-color: #3b82f6; box-shadow: 0 10px 40px rgba(59, 130, 246, 0.2); }
+
+    .action-card.flashcards::before { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+    .action-card.flashcards:hover { border-color: #8b5cf6; box-shadow: 0 10px 40px rgba(139, 92, 246, 0.2); }
+
+    .action-card.focus::before { background: linear-gradient(90deg, #10b981, #34d399); }
+    .action-card.focus:hover { border-color: #10b981; box-shadow: 0 10px 40px rgba(16, 185, 129, 0.2); }
+
+    .action-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin: 0 auto 1rem;
+    }
+
+    .action-card.explain .action-icon { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+    .action-card.quiz .action-icon { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+    .action-card.flashcards .action-icon { background: rgba(139, 92, 246, 0.15); color: #a78bfa; }
+    .action-card.focus .action-icon { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+
+    .action-title {
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 0.25rem;
+        font-size: 1rem;
+    }
+
+    .action-xp {
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 0.25rem 0.75rem;
+        border-radius: 2rem;
+        display: inline-block;
+        margin-top: 0.75rem;
+    }
+
+    .action-card.explain .action-xp { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+    .action-card.quiz .action-xp { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+    .action-card.flashcards .action-xp { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
+    .action-card.focus .action-xp { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+
+    /* ==================== ACTIVITY & PROGRESS ==================== */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .activity-card {
+        background: var(--dark-card);
+        border: 1px solid var(--dark-border);
+        border-radius: 1rem;
+        overflow: hidden;
+    }
+
+    .activity-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--dark-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .activity-title {
+        font-weight: 700;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .activity-title i { color: var(--text-muted); }
+
+    .activity-body { padding: 1rem 1.5rem; }
+
+    .activity-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--dark-border);
+    }
+
+    .activity-item:last-child { border-bottom: none; }
+
+    .activity-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    .activity-icon.quiz { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+    .activity-icon.explain { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+    .activity-icon.flashcard { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
+    .activity-icon.focus { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+
+    .activity-info { flex: 1; min-width: 0; }
+
+    .activity-name {
+        font-weight: 600;
+        color: #ffffff;
+        margin-bottom: 0.25rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .activity-meta {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .activity-badge {
+        padding: 0.25rem 0.6rem;
+        border-radius: 0.375rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .activity-badge.success { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+    .activity-badge.info { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+
+    .empty-activity {
+        text-align: center;
+        padding: 3rem 1.5rem;
+        color: var(--text-muted);
+    }
+
+    .empty-activity i {
+        font-size: 3rem;
+        opacity: 0.3;
+        margin-bottom: 1rem;
+        display: block;
+    }
+
+    /* Progress Card */
+    .progress-card {
+        background: var(--dark-card);
+        border: 1px solid var(--dark-border);
+        border-radius: 1rem;
+        padding: 1.5rem;
+    }
+
+    .progress-header {
+        margin-bottom: 1.5rem;
+    }
+
+    .progress-title {
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 0.25rem;
+    }
+
+    .progress-subtitle {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+
+    .level-display {
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .level-circle {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(236, 72, 153, 0.2));
+        border: 4px solid #8b5cf6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+    }
+
+    .level-number {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #ffffff;
+    }
+
+    .level-label {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+
+    .xp-progress {
+        margin-bottom: 1.5rem;
+    }
+
+    .xp-progress-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    .xp-progress-current { color: #a78bfa; font-weight: 600; }
+    .xp-progress-target { color: var(--text-muted); }
+
+    .xp-progress-bar {
+        height: 10px;
+        background: var(--dark-bg);
+        border-radius: 5px;
+        overflow: hidden;
+    }
+
+    .xp-progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #8b5cf6, #ec4899);
+        border-radius: 5px;
+        transition: width 1s ease;
+    }
+
+    .daily-goals {
+        border-top: 1px solid var(--dark-border);
+        padding-top: 1.5rem;
+    }
+
+    .daily-goals-title {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .goal-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .goal-item:last-child { margin-bottom: 0; }
+
+    .goal-check {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        flex-shrink: 0;
+    }
+
+    .goal-check.done { background: #10b981; color: #ffffff; }
+    .goal-check.pending { background: var(--dark-border); color: var(--text-muted); }
+
+    .goal-text { font-size: 0.9rem; color: var(--text-secondary); }
+    .goal-item.done .goal-text { color: var(--text-muted); text-decoration: line-through; }
+
+    /* ==================== RESPONSIVE ==================== */
+    @media (max-width: 1200px) {
+        .stats-grid, .actions-grid { grid-template-columns: repeat(2, 1fr); }
+        .dashboard-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 768px) {
+        .welcome-hero { padding: 2rem 1.5rem; }
+        .welcome-text h1 { font-size: 1.5rem; }
+        .welcome-actions { flex-direction: column; width: 100%; }
+        .hero-btn { justify-content: center; }
+        .stats-grid, .actions-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
-<!-- Sidebar, Topbar generati da layout.js -->
-
 <main class="main-content">
-  <!-- Welcome Card -->
-  <div class="card" style="background: var(--gradient-primary); border: none; margin-bottom: 1.5rem;">
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-      <div>
-        <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">
-          Ciao, <span id="welcomeName">Studente</span>! 👋
-        </h2>
-        <p style="opacity: 0.9; margin: 0;">Pronto per una nuova sessione di studio?</p>
+  <!-- Welcome Hero -->
+  <div class="welcome-hero">
+    <div class="welcome-content">
+      <div class="welcome-text">
+        <h1>Bentornato, <span id="welcomeName">Studente</span>! 👋</h1>
+        <p>Pronto per una nuova sessione di studio? Scegli cosa vuoi fare oggi.</p>
       </div>
-      <div style="display: flex; align-items: center; gap: 1rem;">
-        <!-- Focus Button -->
-        <a href="focus.html" class="focus-btn">
-          <i class="bi bi-bullseye"></i> Focus
+      <div class="welcome-actions">
+        <a href="focus.html" class="hero-btn primary">
+          <i class="bi bi-bullseye"></i> Inizia Focus
+        </a>
+        <a href="leaderboard.html" class="hero-btn secondary">
+          <i class="bi bi-trophy"></i> Classifica
         </a>
       </div>
     </div>
   </div>
 
-  <!-- Stats Grid -->
-  <h3 class="page-title" style="font-size: 1.25rem; margin-bottom: 1rem;">
-    <i class="bi bi-graph-up-arrow text-primary"></i> Le tue statistiche
-  </h3>
+  <!-- Stats Section -->
+  <div class="section-header">
+    <div class="section-title"><i class="bi bi-graph-up-arrow"></i> Le tue statistiche</div>
+  </div>
 
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-    <div class="stat-card">
-      <div class="card-icon primary"><i class="bi bi-lightning-charge-fill"></i></div>
-      <div>
-        <div class="stat-value" id="statXp">0</div>
-        <div class="stat-label">XP Totali</div>
+  <div class="stats-grid">
+    <div class="stat-card-new xp">
+      <div class="stat-card-header">
+        <div class="stat-icon"><i class="bi bi-lightning-charge-fill"></i></div>
+        <div class="stat-trend up" id="xpTrend"><i class="bi bi-arrow-up"></i> +0</div>
       </div>
+      <div class="stat-value-large" id="statXp">0</div>
+      <div class="stat-label-new">XP Totali</div>
     </div>
-    <div class="stat-card">
-      <div class="card-icon" style="background: #dc2626;"><i class="bi bi-fire"></i></div>
-      <div>
-        <div class="stat-value" id="statStreak">0</div>
-        <div class="stat-label">Giorni Streak</div>
+    <div class="stat-card-new streak">
+      <div class="stat-card-header">
+        <div class="stat-icon"><i class="bi bi-fire"></i></div>
+        <div class="stat-trend neutral" id="streakTrend"><i class="bi bi-dash"></i> oggi</div>
       </div>
+      <div class="stat-value-large" id="statStreak">0</div>
+      <div class="stat-label-new">Giorni Streak</div>
     </div>
-    <div class="stat-card">
-      <div class="card-icon success"><i class="bi bi-patch-check-fill"></i></div>
-      <div>
-        <div class="stat-value" id="statQuiz">0</div>
-        <div class="stat-label">Quiz Completati</div>
+    <div class="stat-card-new quiz">
+      <div class="stat-card-header">
+        <div class="stat-icon"><i class="bi bi-patch-check-fill"></i></div>
+        <div class="stat-trend up" id="quizTrend"><i class="bi bi-arrow-up"></i> +0</div>
       </div>
+      <div class="stat-value-large" id="statQuiz">0</div>
+      <div class="stat-label-new">Quiz Completati</div>
     </div>
-    <div class="stat-card">
-      <div class="card-icon warning"><i class="bi bi-stack"></i></div>
-      <div>
-        <div class="stat-value" id="statFlashcards">0</div>
-        <div class="stat-label">Flashcards</div>
+    <div class="stat-card-new flashcards">
+      <div class="stat-card-header">
+        <div class="stat-icon"><i class="bi bi-stack"></i></div>
+        <div class="stat-trend up" id="flashcardsTrend"><i class="bi bi-arrow-up"></i> +0</div>
       </div>
+      <div class="stat-value-large" id="statFlashcards">0</div>
+      <div class="stat-label-new">Flashcards Studiate</div>
     </div>
   </div>
 
   <!-- Quick Actions -->
-  <h3 class="page-title" style="font-size: 1.25rem; margin-bottom: 1rem;">
-    <i class="bi bi-rocket-takeoff text-primary"></i> Azioni rapide
-  </h3>
+  <div class="section-header">
+    <div class="section-title"><i class="bi bi-rocket-takeoff"></i> Azioni rapide</div>
+  </div>
 
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
-    <a href="explanation.html" class="card" style="text-decoration: none; text-align: center; padding: 1.5rem;">
-      <i class="bi bi-lightbulb text-warning" style="font-size: 2.5rem; display: block; margin-bottom: 0.75rem;"></i>
-      <strong style="color: #fff;">Chiedi Spiegazione</strong>
-      <small style="display: block; color: var(--text-muted);">+10 XP</small>
+  <div class="actions-grid">
+    <a href="explanation.html" class="action-card explain">
+      <div class="action-icon"><i class="bi bi-lightbulb-fill"></i></div>
+      <div class="action-title">Chiedi Spiegazione</div>
+      <span class="action-xp"><i class="bi bi-lightning-charge-fill"></i> +10 XP</span>
     </a>
-    <a href="quiz.html" class="card" style="text-decoration: none; text-align: center; padding: 1.5rem;">
-      <i class="bi bi-patch-question text-primary" style="font-size: 2.5rem; display: block; margin-bottom: 0.75rem;"></i>
-      <strong style="color: #fff;">Genera Quiz</strong>
-      <small style="display: block; color: var(--text-muted);">+20 XP</small>
+    <a href="quiz.html" class="action-card quiz">
+      <div class="action-icon"><i class="bi bi-patch-question-fill"></i></div>
+      <div class="action-title">Genera Quiz</div>
+      <span class="action-xp"><i class="bi bi-lightning-charge-fill"></i> +20 XP</span>
     </a>
-    <a href="flashcards.html" class="card" style="text-decoration: none; text-align: center; padding: 1.5rem;">
-      <i class="bi bi-stack text-success" style="font-size: 2.5rem; display: block; margin-bottom: 0.75rem;"></i>
-      <strong style="color: #fff;">Studia Flashcards</strong>
-      <small style="display: block; color: var(--text-muted);">+2 XP/carta</small>
+    <a href="flashcards.html" class="action-card flashcards">
+      <div class="action-icon"><i class="bi bi-stack"></i></div>
+      <div class="action-title">Studia Flashcards</div>
+      <span class="action-xp"><i class="bi bi-lightning-charge-fill"></i> +2 XP/carta</span>
     </a>
-    <a href="focus.html" class="card" style="text-decoration: none; text-align: center; padding: 1.5rem; border: 2px solid rgba(16, 185, 129, 0.3);">
-      <i class="bi bi-bullseye" style="font-size: 2.5rem; display: block; margin-bottom: 0.75rem; color: #10b981;"></i>
-      <strong style="color: #fff;">Modalità Focus</strong>
-      <small style="display: block; color: var(--text-muted);">+15 XP/sessione</small>
+    <a href="focus.html" class="action-card focus">
+      <div class="action-icon"><i class="bi bi-bullseye"></i></div>
+      <div class="action-title">Modalità Focus</div>
+      <span class="action-xp"><i class="bi bi-lightning-charge-fill"></i> +15 XP</span>
     </a>
   </div>
 
-  <!-- Recent Activity Section -->
-  <h3 class="page-title" style="font-size: 1.25rem; margin: 2rem 0 1rem;">
-    <i class="bi bi-clock-history text-primary"></i> Attività recente
-  </h3>
+  <!-- Activity & Progress -->
+  <div class="dashboard-grid">
+    <!-- Recent Activity -->
+    <div class="activity-card">
+      <div class="activity-header">
+        <div class="activity-title"><i class="bi bi-clock-history"></i> Attività Recente</div>
+      </div>
+      <div class="activity-body" id="recentActivity">
+        <div class="empty-activity">
+          <i class="bi bi-inbox"></i>
+          <div>Nessuna attività recente</div>
+          <small>Inizia a studiare per vedere i tuoi progressi!</small>
+        </div>
+      </div>
+    </div>
 
-  <div class="card" id="recentActivityCard">
-    <div id="recentActivity" style="color: var(--text-muted); text-align: center; padding: 2rem;">
-      <i class="bi bi-inbox" style="font-size: 2rem; display: block; margin-bottom: 0.5rem; opacity: 0.5;"></i>
-      Nessuna attività recente
+    <!-- Progress Card -->
+    <div class="progress-card">
+      <div class="progress-header">
+        <div class="progress-title">Il tuo livello</div>
+        <div class="progress-subtitle">Continua così!</div>
+      </div>
+      <div class="level-display">
+        <div class="level-circle">
+          <span class="level-number" id="userLevel">1</span>
+        </div>
+        <div class="level-label" id="levelTitle">Principiante</div>
+      </div>
+      <div class="xp-progress">
+        <div class="xp-progress-header">
+          <span class="xp-progress-current" id="currentXp">0 XP</span>
+          <span class="xp-progress-target" id="targetXp">100 XP</span>
+        </div>
+        <div class="xp-progress-bar">
+          <div class="xp-progress-fill" id="xpProgressFill" style="width: 0%;"></div>
+        </div>
+      </div>
+      </div>
     </div>
   </div>
-
 </main>
 
 <script src="js/layout.js"></script>
+<script src="js/focus-manager.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-      // Inizializza layout (sidebar + topbar + footer)
       initLayout({
           pageTitle: 'Dashboard',
           activePage: 'dashboard',
@@ -144,19 +688,16 @@
           showFooter: true
       });
 
-      // Carica dati dashboard
       loadDashboardData();
   });
 
   async function loadDashboardData() {
-      // Nome utente
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       const welcomeEl = document.getElementById('welcomeName');
       if (welcomeEl && user.firstName) {
           welcomeEl.textContent = user.firstName;
       }
 
-      // Statistiche
       try {
           const token = localStorage.getItem('token');
           if (!token) return;
@@ -167,17 +708,88 @@
 
           if (response.ok) {
               const stats = await response.json();
-              document.getElementById('statXp').textContent = (stats.totalXp || 0).toLocaleString();
-              document.getElementById('statStreak').textContent = stats.currentStreak || 0;
-              document.getElementById('statQuiz').textContent = stats.quizzesCompleted || 0;
-              document.getElementById('statFlashcards').textContent = stats.flashcardsStudied || 0;
+
+              // Anima i numeri
+              animateNumber('statXp', stats.totalXp || 0);
+              animateNumber('statStreak', stats.currentStreak || 0);
+              animateNumber('statQuiz', stats.quizzesCompleted || 0);
+              animateNumber('statFlashcards', stats.flashcardsStudied || 0);
+
+              // Trend XP (mock: oggi)
+              const todayXp = stats.todayXp || 0;
+              if (todayXp > 0) {
+                  document.getElementById('xpTrend').innerHTML = `<i class="bi bi-arrow-up"></i> +${todayXp}`;
+                  document.getElementById('xpTrend').className = 'stat-trend up';
+              }
+
+              // Livello
+              const level = stats.level || 1;
+              const totalXp = stats.totalXp || 0;
+              const xpForCurrentLevel = getLevelXp(level);
+              const xpForNextLevel = getLevelXp(level + 1);
+              const xpInLevel = totalXp - xpForCurrentLevel;
+              const xpNeeded = xpForNextLevel - xpForCurrentLevel;
+              const progressPercent = Math.min(100, (xpInLevel / xpNeeded) * 100);
+
+              document.getElementById('userLevel').textContent = level;
+              document.getElementById('levelTitle').textContent = getLevelTitle(level);
+              document.getElementById('currentXp').textContent = `${totalXp} XP`;
+              document.getElementById('targetXp').textContent = `${xpForNextLevel} XP`;
+              document.getElementById('xpProgressFill').style.width = `${progressPercent}%`;
+
+              // Obiettivi giornalieri
+              updateDailyGoals(stats);
           }
 
-          // Carica attività recente
           loadRecentActivity();
 
       } catch (error) {
           console.error('Errore caricamento stats:', error);
+      }
+  }
+
+  function animateNumber(elementId, target) {
+      const element = document.getElementById(elementId);
+      const duration = 1000;
+      const start = 0;
+      const startTime = performance.now();
+
+      function update(currentTime) {
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const easeOut = 1 - Math.pow(1 - progress, 3);
+          const current = Math.floor(start + (target - start) * easeOut);
+          element.textContent = current.toLocaleString();
+          if (progress < 1) requestAnimationFrame(update);
+      }
+      requestAnimationFrame(update);
+  }
+
+  function getLevelXp(level) {
+      return Math.floor(100 * Math.pow(1.5, level - 1));
+  }
+
+  function getLevelTitle(level) {
+      const titles = ['Principiante', 'Apprendista', 'Studente', 'Esperto', 'Maestro', 'Genio', 'Leggenda'];
+      const index = Math.min(Math.floor((level - 1) / 3), titles.length - 1);
+      return titles[index];
+  }
+
+  function updateDailyGoals(stats) {
+      const quizToday = stats.quizzesToday || 0;
+      const flashcardsToday = stats.flashcardsToday || 0;
+      const focusToday = stats.focusSessionsToday || 0;
+
+      updateGoal('goal1', quizToday >= 1);
+      updateGoal('goal2', flashcardsToday >= 10);
+      updateGoal('goal3', focusToday >= 1);
+  }
+
+  function updateGoal(goalId, completed) {
+      const goal = document.getElementById(goalId);
+      if (completed) {
+          goal.classList.add('done');
+          goal.querySelector('.goal-check').className = 'goal-check done';
       }
   }
 
@@ -186,8 +798,7 @@
           const token = localStorage.getItem('token');
           if (!token) return;
 
-          // Carica quiz recenti
-          const quizResponse = await fetch('/api/ai/quiz/completed?limit=3', {
+          const quizResponse = await fetch('/api/ai/quiz/completed?limit=5', {
               headers: { 'Authorization': `Bearer ${token}` }
           });
 
@@ -195,52 +806,60 @@
 
           if (quizResponse.ok) {
               const quizzes = await quizResponse.json();
-              quizzes.slice(0, 3).forEach(quiz => {
+              quizzes.slice(0, 5).forEach(quiz => {
+                  const percentage = quiz.numberOfQuestions > 0
+                      ? Math.round((quiz.score / quiz.numberOfQuestions) * 100)
+                      : 0;
                   activities.push({
                       type: 'quiz',
-                      title: quiz.topic,
-                      score: `${quiz.score}/${quiz.numberOfQuestions}`,
+                      title: quiz.topic || quiz.title,
+                      score: `${percentage}%`,
                       date: new Date(quiz.completedAt),
-                      icon: 'bi-patch-question',
-                      color: 'primary'
+                      icon: 'bi-patch-question-fill',
+                      iconClass: 'quiz'
                   });
               });
           }
 
-          // Ordina per data
           activities.sort((a, b) => b.date - a.date);
 
-          // Mostra attività
           const container = document.getElementById('recentActivity');
 
           if (activities.length === 0) {
               container.innerHTML = `
-                  <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
-                      <i class="bi bi-inbox" style="font-size: 2rem; display: block; margin-bottom: 0.5rem; opacity: 0.5;"></i>
-                      Nessuna attività recente. Inizia a studiare!
+                  <div class="empty-activity">
+                      <i class="bi bi-inbox"></i>
+                      <div>Nessuna attività recente</div>
+                      <small>Inizia a studiare per vedere i tuoi progressi!</small>
                   </div>
               `;
               return;
           }
 
           container.innerHTML = activities.map(activity => `
-              <div style="display: flex; align-items: center; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid var(--dark-border);">
-                  <div class="card-icon ${activity.color}" style="width: 40px; height: 40px; min-width: 40px;">
+              <div class="activity-item">
+                  <div class="activity-icon ${activity.iconClass}">
                       <i class="bi ${activity.icon}"></i>
                   </div>
-                  <div style="flex: 1;">
-                      <div style="color: #fff; font-weight: 500;">${activity.title}</div>
-                      <div style="font-size: 0.8rem; color: var(--text-muted);">
-                          ${activity.score ? `Score: ${activity.score} • ` : ''}
-                          ${formatDate(activity.date)}
+                  <div class="activity-info">
+                      <div class="activity-name">${escapeHtml(activity.title)}</div>
+                      <div class="activity-meta">
+                          <span><i class="bi bi-clock"></i> ${formatDate(activity.date)}</span>
                       </div>
                   </div>
+                  <span class="activity-badge success">${activity.score}</span>
               </div>
           `).join('');
 
       } catch (error) {
           console.error('Errore caricamento attività:', error);
       }
+  }
+
+  function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
   }
 
   function formatDate(date) {
@@ -251,12 +870,8 @@
       if (diff < 3600000) return `${Math.floor(diff / 60000)} min fa`;
       if (diff < 86400000) return `${Math.floor(diff / 3600000)} ore fa`;
 
-      return date.toLocaleDateString('it-IT', {
-          day: 'numeric',
-          month: 'short'
-      });
+      return date.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });
   }
 </script>
-<script src="js/focus-manager.js"></script>
 </body>
 </html>
