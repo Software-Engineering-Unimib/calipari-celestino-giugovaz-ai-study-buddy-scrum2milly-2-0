@@ -57,4 +57,6 @@ public interface RecommendationRepository extends JpaRepository<Recommendation, 
     // Raccomandazioni per argomento
     List<Recommendation> findByUserIdAndTopicContainingIgnoreCaseAndIsDismissedFalse(
             UUID userId, String topic);
+
+    boolean existsByUserIdAndTypeAndTopic(UUID userId, Recommendation.RecommendationType type, String topic);
 }
