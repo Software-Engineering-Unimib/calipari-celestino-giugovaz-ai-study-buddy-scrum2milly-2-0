@@ -1,4 +1,4 @@
-package com.ai.studybuddy.model.gamification;
+package com.ai.studybuddy.model.recommendation;
 
 import com.ai.studybuddy.model.user.User;
 import jakarta.persistence.*;

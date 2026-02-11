@@ -1,8 +1,7 @@
 package com.ai.studybuddy.repository;
 
-import com.ai.studybuddy.model.gamification.Recommendation;
-import com.ai.studybuddy.model.gamification.Recommendation.RecommendationType;
-import com.ai.studybuddy.model.gamification.Recommendation.Priority;
+import com.ai.studybuddy.model.recommendation.Recommendation;
+import com.ai.studybuddy.model.recommendation.Recommendation.RecommendationType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

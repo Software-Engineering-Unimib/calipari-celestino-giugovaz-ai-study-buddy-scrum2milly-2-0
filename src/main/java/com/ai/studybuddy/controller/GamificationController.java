@@ -1,7 +1,6 @@
 package com.ai.studybuddy.controller;
 
 import com.ai.studybuddy.dto.gamification.GamificationDTO.*;
-import com.ai.studybuddy.model.gamification.Recommendation;
 import com.ai.studybuddy.model.user.User;
 import com.ai.studybuddy.service.inter.GamificationService;
 import com.ai.studybuddy.service.inter.UserService;
@@ -13,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Controller per il sistema di gamification
@@ -93,52 +91,6 @@ public class GamificationController {
     public ResponseEntity<Void> markBadgesAsSeen(Principal principal) {
         User user = userService.getCurrentUser(principal);
         gamificationService.markBadgesAsSeen(user.getId());
-        return ResponseEntity.ok().build();
-    }
-
-    // ==================== RACCOMANDAZIONI ====================
-
-    /**
-     * Ottiene le raccomandazioni attive
-     */
-    @GetMapping("/recommendations")
-    public ResponseEntity<List<RecommendationResponse>> getRecommendations(Principal principal) {
-        User user = userService.getCurrentUser(principal);
-        List<RecommendationResponse> recs = gamificationService.getActiveRecommendations(user.getId());
-        return ResponseEntity.ok(recs);
-    }
-
-    /**
-     * Genera nuove raccomandazioni basate sui progressi
-     */
-    @PostMapping("/recommendations/generate")
-    public ResponseEntity<List<RecommendationResponse>> generateRecommendations(Principal principal) {
-        User user = userService.getCurrentUser(principal);
-        List<Recommendation> newRecs = gamificationService.generateRecommendations(user);
-        return ResponseEntity.ok(RecommendationResponse.fromList(newRecs));
-    }
-
-    /**
-     * Ignora una raccomandazione
-     */
-    @PostMapping("/recommendations/{id}/dismiss")
-    public ResponseEntity<Void> dismissRecommendation(
-            @PathVariable UUID id,
-            Principal principal) {
-        User user = userService.getCurrentUser(principal);
-        gamificationService.dismissRecommendation(id, user.getId());
-        return ResponseEntity.ok().build();
-    }
-
-    /**
-     * Segna una raccomandazione come completata
-     */
-    @PostMapping("/recommendations/{id}/complete")
-    public ResponseEntity<Void> completeRecommendation(
-            @PathVariable UUID id,
-            Principal principal) {
-        User user = userService.getCurrentUser(principal);
-        gamificationService.completeRecommendation(id, user.getId());
         return ResponseEntity.ok().build();
     }
 
