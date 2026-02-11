@@ -402,69 +402,77 @@
         `).join('');
     }
 
-    async function loadRecommendations() {
-        try {
-            const response = await apiFetch('/gamification/recommendations');
-            if (response.ok) {
-                const recs = await response.json();
-                renderRecommendations(recs);
-            }
-        } catch (error) {
-            renderRecommendations([]);
+   async function loadRecommendations() {
+    try {
+        const response = await apiFetch('/recommendations');
+        if (response.ok) {
+            const recs = await response.json();
+            renderRecommendations(recs);
         }
+    } catch (error) {
+        renderRecommendations([]);
     }
+}
 
-    function renderRecommendations(recommendations) {
-        const container = document.getElementById('recommendationsContainer');
-        if (!recommendations || recommendations.length === 0) {
-            container.innerHTML = `
-                <div class="empty-recommendations">
-                    <i class="bi bi-check-circle"></i>
-                    <h4 style="color: #fff; margin-bottom: 0.5rem;">Ottimo lavoro!</h4>
-                    <p style="color: var(--text-muted);">Nessuna raccomandazione. Continua così!</p>
-                </div>
-            `;
-            return;
-        }
-        container.innerHTML = recommendations.map(rec => `
-            <div class="recommendation-card">
-                <div class="recommendation-content">
-                    <div class="recommendation-icon"><i class="bi ${getRecIcon(rec.type)}"></i></div>
-                    <div class="recommendation-text">
-                        <h4>${rec.title}</h4>
-                        <p>${rec.description}</p>
-                    </div>
-                </div>
-                <div class="recommendation-actions">
-                    <button class="btn btn-success btn-sm" onclick="dismissRec('${rec.id}')"><i class="bi bi-check-lg"></i></button>
+function renderRecommendations(recommendations) {
+    const container = document.getElementById('recommendationsContainer');
+    if (!recommendations || recommendations.length === 0) {
+        container.innerHTML = `
+            <div class="empty-recommendations">
+                <i class="bi bi-check-circle"></i>
+                <h4 style="color: #fff; margin-bottom: 0.5rem;">Ottimo lavoro!</h4>
+                <p style="color: var(--text-muted);">Nessuna raccomandazione. Continua così!</p>
+            </div>
+        `;
+        return;
+    }
+    container.innerHTML = recommendations.map(rec => `
+        <div class="recommendation-card">
+            <div class="recommendation-content">
+                <div class="recommendation-icon"><i class="bi ${getRecIcon(rec.type)}"></i></div>
+                <div class="recommendation-text">
+                    <h4>${rec.title}</h4>
+                    <p>${rec.description}</p>
                 </div>
             </div>
-        `).join('');
-    }
+            <div class="recommendation-actions">
+                <button class="btn btn-success btn-sm" onclick="dismissRec('${rec.id}')"><i class="bi bi-check-lg"></i></button>
+            </div>
+        </div>
+    `).join('');
+}
 
-    function getRecIcon(type) {
-        const icons = { 'REVIEW_TOPIC': 'bi-arrow-repeat', 'RETRY_QUIZ': 'bi-patch-question', 'STUDY_FLASHCARDS': 'bi-stack', 'STREAK_REMINDER': 'bi-fire' };
-        return icons[type] || 'bi-lightbulb';
-    }
+function getRecIcon(type) {
+    const icons = {
+        'REVIEW_TOPIC': 'bi-arrow-repeat',
+        'RETRY_QUIZ': 'bi-patch-question',
+        'STUDY_FLASHCARDS': 'bi-stack',
+        'STREAK_REMINDER': 'bi-fire',
+        'WEAKNESS_FOCUS': 'bi-bullseye',
+        'DAILY_GOAL': 'bi-calendar-check',
+        'NEW_TOPIC': 'bi-plus-circle'
+    };
+    return icons[type] || 'bi-lightbulb';
+}
 
-    async function generateRecommendations() {
-        const btn = event.target.closest('button');
-        btn.disabled = true;
-        btn.innerHTML = '<span class="loading-spinner" style="width:16px;height:16px;"></span>';
-        try {
-            await apiFetch('/gamification/recommendations/generate', { method: 'POST' });
-            await loadRecommendations();
-        } catch (e) {}
-        btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Aggiorna';
-    }
+async function generateRecommendations() {
+    const btn = event.target.closest('button');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading-spinner" style="width:16px;height:16px;"></span>';
+    try {
+        await apiFetch('/recommendations/generate', { method: 'POST' });
+        await loadRecommendations();
+    } catch (e) {}
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Aggiorna';
+}
 
-    async function dismissRec(id) {
-        try {
-            await apiFetch(`/gamification/recommendations/${id}/dismiss`, { method: 'POST' });
-            loadRecommendations();
-        } catch (e) {}
-    }
+async function dismissRec(id) {
+    try {
+        await apiFetch(`/recommendations/${id}/dismiss`, { method: 'POST' });
+        loadRecommendations();
+    } catch (e) {}
+}
 </script>
 </body>
 </html>

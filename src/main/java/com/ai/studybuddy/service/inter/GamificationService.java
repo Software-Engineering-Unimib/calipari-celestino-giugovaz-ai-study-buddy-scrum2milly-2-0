@@ -1,8 +1,9 @@
 package com.ai.studybuddy.service.inter;
 
 import com.ai.studybuddy.dto.gamification.GamificationDTO.*;
+import com.ai.studybuddy.dto.recommendation.RecommendationResponse;
 import com.ai.studybuddy.model.gamification.Badge;
-import com.ai.studybuddy.model.gamification.Recommendation;
+import com.ai.studybuddy.model.recommendation.Recommendation;
 import com.ai.studybuddy.model.gamification.UserStats;
 import com.ai.studybuddy.model.user.User;
 
@@ -84,30 +85,6 @@ public interface GamificationService {
      * Verifica e sblocca badge in base alle statistiche
      */
     List<Badge> checkAndUnlockBadges(User user, UserStats stats);
-
-    // ==================== RECOMMENDATIONS ====================
-
-    /**
-     * Ottiene le raccomandazioni attive per l'utente
-     */
-    List<RecommendationResponse> getActiveRecommendations(UUID userId);
-
-    /**
-     * Genera nuove raccomandazioni basate sui progressi
-     */
-    List<Recommendation> generateRecommendations(User user);
-
-    /**
-     * Ignora una raccomandazione
-     */
-    void dismissRecommendation(UUID recommendationId, UUID userId);
-
-    /**
-     * Segna una raccomandazione come completata
-     */
-    void completeRecommendation(UUID recommendationId, UUID userId);
-
-    // ==================== LEADERBOARD ====================
 
     /**
      * Ottiene la classifica per XP totali

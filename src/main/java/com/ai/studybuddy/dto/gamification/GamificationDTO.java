@@ -171,53 +171,8 @@ public class GamificationDTO {
         public Double getProgress() { return progress; }
     }
 
-    // ==================== RECOMMENDATION RESPONSE ====================
 
-    /**
-     * Risposta raccomandazione
-     */
-    public static class RecommendationResponse {
-        private UUID id;
-        private String type;
-        private String title;
-        private String description;
-        private String topic;
-        private String reason;
-        private String priority;
-        private LocalDateTime createdAt;
-        private LocalDateTime expiresAt;
 
-        public static RecommendationResponse fromRecommendation(Recommendation rec) {
-            RecommendationResponse response = new RecommendationResponse();
-            response.id = rec.getId();
-            response.type = rec.getType() != null ? rec.getType().name() : null;
-            response.title = rec.getTitle();
-            response.description = rec.getDescription();
-            response.topic = rec.getTopic();
-            response.reason = rec.getReason();
-            response.priority = rec.getPriority() != null ? rec.getPriority().name() : "MEDIUM";
-            response.createdAt = rec.getCreatedAt();
-            response.expiresAt = rec.getExpiresAt();
-            return response;
-        }
-
-        public static List<RecommendationResponse> fromList(List<Recommendation> recommendations) {
-            return recommendations.stream()
-                    .map(RecommendationResponse::fromRecommendation)
-                    .collect(Collectors.toList());
-        }
-
-        // Getters
-        public UUID getId() { return id; }
-        public String getType() { return type; }
-        public String getTitle() { return title; }
-        public String getDescription() { return description; }
-        public String getTopic() { return topic; }
-        public String getReason() { return reason; }
-        public String getPriority() { return priority; }
-        public LocalDateTime getCreatedAt() { return createdAt; }
-        public LocalDateTime getExpiresAt() { return expiresAt; }
-    }
 
     // ==================== LEADERBOARD ENTRY ====================
 
