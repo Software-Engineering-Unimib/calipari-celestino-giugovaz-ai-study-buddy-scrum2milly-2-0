@@ -7,733 +7,628 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">
     <style>
-        /* Search Section */
-        .search-section {
-            background: var(--gradient-primary);
-            border-radius: 1rem;
-            padding: 2.5rem;
+        .hero-search {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            border-radius: 1.5rem;
+            padding: 3rem;
             margin-bottom: 2rem;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.4);
         }
-
-        .search-section::before {
+        .hero-search::before {
             content: '';
             position: absolute;
-            top: -50%;
-            right: -20%;
-            width: 300px;
-            height: 300px;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            top: -100px;
+            right: -100px;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
             pointer-events: none;
         }
-
-        .search-title {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: #ffffff;
-            margin-bottom: 0.5rem;
-        }
-
-        .search-subtitle {
-            color: rgba(255,255,255,0.8);
-            margin-bottom: 1.5rem;
-        }
-
-        .search-form {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .search-input-wrapper {
-            flex: 1;
-            min-width: 250px;
-            position: relative;
-        }
-
-        .search-input-wrapper i {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-            font-size: 1.1rem;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 1rem 1rem 1rem 3rem;
-            border: 2px solid transparent;
-            border-radius: 0.75rem;
-            background: rgba(255,255,255,0.95);
-            font-size: 1rem;
-            color: var(--dark-bg);
-            transition: all 0.3s ease;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2);
-        }
-
-        .search-input::placeholder {
-            color: #6b7280;
-        }
-
-        .level-select {
-            padding: 1rem 1.5rem;
-            border: 2px solid transparent;
-            border-radius: 0.75rem;
-            background: rgba(255,255,255,0.95);
-            font-size: 1rem;
-            color: var(--dark-bg);
-            cursor: pointer;
-            min-width: 180px;
-        }
-
-        .level-select:focus {
-            outline: none;
-            border-color: var(--primary-color);
-        }
-
-        .search-btn {
-            padding: 1rem 2rem;
-            background: #ffffff;
-            color: var(--primary-color);
-            border: none;
-            border-radius: 0.75rem;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.3s ease;
-        }
-
-        .search-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-
-        .search-btn:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* XP Badge */
-        .xp-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
+        .hero-icon {
+            width: 80px;
+            height: 80px;
             background: rgba(255,255,255,0.2);
-            padding: 0.25rem 0.75rem;
-            border-radius: 2rem;
-            font-size: 0.8rem;
-            color: #ffffff;
-            margin-left: 0.5rem;
-        }
-
-        /* Explanation Card */
-        .explanation-card {
-            background: var(--dark-card);
-            border: 2px solid var(--dark-border);
-            border-radius: 1rem;
-            padding: 2rem;
-            margin-bottom: 1.5rem;
-            animation: fadeInUp 0.5s ease;
-        }
-
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .explanation-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .explanation-topic {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #ffffff;
+            backdrop-filter: blur(10px);
+            border-radius: 1.5rem;
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            animation: float 3s ease-in-out infinite;
         }
-
-        .explanation-topic i { color: var(--primary-color); }
-
-        .explanation-meta {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
         }
-
-        .meta-badge {
+        .hero-title { font-size: 2.25rem; font-weight: 800; color: #ffffff; margin-bottom: 0.75rem; }
+        .hero-subtitle { color: rgba(255,255,255,0.9); font-size: 1.1rem; margin-bottom: 2rem; max-width: 500px; }
+        .xp-pill {
             display: inline-flex;
             align-items: center;
             gap: 0.4rem;
-            padding: 0.4rem 0.8rem;
-            border-radius: 0.5rem;
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
-
-        .meta-badge.level { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
-        .meta-badge.xp { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
-        .meta-badge.time { background: rgba(107, 114, 128, 0.2); color: #9ca3af; }
-
-        .explanation-content {
-            color: var(--text-secondary);
-            line-height: 1.8;
-            font-size: 1rem;
-        }
-
-        .explanation-content h1, .explanation-content h2, .explanation-content h3 {
-            color: #ffffff;
-            margin-top: 1.5rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .explanation-content h1 { font-size: 1.5rem; }
-        .explanation-content h2 { font-size: 1.25rem; }
-        .explanation-content h3 { font-size: 1.1rem; }
-        .explanation-content p { margin-bottom: 1rem; }
-        .explanation-content ul, .explanation-content ol { margin-bottom: 1rem; padding-left: 1.5rem; }
-        .explanation-content li { margin-bottom: 0.5rem; }
-
-        .explanation-content code {
-            background: rgba(139, 92, 246, 0.2);
-            padding: 0.2rem 0.5rem;
-            border-radius: 0.25rem;
-            font-family: 'Fira Code', monospace;
-            font-size: 0.9rem;
-            color: #a78bfa;
-        }
-
-        .explanation-content pre {
-            background: var(--dark-bg);
-            border: 1px solid var(--dark-border);
-            border-radius: 0.5rem;
-            padding: 1rem;
-            overflow-x: auto;
-            margin-bottom: 1rem;
-        }
-
-        .explanation-content pre code { background: none; padding: 0; }
-        .explanation-content blockquote {
-            border-left: 4px solid var(--primary-color);
-            padding-left: 1rem;
-            margin: 1rem 0;
-            color: var(--text-muted);
-            font-style: italic;
-        }
-        .explanation-content strong { color: #ffffff; }
-
-        /* Actions */
-        .explanation-actions {
-            display: flex;
-            gap: 0.75rem;
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--dark-border);
-            flex-wrap: wrap;
-        }
-
-        .action-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.6rem 1rem;
-            border-radius: 0.5rem;
-            font-size: 0.85rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: none;
-        }
-
-        .action-btn.primary { background: var(--primary-color); color: #ffffff; }
-        .action-btn.primary:hover { background: var(--primary-hover); }
-        .action-btn.secondary { background: var(--dark-border); color: var(--text-secondary); }
-        .action-btn.secondary:hover { background: rgba(107, 114, 128, 0.3); color: #ffffff; }
-
-        /* History Section */
-        .history-section { margin-top: 2rem; }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-
-        .section-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .history-list { display: flex; flex-direction: column; gap: 0.75rem; }
-
-        .history-item {
-            background: var(--dark-card);
-            border: 2px solid var(--dark-border);
-            border-radius: 0.75rem;
-            padding: 1rem 1.25rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .history-item:hover { border-color: var(--primary-color); transform: translateX(4px); }
-
-        .history-item-info { display: flex; align-items: center; gap: 1rem; }
-
-        .history-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            background: rgba(139, 92, 246, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--primary-color);
-        }
-
-        .history-topic { font-weight: 600; color: #ffffff; margin-bottom: 0.25rem; }
-        .history-date { font-size: 0.8rem; color: var(--text-muted); }
-        .history-item-meta { display: flex; align-items: center; gap: 0.5rem; }
-
-        /* Loading */
-        .loading-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 3rem;
-            color: var(--text-muted);
-        }
-
-        .loading-spinner-large {
-            width: 50px;
-            height: 50px;
-            border: 4px solid var(--dark-border);
-            border-top-color: var(--primary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 1rem;
-        }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        .loading-text { font-size: 1rem; color: var(--text-secondary); }
-        .loading-subtext { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; }
-
-        /* Empty State */
-        .empty-state { text-align: center; padding: 3rem; color: var(--text-muted); }
-        .empty-state i { font-size: 4rem; margin-bottom: 1rem; opacity: 0.5; }
-        .empty-state h3 { color: #ffffff; margin-bottom: 0.5rem; }
-
-        /* XP Notification */
-        .xp-notification {
-            position: fixed;
-            top: 100px;
-            right: 20px;
-            background: var(--gradient-primary);
-            color: #ffffff;
-            padding: 1rem 1.5rem;
-            border-radius: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            box-shadow: 0 10px 40px rgba(139, 92, 246, 0.4);
-            z-index: 1000;
-            animation: slideInRight 0.5s ease, fadeOut 0.5s ease 2.5s forwards;
-        }
-
-        @keyframes slideInRight {
-            from { opacity: 0; transform: translateX(100px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        @keyframes fadeOut {
-            to { opacity: 0; transform: translateX(100px); }
-        }
-
-        .xp-notification i { font-size: 1.5rem; }
-        .xp-notification .xp-amount { font-size: 1.25rem; font-weight: 700; }
-
-        /* Quick Topics */
-        .quick-topics { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem; }
-
-        .quick-topic {
+            background: rgba(255,255,255,0.25);
             padding: 0.5rem 1rem;
-            background: rgba(255,255,255,0.1);
+            border-radius: 2rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin-left: 1rem;
+        }
+        .search-container {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(20px);
+            border-radius: 1rem;
+            padding: 1.5rem;
             border: 1px solid rgba(255,255,255,0.2);
+        }
+        .search-row { display: flex; gap: 1rem; align-items: stretch; }
+        .search-input-group { flex: 1; position: relative; }
+        .search-input-group i { position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: #6b7280; font-size: 1.2rem; }
+        .search-input {
+            width: 100%;
+            padding: 1.25rem 1.25rem 1.25rem 3.5rem;
+            border: none;
+            border-radius: 0.75rem;
+            background: #ffffff;
+            font-size: 1.1rem;
+            color: #1f2937;
+            transition: all 0.3s ease;
+        }
+        .search-input:focus { outline: none; box-shadow: 0 0 0 4px rgba(255,255,255,0.3); }
+        .search-btn {
+            padding: 1.25rem 2.5rem;
+            background: #ffffff;
+            color: #7c3aed;
+            border: none;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.3s ease;
+        }
+        .search-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(0,0,0,0.2); }
+        .search-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+        .quick-topics { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.5rem; }
+        .quick-chip {
+            padding: 0.6rem 1.25rem;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
             border-radius: 2rem;
             color: #ffffff;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             cursor: pointer;
             transition: all 0.3s ease;
         }
-
-        .quick-topic:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); }
-
-        /* Responsive */
+        .quick-chip:hover { background: rgba(255,255,255,0.35); transform: translateY(-2px); }
+        .explanation-card {
+            background: var(--dark-card);
+            border: 1px solid var(--dark-border);
+            border-radius: 1.25rem;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+            animation: slideUp 0.5s ease;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .explanation-card-header {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(236, 72, 153, 0.1) 100%);
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--dark-border);
+        }
+        .explanation-topic-row { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; }
+        .explanation-topic { display: flex; align-items: center; gap: 1rem; }
+        .topic-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #ffffff;
+        }
+        .topic-text h3 { font-size: 1.35rem; font-weight: 700; color: #ffffff; margin-bottom: 0.25rem; }
+        .topic-text span { font-size: 0.85rem; color: var(--text-muted); }
+        .meta-badges { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+        .badge { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 1rem; border-radius: 2rem; font-size: 0.8rem; font-weight: 600; }
+        .badge-level { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .badge-xp { background: rgba(139, 92, 246, 0.2); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.3); }
+        .badge-time { background: rgba(107, 114, 128, 0.2); color: #9ca3af; }
+        .explanation-body { padding: 2rem; }
+        .explanation-content { color: var(--text-secondary); line-height: 1.9; font-size: 1.05rem; }
+        .explanation-content h1, .explanation-content h2, .explanation-content h3 { color: #ffffff; margin-top: 1.75rem; margin-bottom: 1rem; font-weight: 700; }
+        .explanation-content h1 { font-size: 1.6rem; }
+        .explanation-content h2 { font-size: 1.35rem; }
+        .explanation-content h3 { font-size: 1.15rem; }
+        .explanation-content p { margin-bottom: 1.25rem; }
+        .explanation-content ul, .explanation-content ol { margin-bottom: 1.25rem; padding-left: 1.75rem; }
+        .explanation-content li { margin-bottom: 0.6rem; }
+        .explanation-content code { background: rgba(139, 92, 246, 0.2); padding: 0.25rem 0.6rem; border-radius: 0.35rem; font-family: 'Fira Code', monospace; font-size: 0.9rem; color: #c4b5fd; }
+        .explanation-content pre { background: #0d1117; border: 1px solid var(--dark-border); border-radius: 0.75rem; padding: 1.25rem; overflow-x: auto; margin: 1.5rem 0; }
+        .explanation-content pre code { background: none; padding: 0; color: #e6edf3; }
+        .explanation-content blockquote { border-left: 4px solid #8b5cf6; padding: 1rem 1.5rem; margin: 1.5rem 0; background: rgba(139, 92, 246, 0.1); border-radius: 0 0.5rem 0.5rem 0; }
+        .explanation-content strong { color: #ffffff; }
+        .action-section { padding: 1.5rem 2rem 2rem; border-top: 1px solid var(--dark-border); background: rgba(0,0,0,0.2); }
+        .action-section-title { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 1rem; }
+        .action-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+        .action-card {
+            background: var(--dark-bg);
+            border: 2px solid var(--dark-border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .action-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; opacity: 0; transition: opacity 0.3s ease; }
+        .action-card:hover { transform: translateY(-4px); border-color: transparent; }
+        .action-card.quiz-card::before { background: linear-gradient(90deg, #3b82f6, #1d4ed8); }
+        .action-card.quiz-card:hover { border-color: #3b82f6; box-shadow: 0 10px 40px rgba(59, 130, 246, 0.3); }
+        .action-card.quiz-card:hover::before { opacity: 1; }
+        .action-card.flash-card::before { background: linear-gradient(90deg, #8b5cf6, #7c3aed); }
+        .action-card.flash-card:hover { border-color: #8b5cf6; box-shadow: 0 10px 40px rgba(139, 92, 246, 0.3); }
+        .action-card.flash-card:hover::before { opacity: 1; }
+        .action-card-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+        .action-card-icon { width: 48px; height: 48px; border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+        .quiz-card .action-card-icon { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .flash-card .action-card-icon { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
+        .action-card-title { font-size: 1.1rem; font-weight: 700; color: #ffffff; }
+        .action-card-desc { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem; }
+        .action-card-options { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .option-chip { padding: 0.4rem 0.8rem; background: var(--dark-border); border-radius: 0.5rem; font-size: 0.8rem; color: var(--text-secondary); }
+        .action-card-btn {
+            display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+            width: 100%; padding: 0.75rem; border: none; border-radius: 0.5rem;
+            font-weight: 600; font-size: 0.9rem; cursor: pointer; margin-top: 1rem; transition: all 0.3s ease;
+        }
+        .quiz-card .action-card-btn { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: #ffffff; }
+        .flash-card .action-card-btn { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: #ffffff; }
+        .action-card-btn:hover { transform: scale(1.02); }
+        .secondary-actions { display: flex; gap: 0.75rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--dark-border); }
+        .secondary-btn {
+            flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+            padding: 0.75rem; background: var(--dark-border); border: none; border-radius: 0.5rem;
+            color: var(--text-secondary); font-size: 0.85rem; cursor: pointer; transition: all 0.3s ease;
+        }
+        .secondary-btn:hover { background: rgba(107, 114, 128, 0.4); color: #ffffff; }
+        .generation-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 9999; opacity: 0; visibility: hidden; transition: all 0.3s ease;
+        }
+        .generation-overlay.active { opacity: 1; visibility: visible; }
+        .generation-modal {
+            background: var(--dark-card); border: 1px solid var(--dark-border);
+            border-radius: 1.5rem; width: 90%; max-width: 500px; max-height: 90vh;
+            overflow-y: auto; transform: scale(0.9) translateY(20px); transition: transform 0.3s ease;
+        }
+        .generation-overlay.active .generation-modal { transform: scale(1) translateY(0); }
+        .generation-modal-header { padding: 1.5rem 2rem; border-bottom: 1px solid var(--dark-border); display: flex; align-items: center; justify-content: space-between; }
+        .generation-modal-title { display: flex; align-items: center; gap: 0.75rem; font-size: 1.25rem; font-weight: 700; color: #ffffff; }
+        .generation-modal-title i { font-size: 1.5rem; }
+        .generation-modal-title.quiz i { color: #60a5fa; }
+        .generation-modal-title.flash i { color: #a78bfa; }
+        .generation-modal-close { width: 36px; height: 36px; border: none; background: var(--dark-border); border-radius: 0.5rem; color: var(--text-muted); font-size: 1.25rem; cursor: pointer; transition: all 0.3s ease; }
+        .generation-modal-close:hover { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .generation-modal-body { padding: 2rem; }
+        .generation-topic { background: var(--dark-bg); border-radius: 0.75rem; padding: 1rem; margin-bottom: 1.5rem; }
+        .generation-topic-label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem; }
+        .generation-topic-value { font-size: 1.1rem; font-weight: 600; color: #ffffff; }
+        .generation-options { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+        .generation-option { display: flex; flex-direction: column; gap: 0.5rem; }
+        .generation-option label { font-size: 0.85rem; font-weight: 500; color: var(--text-secondary); }
+        .generation-option select { padding: 0.75rem 1rem; background: var(--dark-bg); border: 1px solid var(--dark-border); border-radius: 0.5rem; color: #ffffff; font-size: 0.95rem; }
+        .generation-btn {
+            width: 100%; padding: 1rem; border: none; border-radius: 0.75rem;
+            font-size: 1rem; font-weight: 700; color: #ffffff; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 0.75rem; transition: all 0.3s ease;
+        }
+        .generation-btn.quiz { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+        .generation-btn.flash { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+        .generation-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .generation-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+        .generation-loading { display: none; flex-direction: column; align-items: center; padding: 2rem; text-align: center; }
+        .generation-loading.active { display: flex; }
+        .generation-spinner { width: 60px; height: 60px; border: 4px solid var(--dark-border); border-top-color: var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 1.5rem; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .generation-loading-text { font-size: 1.1rem; font-weight: 600; color: #ffffff; margin-bottom: 0.5rem; }
+        .generation-loading-subtext { font-size: 0.9rem; color: var(--text-muted); }
+        .generation-success { display: none; flex-direction: column; align-items: center; padding: 2rem; text-align: center; }
+        .generation-success.active { display: flex; }
+        .success-icon { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; margin-bottom: 1.5rem; animation: popIn 0.5s ease; }
+        @keyframes popIn { 0% { transform: scale(0); } 70% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        .success-icon.quiz { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .success-icon.flash { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
+        .success-title { font-size: 1.35rem; font-weight: 700; color: #ffffff; margin-bottom: 0.5rem; }
+        .success-desc { color: var(--text-muted); margin-bottom: 1.5rem; }
+        .success-actions { display: flex; gap: 1rem; width: 100%; }
+        .success-btn { flex: 1; padding: 0.875rem; border-radius: 0.75rem; font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.3s ease; }
+        .success-btn.primary { background: linear-gradient(135deg, #10b981, #059669); border: none; color: #ffffff; }
+        .success-btn.secondary { background: transparent; border: 2px solid var(--dark-border); color: var(--text-secondary); }
+        .success-btn:hover { transform: translateY(-2px); }
+        .history-section { margin-top: 2.5rem; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .section-title { font-size: 1.35rem; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 0.75rem; }
+        .section-title i { color: var(--primary-color); }
+        .history-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; }
+        .history-card { background: var(--dark-card); border: 1px solid var(--dark-border); border-radius: 1rem; padding: 1.25rem; cursor: pointer; transition: all 0.3s ease; }
+        .history-card:hover { border-color: var(--primary-color); transform: translateY(-4px); }
+        .history-card-header { display: flex; align-items: flex-start; gap: 1rem; }
+        .history-icon { width: 44px; height: 44px; border-radius: 0.75rem; background: rgba(139, 92, 246, 0.2); display: flex; align-items: center; justify-content: center; color: var(--primary-color); font-size: 1.25rem; }
+        .history-info { flex: 1; min-width: 0; }
+        .history-topic { font-weight: 600; color: #ffffff; margin-bottom: 0.35rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .history-meta { display: flex; align-items: center; gap: 1rem; font-size: 0.8rem; color: var(--text-muted); }
+        .history-meta span { display: flex; align-items: center; gap: 0.3rem; }
+        .loading-container { display: flex; flex-direction: column; align-items: center; padding: 4rem; }
+        .loading-spinner-large { width: 60px; height: 60px; border: 4px solid var(--dark-border); border-top-color: var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 1.5rem; }
+        .loading-text { font-size: 1.1rem; color: var(--text-secondary); }
+        .empty-state { text-align: center; padding: 4rem 2rem; }
+        .empty-state i { font-size: 5rem; margin-bottom: 1.5rem; opacity: 0.3; }
+        .empty-state h3 { color: #ffffff; margin-bottom: 0.75rem; }
+        .xp-notification {
+            position: fixed; top: 100px; right: 20px;
+            background: linear-gradient(135deg, #8b5cf6, #ec4899); color: #ffffff;
+            padding: 1.25rem 1.75rem; border-radius: 1rem;
+            display: flex; align-items: center; gap: 1rem;
+            box-shadow: 0 15px 50px rgba(139, 92, 246, 0.5);
+            z-index: 10000;
+            animation: slideInRight 0.5s ease, fadeOut 0.5s ease 2.5s forwards;
+        }
+        @keyframes slideInRight { from { opacity: 0; transform: translateX(100px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes fadeOut { to { opacity: 0; transform: translateX(100px); } }
+        .xp-notification i { font-size: 2rem; }
+        .xp-notification .xp-amount { font-size: 1.5rem; font-weight: 800; }
         @media (max-width: 768px) {
-            .search-section { padding: 1.5rem; }
-            .search-form { flex-direction: column; }
-            .level-select, .search-btn { width: 100%; justify-content: center; }
-            .explanation-header { flex-direction: column; }
-            .explanation-actions { flex-direction: column; }
-            .action-btn { width: 100%; justify-content: center; }
+            .hero-search { padding: 2rem 1.5rem; }
+            .hero-title { font-size: 1.75rem; }
+            .search-row { flex-direction: column; }
+            .search-btn { width: 100%; justify-content: center; }
+            .action-cards { grid-template-columns: 1fr; }
+            .generation-options { grid-template-columns: 1fr; }
+            .success-actions { flex-direction: column; }
         }
     </style>
 </head>
 <body>
 <main class="main-content">
-    <!-- Search Section -->
-    <div class="search-section">
-        <h1 class="search-title">
-            <i class="bi bi-lightbulb-fill me-2"></i>
-            Chiedi una Spiegazione
-            <span class="xp-badge"><i class="bi bi-lightning-charge-fill"></i> +10 XP</span>
-        </h1>
-        <p class="search-subtitle">
-            Inserisci un argomento e l'AI ti fornirà una spiegazione personalizzata
-        </p>
-
-        <form class="search-form" id="explanationForm" onsubmit="requestExplanation(event)">
-            <div class="search-input-wrapper">
-                <i class="bi bi-search"></i>
-                <input type="text" class="search-input" id="topicInput"
-                       placeholder="Es: Teorema di Pitagora, Fotosintesi, Guerra Fredda..."
-                       required autocomplete="off">
-            </div>
-
-
-            <button type="submit" class="search-btn" id="submitBtn">
-                <i class="bi bi-stars"></i>
-                Genera Spiegazione
-            </button>
-        </form>
-
-        <div class="quick-topics">
-            <span class="quick-topic" onclick="setTopic('Derivate e integrali')">📐 Derivate</span>
-            <span class="quick-topic" onclick="setTopic('Leggi della termodinamica')">🔥 Termodinamica</span>
-            <span class="quick-topic" onclick="setTopic('Rivoluzione Francese')">🏰 Rivoluzione Francese</span>
-            <span class="quick-topic" onclick="setTopic('Struttura del DNA')">🧬 DNA</span>
-            <span class="quick-topic" onclick="setTopic('Machine Learning')">🤖 Machine Learning</span>
+    <div class="hero-search">
+        <div class="hero-icon">💡</div>
+        <h1 class="hero-title">Chiedi una Spiegazione<span class="xp-pill"><i class="bi bi-lightning-charge-fill"></i> +10 XP</span></h1>
+        <p class="hero-subtitle">Scrivi qualsiasi argomento e l'AI ti fornirà una spiegazione personalizzata</p>
+        <div class="search-container">
+            <form class="search-row" id="explanationForm" onsubmit="requestExplanation(event)">
+                <div class="search-input-group">
+                    <i class="bi bi-search"></i>
+                    <input type="text" class="search-input" id="topicInput" placeholder="Es: Teorema di Pitagora, Fotosintesi, Machine Learning..." required autocomplete="off">
+                </div>
+                <button type="submit" class="search-btn" id="submitBtn"><i class="bi bi-stars"></i> Genera</button>
+            </form>
         </div>
     </div>
-
-    <!-- Current Explanation -->
     <div id="explanationContainer"></div>
-
-    <!-- History Section -->
-    <div class="history-section" id="historySection">
+    <div class="history-section" id="historySection" style="display: none;">
         <div class="section-header">
-            <h2 class="section-title">
-                <i class="bi bi-clock-history"></i>
-                Cronologia Spiegazioni
-            </h2>
-            <button class="btn btn-outline btn-sm" onclick="clearHistory()">
-                <i class="bi bi-trash3"></i> Cancella
-            </button>
+            <h2 class="section-title"><i class="bi bi-clock-history"></i> Le tue Spiegazioni</h2>
+            <button class="btn btn-outline btn-sm" onclick="clearHistory()"><i class="bi bi-trash3"></i> Cancella</button>
         </div>
-        <div class="history-list" id="historyList"></div>
+        <div class="history-grid" id="historyList"></div>
     </div>
 </main>
+
+<div class="generation-overlay" id="generationOverlay">
+    <div class="generation-modal">
+        <div class="generation-modal-header">
+            <div class="generation-modal-title" id="modalTitle"><i class="bi bi-patch-question-fill"></i><span>Genera Quiz</span></div>
+            <button class="generation-modal-close" onclick="closeGenerationModal()">×</button>
+        </div>
+        <div class="generation-modal-body">
+            <div id="generationForm">
+                <div class="generation-topic">
+                    <div class="generation-topic-label">Argomento</div>
+                    <div class="generation-topic-value" id="modalTopicValue">-</div>
+                </div>
+                <div class="generation-options">
+                    <div class="generation-option">
+                        <label>Quantità</label>
+                        <select id="modalCount"><option value="5">5</option><option value="10" selected>10</option><option value="15">15</option><option value="20">20</option></select>
+                    </div>
+                    <div class="generation-option">
+                        <label>Difficoltà</label>
+                        <select id="modalDifficulty"><option value="PRINCIPIANTE">Facile</option><option value="INTERMEDIO" selected>Media</option><option value="AVANZATO">Difficile</option></select>
+                    </div>
+                </div>
+                <div class="generation-option" id="deckSelector" style="display: none; margin-bottom: 1.5rem;">
+                    <label>Deck di destinazione</label>
+                    <select id="modalDeck"><option value="new">+ Crea nuovo deck</option></select>
+                </div>
+                <button class="generation-btn" id="modalGenerateBtn" onclick="executeGeneration()"><i class="bi bi-magic"></i><span id="modalBtnText">Genera Quiz</span></button>
+            </div>
+            <div class="generation-loading" id="generationLoading">
+                <div class="generation-spinner"></div>
+                <div class="generation-loading-text" id="loadingText">Generazione in corso...</div>
+                <div class="generation-loading-subtext" id="loadingSubtext">L'AI sta creando il tuo quiz</div>
+            </div>
+            <div class="generation-success" id="generationSuccess">
+                <div class="success-icon" id="successIcon"><i class="bi bi-check-lg"></i></div>
+                <div class="success-title" id="successTitle">Quiz Generato!</div>
+                <div class="success-desc" id="successDesc">10 domande pronte per te</div>
+                <div class="success-actions">
+                    <button class="success-btn secondary" onclick="closeGenerationModal()"><i class="bi bi-x"></i> Chiudi</button>
+                    <button class="success-btn primary" id="successActionBtn" onclick="goToGenerated()"><i class="bi bi-play-fill"></i> <span id="successActionText">Inizia Quiz</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script src="js/layout.js"></script>
 <script src="js/focus-manager.js"></script>
 <script>
     let explanationHistory = [];
+    let currentUserId = null;
+    let currentTopic = '';
+    let generationType = 'quiz';
+    let generatedQuizId = null;
+    let generatedDeckId = null;
+    let userDecks = [];
+
+    function getUserStorageKey(key) { return currentUserId ? `${key}_${currentUserId}` : key; }
 
     document.addEventListener('DOMContentLoaded', function() {
-        initLayout({
-            pageTitle: 'Spiegazioni AI',
-            activePage: 'spiegazioni',
-            showTopbar: true,
-            showFooter: true
-        });
-
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        currentUserId = user.id || null;
+        initLayout({ pageTitle: 'Spiegazioni AI', activePage: 'spiegazioni', showTopbar: true, showFooter: true });
         loadHistory();
-
-        const savedTopic = sessionStorage.getItem('explanationTopic');
-        if (savedTopic) {
-            document.getElementById('topicInput').value = savedTopic;
-            sessionStorage.removeItem('explanationTopic');
-        }
+        loadUserDecks();
     });
 
     async function apiFetch(endpoint, options = {}) {
         const token = localStorage.getItem('token');
-
-        // Se non c'è token, reindirizza al login
-        if (!token) {
-            console.warn('Nessun token trovato, redirect al login');
-            window.location.href = 'login.html';
-            throw new Error('Token mancante');
-        }
-
-        const headers = {
-            'Authorization': `Bearer ${token}`,
-            ...options.headers
-        };
-
-        if (options.body && !headers['Content-Type']) {
-            headers['Content-Type'] = 'application/json';
-        }
-
+        if (!token) { window.location.href = 'login.html'; throw new Error('Token mancante'); }
+        const headers = { 'Authorization': `Bearer ${token}`, ...options.headers };
+        if (options.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
         const response = await fetch(`/api${endpoint}`, { ...options, headers });
-
         if (response.status === 401 || response.status === 403) {
-            console.error('Errore autenticazione:', response.status);
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            window.location.href = 'login.html';
-            throw new Error('Non autorizzato');
+            localStorage.removeItem('token'); localStorage.removeItem('user');
+            window.location.href = 'login.html'; throw new Error('Non autorizzato');
         }
-
         return response;
     }
 
-    function setTopic(topic) {
-        document.getElementById('topicInput').value = topic;
-        document.getElementById('topicInput').focus();
-    }
+    function setTopic(topic) { document.getElementById('topicInput').value = topic; document.getElementById('topicInput').focus(); }
 
     async function requestExplanation(event) {
         event.preventDefault();
-
         const topicInput = document.getElementById('topicInput');
         const topic = topicInput.value.trim();
+        if (!topic) { showNotification('Inserisci un argomento', 'warning'); return; }
+        currentTopic = topic;
 
-        if (!topic) {
-            showNotification('Inserisci un argomento', 'warning');
-            return;
-        }
-
-        // Recupera il livello utente per la visualizzazione (non per l'API)
         let displayLevel = 'Università';
         try {
-            const userJson = localStorage.getItem('user');
-            if (userJson) {
-                const user = JSON.parse(userJson);
-                if (user.educationLevel) {
-                    // Mappa per la visualizzazione
-                    const levelMap = {
-                        'MIDDLE_SCHOOL': 'Scuola Media',
-                        'HIGH_SCHOOL': 'Scuola Superiore',
-                        'UNIVERSITY': 'Università'
-                    };
-                    displayLevel = levelMap[user.educationLevel] || user.educationLevel;
-                }
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (user.educationLevel) {
+                const levelMap = { 'MIDDLE_SCHOOL': 'Scuola Media', 'HIGH_SCHOOL': 'Scuola Superiore', 'UNIVERSITY': 'Università' };
+                displayLevel = levelMap[user.educationLevel] || user.educationLevel;
             }
-        } catch (e) {
-            console.warn("Impossibile leggere il livello utente, uso default");
-        }
+        } catch (e) {}
 
         const submitBtn = document.getElementById('submitBtn');
         const container = document.getElementById('explanationContainer');
 
-        // Mostra caricamento
         submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generando...';
-
-        container.innerHTML = `
-            <div class="explanation-card">
-                <div class="loading-container">
-                    <div class="loading-spinner-large"></div>
-                    <div class="loading-text">Sto generando la spiegazione...</div>
-                </div>
-            </div>
-        `;
+        submitBtn.innerHTML = '<span class="loading-spinner" style="width:20px;height:20px;display:inline-block;vertical-align:middle;margin-right:8px;"></span> Generando...';
+        container.innerHTML = '<div class="explanation-card"><div class="loading-container"><div class="loading-spinner-large"></div><div class="loading-text">L\'AI sta elaborando la spiegazione...</div></div></div>';
 
         try {
-            // Chiamata API - SENZA level, lo prende dal profilo utente
             const response = await apiFetch(`/ai/explain?topic=${encodeURIComponent(topic)}`);
-
             if (response.ok) {
                 const data = await response.json();
-
-                // Usa il livello dalla risposta del server
                 const responseLevel = data.level || displayLevel;
-
                 displayExplanation(topic, responseLevel, data.explanation, data);
-
                 if (data.xpEarned) showXpNotification(data.xpEarned, data.leveledUp);
                 if (typeof loadTopbarStats === 'function') loadTopbarStats();
-
                 saveToHistory(topic, responseLevel, data.explanation);
                 topicInput.value = '';
-            } else {
-                const errorData = await response.json().catch(() => ({}));
-                console.error('Errore risposta:', response.status, errorData);
-                throw new Error(errorData.message || 'Errore nella risposta del server');
-            }
+            } else { throw new Error('Errore nella risposta'); }
         } catch (error) {
-            console.error('Errore:', error);
-            container.innerHTML = `
-                <div class="explanation-card">
-                    <div class="empty-state">
-                        <i class="bi bi-exclamation-triangle text-danger"></i>
-                        <h3>Si è verificato un errore</h3>
-                        <p class="text-muted">${error.message || 'Riprova più tardi.'}</p>
-                        <button class="btn btn-primary mt-3" onclick="location.reload()">Riprova</button>
-                    </div>
-                </div>
-            `;
+            container.innerHTML = '<div class="explanation-card"><div class="empty-state"><i class="bi bi-exclamation-triangle"></i><h3>Si è verificato un errore</h3><p>' + (error.message || 'Riprova più tardi.') + '</p></div></div>';
         } finally {
             submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="bi bi-stars"></i> Genera Spiegazione';
+            submitBtn.innerHTML = '<i class="bi bi-stars"></i> Genera';
         }
     }
 
     function displayExplanation(topic, level, explanation, xpData = {}) {
+        currentTopic = topic;
         const container = document.getElementById('explanationContainer');
-
-        const formattedExplanation = formatExplanation(explanation);
-        const safeTopic = escapeHtml(topic).replace(/'/g, "\\'");
-        const safeLevel = escapeHtml(level).replace(/'/g, "\\'");
+        const formatted = formatExplanation(explanation);
 
         container.innerHTML = `
             <div class="explanation-card">
-                <div class="explanation-header">
-                    <div class="explanation-topic">
-                        <i class="bi bi-lightbulb-fill"></i>
-                        ${escapeHtml(topic)}
-                    </div>
-                    <div class="explanation-meta">
-                        <span class="meta-badge level">
-                            <i class="bi bi-mortarboard"></i>
-                            ${escapeHtml(level)}
-                        </span>
-                        ${xpData.xpEarned ? `
-                            <span class="meta-badge xp">
-                                <i class="bi bi-lightning-charge-fill"></i>
-                                +${xpData.xpEarned} XP
-                            </span>
-                        ` : ''}
-                        <span class="meta-badge time">
-                            <i class="bi bi-clock"></i>
-                            Adesso
-                        </span>
+                <div class="explanation-card-header">
+                    <div class="explanation-topic-row">
+                        <div class="explanation-topic">
+                            <div class="topic-icon"><i class="bi bi-lightbulb-fill"></i></div>
+                            <div class="topic-text"><h3>${escapeHtml(topic)}</h3><span>Spiegazione generata dall'AI</span></div>
+                        </div>
+                        <div class="meta-badges">
+                            <span class="badge badge-level"><i class="bi bi-mortarboard-fill"></i> ${escapeHtml(level)}</span>
+                            ${xpData.xpEarned ? `<span class="badge badge-xp"><i class="bi bi-lightning-charge-fill"></i> +${xpData.xpEarned} XP</span>` : ''}
+                            <span class="badge badge-time"><i class="bi bi-clock"></i> Adesso</span>
+                        </div>
                     </div>
                 </div>
-
-                <div class="explanation-content">${formattedExplanation}</div>
-
-                <div class="explanation-actions">
-                    <button class="action-btn primary" onclick="generateQuizFromTopic('${safeTopic}')">
-                        <i class="bi bi-patch-question"></i> Genera Quiz
-                    </button>
-                    <button class="action-btn primary" onclick="generateFlashcardsFromTopic('${safeTopic}')">
-                        <i class="bi bi-stack"></i> Crea Flashcards
-                    </button>
-                    <button class="action-btn secondary" onclick="copyExplanation()">
-                        <i class="bi bi-clipboard"></i> Copia
-                    </button>
-                    <button class="action-btn secondary" onclick="requestExplanationAgain('${safeTopic}')">
-                        <i class="bi bi-arrow-clockwise"></i> Rigenera
-                    </button>
+                <div class="explanation-body"><div class="explanation-content">${formatted}</div></div>
+                <div class="action-section">
+                    <div class="action-section-title">Continua a studiare</div>
+                    <div class="action-cards">
+                        <div class="action-card quiz-card" onclick="openGenerationModal('quiz')">
+                            <div class="action-card-header"><div class="action-card-icon"><i class="bi bi-patch-question-fill"></i></div><div class="action-card-title">Genera Quiz</div></div>
+                            <div class="action-card-desc">Metti alla prova le tue conoscenze con domande a scelta multipla</div>
+                            <div class="action-card-options"><span class="option-chip">5-20 domande</span><span class="option-chip">3 difficoltà</span></div>
+                            <button class="action-card-btn"><i class="bi bi-lightning-charge-fill"></i> Genera Ora</button>
+                        </div>
+                        <div class="action-card flash-card" onclick="openGenerationModal('flashcard')">
+                            <div class="action-card-header"><div class="action-card-icon"><i class="bi bi-stack"></i></div><div class="action-card-title">Crea Flashcards</div></div>
+                            <div class="action-card-desc">Memorizza i concetti chiave con schede di ripasso intelligenti</div>
+                            <div class="action-card-options"><span class="option-chip">5-20 carte</span><span class="option-chip">Ripasso attivo</span></div>
+                            <button class="action-card-btn"><i class="bi bi-lightning-charge-fill"></i> Genera Ora</button>
+                        </div>
+                    </div>
+                    <div class="secondary-actions">
+                        <button class="secondary-btn" onclick="copyExplanation()"><i class="bi bi-clipboard"></i> Copia testo</button>
+                        <button class="secondary-btn" onclick="regenerateExplanation()"><i class="bi bi-arrow-clockwise"></i> Rigenera</button>
+                    </div>
                 </div>
-            </div>
-        `;
-
+            </div>`;
         container.dataset.rawContent = explanation;
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    async function loadUserDecks() {
+        try { const response = await apiFetch('/flashcards/decks'); if (response.ok) userDecks = await response.json(); } catch (e) { userDecks = []; }
+    }
+
+    function openGenerationModal(type) {
+        generationType = type; generatedQuizId = null; generatedDeckId = null;
+        const overlay = document.getElementById('generationOverlay');
+        document.getElementById('generationForm').style.display = 'block';
+        document.getElementById('generationLoading').classList.remove('active');
+        document.getElementById('generationSuccess').classList.remove('active');
+        document.getElementById('modalTopicValue').textContent = currentTopic;
+
+        if (type === 'quiz') {
+            document.getElementById('modalTitle').innerHTML = '<i class="bi bi-patch-question-fill"></i><span>Genera Quiz</span>';
+            document.getElementById('modalTitle').className = 'generation-modal-title quiz';
+            document.getElementById('modalGenerateBtn').className = 'generation-btn quiz';
+            document.getElementById('modalBtnText').textContent = 'Genera Quiz';
+            document.getElementById('deckSelector').style.display = 'none';
+            document.getElementById('modalCount').innerHTML = '<option value="5">5 domande</option><option value="10" selected>10 domande</option><option value="15">15 domande</option><option value="20">20 domande</option>';
+        } else {
+            document.getElementById('modalTitle').innerHTML = '<i class="bi bi-stack"></i><span>Crea Flashcards</span>';
+            document.getElementById('modalTitle').className = 'generation-modal-title flash';
+            document.getElementById('modalGenerateBtn').className = 'generation-btn flash';
+            document.getElementById('modalBtnText').textContent = 'Crea Flashcards';
+            document.getElementById('deckSelector').style.display = 'block';
+            document.getElementById('modalCount').innerHTML = '<option value="5">5 carte</option><option value="10" selected>10 carte</option><option value="15">15 carte</option><option value="20">20 carte</option>';
+            const deckSelect = document.getElementById('modalDeck');
+            deckSelect.innerHTML = '<option value="new">+ Crea nuovo deck</option>';
+            userDecks.forEach(deck => { deckSelect.innerHTML += `<option value="${deck.id}">${deck.name}</option>`; });
+        }
+        overlay.classList.add('active');
+    }
+
+    function closeGenerationModal() { document.getElementById('generationOverlay').classList.remove('active'); }
+
+    async function executeGeneration() {
+        const count = document.getElementById('modalCount').value;
+        const difficulty = document.getElementById('modalDifficulty').value;
+        document.getElementById('generationForm').style.display = 'none';
+        document.getElementById('generationLoading').classList.add('active');
+
+        if (generationType === 'quiz') {
+            document.getElementById('loadingText').textContent = 'Generazione Quiz...';
+            document.getElementById('loadingSubtext').textContent = `Creazione di ${count} domande su "${currentTopic}"`;
+            await generateQuiz(count, difficulty);
+        } else {
+            document.getElementById('loadingText').textContent = 'Creazione Flashcards...';
+            document.getElementById('loadingSubtext').textContent = `Generazione di ${count} carte su "${currentTopic}"`;
+            await generateFlashcards(count, difficulty);
+        }
+    }
+
+    async function generateQuiz(count, difficulty) {
+        try {
+            const response = await apiFetch(`/ai/quiz/generate?topic=${encodeURIComponent(currentTopic)}&numberOfQuestions=${count}&difficulty=${difficulty}`, { method: 'POST' });
+            if (response.ok) { const quiz = await response.json(); generatedQuizId = quiz.id; showGenerationSuccess('quiz', count); }
+            else { throw new Error('Errore'); }
+        } catch (error) { showNotification('Errore nella generazione del quiz', 'error'); closeGenerationModal(); }
+    }
+
+    async function generateFlashcards(count, difficulty) {
+        try {
+            let deckId = document.getElementById('modalDeck').value;
+            if (deckId === 'new') {
+                const deckResponse = await apiFetch('/flashcards/decks', { method: 'POST', body: JSON.stringify({ name: currentTopic, description: `Flashcards generate dalla spiegazione su "${currentTopic}"`, color: '#8B5CF6', isPublic: false }) });
+                if (deckResponse.ok) { const newDeck = await deckResponse.json(); deckId = newDeck.id; userDecks.unshift(newDeck); }
+                else { throw new Error('Errore creazione deck'); }
+            }
+            generatedDeckId = deckId;
+            const response = await apiFetch(`/ai/flashcards/generate?deckId=${deckId}&topic=${encodeURIComponent(currentTopic)}&numberOfCards=${count}&difficulty=${difficulty}`, { method: 'POST' });
+            if (response.ok) { showGenerationSuccess('flashcard', count); } else { throw new Error('Errore'); }
+        } catch (error) { showNotification('Errore nella generazione delle flashcards', 'error'); closeGenerationModal(); }
+    }
+
+    function showGenerationSuccess(type, count) {
+        document.getElementById('generationLoading').classList.remove('active');
+        document.getElementById('generationSuccess').classList.add('active');
+        if (type === 'quiz') {
+            document.getElementById('successIcon').className = 'success-icon quiz';
+            document.getElementById('successIcon').innerHTML = '<i class="bi bi-patch-check-fill"></i>';
+            document.getElementById('successTitle').textContent = 'Quiz Generato!';
+            document.getElementById('successDesc').textContent = `${count} domande pronte per te`;
+            document.getElementById('successActionText').textContent = 'Inizia Quiz';
+        } else {
+            document.getElementById('successIcon').className = 'success-icon flash';
+            document.getElementById('successIcon').innerHTML = '<i class="bi bi-stack"></i>';
+            document.getElementById('successTitle').textContent = 'Flashcards Create!';
+            document.getElementById('successDesc').textContent = `${count} carte aggiunte al deck`;
+            document.getElementById('successActionText').textContent = 'Studia Ora';
+        }
+    }
+
+    function goToGenerated() {
+        if (generationType === 'quiz' && generatedQuizId) { window.location.href = `quiz.html?quizId=${generatedQuizId}`; }
+        else if (generationType === 'flashcard' && generatedDeckId) { window.location.href = `flashcards.html?deckId=${generatedDeckId}`; }
     }
 
     function formatExplanation(text) {
         if (!text) return '';
-        return text
-            .replace(/^### (.*$)/gm, '<h3>$1</h3>')
-            .replace(/^## (.*$)/gm, '<h2>$1</h2>')
-            .replace(/^# (.*$)/gm, '<h1>$1</h1>')
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\*(.*?)\*/g, '<em>$1</em>')
-            .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
-            .replace(/`(.*?)`/g, '<code>$1</code>')
-            .replace(/^\- (.*$)/gm, '<li>$1</li>')
-            .replace(/^\d+\. (.*$)/gm, '<li>$1</li>')
-            .replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>')
-            .replace(/\n\n/g, '</p><p>')
-            .replace(/<p><\/p>/g, '');
+        return text.replace(/^### (.*$)/gm, '<h3>$1</h3>').replace(/^## (.*$)/gm, '<h2>$1</h2>').replace(/^# (.*$)/gm, '<h1>$1</h1>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>').replace(/`(.*?)`/g, '<code>$1</code>').replace(/^\- (.*$)/gm, '<li>$1</li>').replace(/^\d+\. (.*$)/gm, '<li>$1</li>').replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>').replace(/\n\n/g, '</p><p>');
     }
 
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
+    function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
 
     function copyExplanation() {
         const container = document.getElementById('explanationContainer');
-        const rawContent = container.dataset.rawContent;
-        if (rawContent) {
-            navigator.clipboard.writeText(rawContent).then(() => {
-                showNotification('Spiegazione copiata!', 'success');
-            });
-        }
+        if (container.dataset.rawContent) { navigator.clipboard.writeText(container.dataset.rawContent).then(() => { showNotification('Spiegazione copiata!', 'success'); }); }
     }
 
-    function requestExplanationAgain(topic) {
-        document.getElementById('topicInput').value = topic;
-        document.getElementById('explanationForm').dispatchEvent(new Event('submit'));
-    }
-
-    function generateQuizFromTopic(topic) {
-        sessionStorage.setItem('quizTopic', topic);
-        window.location.href = 'quiz.html';
-    }
-
-    function generateFlashcardsFromTopic(topic) {
-        sessionStorage.setItem('flashcardTopic', topic);
-        window.location.href = 'flashcards.html';
-    }
+    function regenerateExplanation() { document.getElementById('topicInput').value = currentTopic; document.getElementById('explanationForm').dispatchEvent(new Event('submit')); }
 
     function showXpNotification(xpEarned, leveledUp = false) {
         const notification = document.createElement('div');
         notification.className = 'xp-notification';
-        notification.innerHTML = `
-            <i class="bi bi-lightning-charge-fill"></i>
-            <div>
-                <div class="xp-amount">+${xpEarned} XP</div>
-                ${leveledUp ? '<small>🎉 Livello aumentato!</small>' : ''}
-            </div>
-        `;
+        notification.innerHTML = `<i class="bi bi-lightning-charge-fill"></i><div><div class="xp-amount">+${xpEarned} XP</div>${leveledUp ? '<small>🎉 Livello aumentato!</small>' : ''}</div>`;
         document.body.appendChild(notification);
         setTimeout(() => notification.remove(), 3000);
     }
 
     function showNotification(message, type = 'info') {
+        const colors = { success: '#10b981', warning: '#f59e0b', error: '#ef4444', info: '#3b82f6' };
         const toast = document.createElement('div');
-        toast.className = `alert alert-${type}`;
-        toast.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999;padding:1rem 1.5rem;border-radius:0.5rem;';
+        toast.style.cssText = `position:fixed;bottom:20px;right:20px;z-index:10001;padding:1rem 1.5rem;border-radius:0.75rem;background:${colors[type]||colors.info};color:#fff;font-weight:500;box-shadow:0 10px 40px rgba(0,0,0,0.3);`;
         toast.innerHTML = message;
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
     }
 
     function loadHistory() {
-        const saved = localStorage.getItem('explanationHistory');
-        if (saved) explanationHistory = JSON.parse(saved);
+        const storageKey = getUserStorageKey('explanationHistory');
+        const saved = localStorage.getItem(storageKey);
+        explanationHistory = saved ? JSON.parse(saved) : [];
         renderHistory();
     }
 
@@ -741,57 +636,33 @@
         const item = { id: Date.now(), topic, level, explanation, timestamp: new Date().toISOString() };
         explanationHistory.unshift(item);
         if (explanationHistory.length > 20) explanationHistory = explanationHistory.slice(0, 20);
-        localStorage.setItem('explanationHistory', JSON.stringify(explanationHistory));
+        const storageKey = getUserStorageKey('explanationHistory');
+        localStorage.setItem(storageKey, JSON.stringify(explanationHistory));
         renderHistory();
     }
 
     function renderHistory() {
         const container = document.getElementById('historyList');
         const section = document.getElementById('historySection');
-
-        if (explanationHistory.length === 0) {
-            section.style.display = 'none';
-            return;
-        }
-
+        if (explanationHistory.length === 0) { section.style.display = 'none'; return; }
         section.style.display = 'block';
-
         container.innerHTML = explanationHistory.map(item => {
             const date = new Date(item.timestamp);
-            const formattedDate = date.toLocaleDateString('it-IT', {
-                day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
-            });
-
-            return `
-                <div class="history-item" onclick="loadFromHistory(${item.id})">
-                    <div class="history-item-info">
-                        <div class="history-icon"><i class="bi bi-lightbulb"></i></div>
-                        <div>
-                            <div class="history-topic">${escapeHtml(item.topic)}</div>
-                            <div class="history-date">${formattedDate}</div>
-                        </div>
-                    </div>
-                    <div class="history-item-meta">
-                        <span class="meta-badge level">${escapeHtml(item.level)}</span>
-                        <i class="bi bi-chevron-right text-muted"></i>
-                    </div>
-                </div>
-            `;
+            const formattedDate = date.toLocaleDateString('it-IT', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+            return `<div class="history-card" onclick="loadFromHistory(${item.id})"><div class="history-card-header"><div class="history-icon"><i class="bi bi-lightbulb"></i></div><div class="history-info"><div class="history-topic">${escapeHtml(item.topic)}</div><div class="history-meta"><span><i class="bi bi-mortarboard"></i> ${escapeHtml(item.level)}</span><span><i class="bi bi-clock"></i> ${formattedDate}</span></div></div></div></div>`;
         }).join('');
     }
 
     function loadFromHistory(id) {
         const item = explanationHistory.find(h => h.id === id);
-        if (item) {
-            displayExplanation(item.topic, item.level, item.explanation);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+        if (item) { displayExplanation(item.topic, item.level, item.explanation); window.scrollTo({ top: 0, behavior: 'smooth' }); }
     }
 
     function clearHistory() {
         if (confirm('Sei sicuro di voler cancellare la cronologia?')) {
             explanationHistory = [];
-            localStorage.removeItem('explanationHistory');
+            const storageKey = getUserStorageKey('explanationHistory');
+            localStorage.removeItem(storageKey);
             renderHistory();
             showNotification('Cronologia cancellata', 'success');
         }

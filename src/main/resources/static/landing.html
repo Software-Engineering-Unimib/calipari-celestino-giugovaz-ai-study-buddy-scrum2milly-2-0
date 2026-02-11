@@ -909,7 +909,7 @@
                 const payload = JSON.parse(atob(token.split('.')[1]));
                 if (Date.now() < payload.exp * 1000) {
                     // Token valido, redirect alla dashboard
-                    window.location.href = 'index.html';
+                    window.location.href = 'dashboard.html';
                 }
             } catch (e) {
                 // Token non valido, rimani sulla landing

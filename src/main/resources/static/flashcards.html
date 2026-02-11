@@ -36,6 +36,33 @@
             height: 100%;
             transition: width 0.3s ease;
         }
+        /* Alert per topic dalla spiegazione */
+        .topic-alert {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(236, 72, 153, 0.1));
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 0.75rem;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .topic-alert i {
+            font-size: 1.5rem;
+            color: #a78bfa;
+        }
+        .topic-alert-content {
+            flex: 1;
+        }
+        .topic-alert-title {
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 0.25rem;
+        }
+        .topic-alert-text {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
     </style>
 </head>
 <body>
@@ -43,6 +70,21 @@
 
 <main class="main-content">
     <div id="alertContainer"></div>
+
+    <!-- Alert per topic dalla spiegazione -->
+    <div id="topicFromExplanationAlert" class="topic-alert" style="display: none;">
+        <i class="bi bi-lightbulb-fill"></i>
+        <div class="topic-alert-content">
+            <div class="topic-alert-title">Crea flashcards da una spiegazione</div>
+            <div class="topic-alert-text" id="topicAlertText">Argomento: ...</div>
+        </div>
+        <button class="btn btn-primary btn-sm" id="createFromTopicBtn">
+            <i class="bi bi-plus-lg"></i> Crea Deck
+        </button>
+        <button class="btn btn-outline btn-sm" onclick="dismissTopicAlert()">
+            <i class="bi bi-x"></i>
+        </button>
+    </div>
 
     <!-- Decks List View -->
     <div id="decksView">
@@ -232,9 +274,11 @@
 <script>
     let decks = [], currentDeck = null, currentCards = [], studyCards = [];
     let studyIndex = 0, studyCorrect = 0, studyIncorrect = 0, selectedColor = '#3B82F6';
+    let pendingTopic = null; // Topic dalla pagina spiegazioni
 
     document.addEventListener('DOMContentLoaded', function() {
         initLayout({ pageTitle: 'Flashcards', pageSubtitle: 'Crea e studia deck di flashcards con l\'aiuto dell\'AI', activePage: 'flashcards' });
+
         document.querySelectorAll('.color-option').forEach(el => {
             el.addEventListener('click', function() {
                 document.querySelectorAll('.color-option').forEach(c => c.classList.remove('selected'));
@@ -242,9 +286,50 @@
                 selectedColor = this.dataset.color;
             });
         });
+
+        // ========== NUOVO: Controlla se c'è un topic dalla pagina spiegazioni ==========
+        const savedTopic = sessionStorage.getItem('flashcardTopic');
+        if (savedTopic) {
+            pendingTopic = savedTopic;
+            sessionStorage.removeItem('flashcardTopic');
+        }
+
+        // Controlla se c'è un deckId nella URL (da pagina spiegazioni)
+        const urlParams = new URLSearchParams(window.location.search);
+        const deckIdFromUrl = urlParams.get('deckId');
+        if (deckIdFromUrl) {
+            window.deckIdToOpen = deckIdFromUrl;
+            // Rimuovi il parametro dalla URL senza ricaricare
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
         loadDecks();
         loadStats();
     });
+
+    // ========== NUOVO: Mostra alert per topic dalla spiegazione ==========
+    function showTopicFromExplanationAlert(topic) {
+        const alert = document.getElementById('topicFromExplanationAlert');
+        document.getElementById('topicAlertText').textContent = `Argomento: "${topic}"`;
+        document.getElementById('createFromTopicBtn').onclick = () => createDeckFromTopic(topic);
+        alert.style.display = 'flex';
+    }
+
+    function dismissTopicAlert() {
+        document.getElementById('topicFromExplanationAlert').style.display = 'none';
+        pendingTopic = null;
+    }
+
+    async function createDeckFromTopic(topic) {
+        // Pre-compila il modal di creazione deck
+        document.getElementById('deckName').value = topic;
+        document.getElementById('deckSubject').value = '';
+        document.getElementById('deckDescription').value = `Flashcards generate dalla spiegazione su "${topic}"`;
+        document.getElementById('createDeckModal').classList.add('active');
+
+        // Nascondi l'alert
+        document.getElementById('topicFromExplanationAlert').style.display = 'none';
+    }
 
     function showCreateDeckModal() {
         document.getElementById('deckName').value = '';
@@ -253,8 +338,15 @@
         document.getElementById('createDeckModal').classList.add('active');
     }
     function hideCreateDeckModal() { document.getElementById('createDeckModal').classList.remove('active'); }
+
     function showGenerateCardsModal() {
-        document.getElementById('generateTopic').value = '';
+        // Se c'è un topic pendente, pre-compilalo
+        if (pendingTopic) {
+            document.getElementById('generateTopic').value = pendingTopic;
+            pendingTopic = null; // Usa solo una volta
+        } else {
+            document.getElementById('generateTopic').value = '';
+        }
         document.getElementById('generateCardsModal').classList.add('active');
     }
     function hideGenerateCardsModal() { document.getElementById('generateCardsModal').classList.remove('active'); }
@@ -262,7 +354,31 @@
     async function loadDecks() {
         try {
             const response = await apiFetch('/flashcards/decks');
-            if (response.ok) { decks = await response.json(); renderDecks(); }
+            if (response.ok) {
+                decks = await response.json();
+                renderDecks();
+
+                // ========== NUOVO: Se c'è un deckId dalla URL, aprilo direttamente ==========
+                if (window.deckIdToOpen) {
+                    const deckToOpen = decks.find(d => d.id === window.deckIdToOpen);
+                    if (deckToOpen) {
+                        openDeck(window.deckIdToOpen);
+                    }
+                    window.deckIdToOpen = null;
+                    return;
+                }
+
+                // ========== NUOVO: Gestione topic dalla spiegazione ==========
+                if (pendingTopic) {
+                    if (decks.length > 0) {
+                        // Se ci sono deck, mostra l'alert per scegliere
+                        showTopicFromExplanationAlert(pendingTopic);
+                    } else {
+                        // Se non ci sono deck, apri direttamente il modal per crearne uno
+                        createDeckFromTopic(pendingTopic);
+                    }
+                }
+            }
         } catch (e) {
             document.getElementById('decksGrid').innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><i class="bi bi-exclamation-circle empty-state-icon"></i><p>Errore caricamento</p></div>';
         }
@@ -305,7 +421,26 @@
             const response = await apiFetch('/flashcards/decks', { method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, description: document.getElementById('deckDescription').value.trim() || null, subject: document.getElementById('deckSubject').value.trim() || null, color: selectedColor, isPublic: false })
             });
-            if (response.ok) { decks.unshift(await response.json()); renderDecks(); loadStats(); hideCreateDeckModal(); showAlert('Deck creato!', 'success'); }
+            if (response.ok) {
+                const newDeck = await response.json();
+                decks.unshift(newDeck);
+                renderDecks();
+                loadStats();
+                hideCreateDeckModal();
+                showAlert('Deck creato!', 'success');
+
+                // ========== NUOVO: Se c'era un topic, apri il deck e mostra il modal di generazione ==========
+                if (pendingTopic) {
+                    setTimeout(() => {
+                        openDeck(newDeck.id);
+                        setTimeout(() => {
+                            document.getElementById('generateTopic').value = pendingTopic;
+                            pendingTopic = null;
+                            document.getElementById('generateCardsModal').classList.add('active');
+                        }, 300);
+                    }, 300);
+                }
+            }
         } catch (e) { showAlert('Errore creazione deck', 'error'); }
     }
 
@@ -319,6 +454,9 @@
         } catch (e) {}
         document.getElementById('decksView').style.display = 'none';
         document.getElementById('deckDetailView').style.display = 'block';
+
+        // Nascondi l'alert se presente
+        document.getElementById('topicFromExplanationAlert').style.display = 'none';
     }
 
     function renderCards() {
