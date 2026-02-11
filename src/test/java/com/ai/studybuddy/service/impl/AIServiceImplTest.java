@@ -1,7 +1,5 @@
-package com.ai.studybuddy;
+package com.ai.studybuddy.service.impl;
 
-import com.ai.studybuddy.service.impl.AIServiceImpl;
-import com.ai.studybuddy.util.Const;
 import com.ai.studybuddy.config.integration.AIClient;
 import com.ai.studybuddy.exception.AIServiceException;
 import com.ai.studybuddy.exception.AIServiceException.AIErrorType;
