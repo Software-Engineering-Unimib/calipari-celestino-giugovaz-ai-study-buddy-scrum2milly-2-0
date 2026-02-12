@@ -1,10 +1,11 @@
 package com.ai.studybuddy.service.impl;
 
-import com.ai.studybuddy.config.integration.AIClient;
+import com.ai.studybuddy.integration.AIClient;
 import com.ai.studybuddy.exception.AIServiceException;
 import com.ai.studybuddy.exception.AIServiceException.AIErrorType;
 import com.ai.studybuddy.service.inter.AIService;
 import com.ai.studybuddy.util.enums.DifficultyLevel;
+import com.ai.studybuddy.util.enums.EducationLevel;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonSyntaxException;
@@ -49,34 +50,39 @@ public class AIServiceImpl implements AIService {
     // ========================================
 
     @Override
-    public String generateExplanation(String topic, String studentLevel, String language) {
-        log.info("Generazione spiegazione - topic: '{}', livello: {}, lingua: {}", 
-                topic, studentLevel, language);
+    public String generateExplanation(String topic, EducationLevel educationLevel, String language) {
+        log.info("Generazione spiegazione - topic: '{}', livello: {}, lingua: {}",
+                topic, educationLevel, language);
 
-        String prompt = buildExplanationPrompt(topic, studentLevel, language);
+        String prompt = buildExplanationPrompt(topic, educationLevel, language);
         return callAIWithFallback(prompt);
     }
 
     @Override
-    public String generateQuiz(String topic, int numQuestions, String difficulty, String language) {
+    public String generateQuiz(String topic, int numQuestions, String difficulty, EducationLevel educationLevel, String language) {
         log.info("Generazione quiz - topic: '{}', domande: {}, difficoltà: {}, lingua: {}",
                 topic, numQuestions, difficulty, language);
 
-        String prompt = buildQuizPrompt(topic, numQuestions, difficulty, language);
+        String prompt = buildQuizPrompt(topic, numQuestions, difficulty, educationLevel, language);
         return callAIWithFallback(prompt);
     }
 
     @Override
-    public String generateQuiz(String topic, int numQuestions, DifficultyLevel difficulty, String language) {
-        return generateQuiz(topic, numQuestions, difficulty.getLevel(), language);
+    public String generateQuiz(String topic, int numQuestions, DifficultyLevel difficulty, EducationLevel educationLevel, String language) {
+        log.info("Generazione quiz - topic: '{}', domande: {}, difficoltà: {}, livello: {}, lingua: {}",
+                topic, numQuestions, difficulty, educationLevel, language);
+
+        String prompt = buildQuizPrompt(topic, numQuestions, difficulty.getLevel(), educationLevel, language);
+        return callAIWithFallback(prompt);
     }
 
-    @Override
-    public String generateFlashcards(String topic, int numCards, DifficultyLevel difficulty, String language) {
-        log.info("Generazione flashcards - topic: '{}', carte: {}, difficoltà: {}, lingua: {}",
-                topic, numCards, difficulty, language);
 
-        String prompt = buildFlashcardsPrompt(topic, numCards, difficulty, language);
+    @Override
+    public String generateFlashcards(String topic, int numCards, DifficultyLevel difficulty, EducationLevel educationLevel, String language) {
+        log.info("Generazione flashcards - topic: '{}', carte: {}, difficoltà: {}, livello: {}, lingua: {}",
+                topic, numCards, difficulty, educationLevel, language);
+
+        String prompt = buildFlashcardsPrompt(topic, numCards, difficulty, educationLevel, language);
         return callAIWithFallback(prompt);
     }
 
@@ -94,13 +100,7 @@ public class AIServiceImpl implements AIService {
     // METODI LEGACY (DEPRECATI - NON USARE)
     // ========================================
 
-    @Override
-    @Deprecated
-    public String generateExplanation(String topic, String studentLevel) {
-        throw new UnsupportedOperationException(
-            "Metodo deprecato: la lingua è obbligatoria. Usa generateExplanation(topic, studentLevel, language)"
-        );
-    }
+
 
     @Override
     @Deprecated
@@ -226,7 +226,7 @@ public class AIServiceImpl implements AIService {
     /**
      * Costruisce il prompt per spiegazioni con istruzioni linguistiche vincolanti.
      */
-    private String buildExplanationPrompt(String topic, String studentLevel, String language) {
+    private String buildExplanationPrompt(String topic, EducationLevel educationLevel, String language) {
         String languageInstruction = getLanguageInstruction(language);
         
         return String.format(
@@ -240,14 +240,14 @@ public class AIServiceImpl implements AIService {
                 "Adatta il contenuto alla cultura e al sistema educativo della lingua target se rilevante.\n\n" +
                 "La spiegazione deve essere chiara, ben strutturata e facile da capire.\n\n" +
                 "RICORDA: TUTTA LA RISPOSTA DEVE ESSERE NELLA LINGUA: %s.",
-                languageInstruction, topic, studentLevel, language
+                languageInstruction, topic, educationLevel, language
         );
     }
 
     /**
      * Costruisce il prompt per quiz con istruzioni linguistiche vincolanti e formato JSON.
      */
-    private String buildQuizPrompt(String topic, int numQuestions, String difficulty, String language) {
+    private String buildQuizPrompt(String topic, int numQuestions, String difficulty, EducationLevel educationLevel, String language) {
         String languageInstruction = getLanguageInstruction(language);
         
         return String.format(
@@ -256,19 +256,19 @@ public class AIServiceImpl implements AIService {
                 "⚠️ TUTTO IL CONTENUTO (domande, opzioni, eventuali testi) DEVE ESSERE NELLA LINGUA: %s.\n" +
                 "⚠️ NON AGGIUNGERE NESSUN TESTO FUORI DAL JSON, NEPPURE INTRODUZIONI O COMMENTI.\n\n" +
                 "Sei un generatore di quiz educativi. Rispondi SOLO con JSON valido, senza testo aggiuntivo.\n" +
-                "Genera %d domande a scelta multipla su '%s' con difficoltà %s.\n" +
+                "Genera %d domande a scelta multipla su '%s' con difficoltà %s.\n"+"Per uno studente di livello %s"+
                 "Formato JSON richiesto: [{\"question\": \"...\", \"options\": [\"A\", \"B\", \"C\", \"D\"], \"correct\": \"A\"}]\n" +
                 "IMPORTANTE: Il campo 'correct' deve contenere SOLO la lettera della risposta corretta (A, B, C o D), non il testo.\n" +
                 "TUTTO il contenuto (domande e opzioni) deve essere ESCLUSIVAMENTE nella lingua specificata.\n" +
                 "Rispondi SOLO con l'array JSON, nient'altro.",
-                languageInstruction, language, numQuestions, topic, difficulty
+                languageInstruction, language, numQuestions, topic, difficulty, educationLevel
         );
     }
 
     /**
      * Costruisce il prompt per flashcards con istruzioni linguistiche vincolanti e formato JSON.
      */
-    private String buildFlashcardsPrompt(String topic, int numCards, DifficultyLevel difficulty, String language) {
+    private String buildFlashcardsPrompt(String topic, int numCards, DifficultyLevel difficulty, EducationLevel educationLevel, String language) {
         String languageInstruction = getLanguageInstruction(language);
         
         return String.format(

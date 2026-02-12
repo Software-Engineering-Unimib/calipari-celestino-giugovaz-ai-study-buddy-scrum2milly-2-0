@@ -1,4 +1,4 @@
-package com.ai.studybuddy.config.integration;
+package com.ai.studybuddy.integration;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;

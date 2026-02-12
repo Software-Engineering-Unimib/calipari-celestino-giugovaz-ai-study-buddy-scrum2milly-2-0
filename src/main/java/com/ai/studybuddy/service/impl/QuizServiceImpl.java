@@ -72,6 +72,7 @@ public class QuizServiceImpl implements QuizService {
                 request.getTopic(),
                 request.getNumberOfQuestions(),
                 request.getDifficultyLevel(),
+                user.getEducationLevel(),
                 request.getLanguage()
         );
 

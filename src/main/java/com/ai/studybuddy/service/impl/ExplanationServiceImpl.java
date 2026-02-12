@@ -5,6 +5,7 @@ import com.ai.studybuddy.dto.gamification.GamificationDTO.XpEventResponse;
 import com.ai.studybuddy.model.user.User;
 import com.ai.studybuddy.service.inter.AIService;
 import com.ai.studybuddy.service.inter.ExplanationService;
+import com.ai.studybuddy.util.enums.EducationLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -58,14 +59,23 @@ public class ExplanationServiceImpl implements ExplanationService {
         return aiService.generateExplanation(topic, mapLevel(level), "it");
     }
 
-    private String mapLevel(String level) {
-        if (level == null) return "università";
-        return switch (level.toLowerCase()) {
-            case "scuola_media", "scuolamedia", "media" -> "scuola media";
-            case "scuola_superiore", "scuolasuperiore", "superiore" -> "scuola superiore";
-            case "università", "universita", "uni" -> "università";
-            case "esperto", "expert", "avanzato" -> "esperto";
-            default -> level;
-        };
+    private EducationLevel mapLevel(String level) {
+        if (level == null || level.isBlank()) {
+            return EducationLevel.UNIVERSITY; // default
+        }
+
+        try {
+            return EducationLevel.valueOf(level.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            // Fallback per valori legacy o non riconosciuti
+            return switch (level.toLowerCase()) {
+
+                case "middle", "media" -> EducationLevel.MIDDLE_SCHOOL;
+                case "high", "superiore" -> EducationLevel.HIGH_SCHOOL;
+                case "university", "università" -> EducationLevel.UNIVERSITY;
+
+                default -> EducationLevel.UNIVERSITY;
+            };
+        }
     }
 }
