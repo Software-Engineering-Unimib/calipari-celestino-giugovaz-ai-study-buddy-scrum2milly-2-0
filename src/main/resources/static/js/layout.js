@@ -62,7 +62,7 @@ function renderSidebar(activePage = '') {
                         <span>${item.label}</span>
                     </a>
                 `).join('')}
-                
+
                 <div class="nav-section-title">Account</div>
                 ${navItems.slice(5).map(item => `
                     <a href="${item.href}" class="nav-item ${item.id === currentPage ? 'active' : ''}" data-page="${item.id}">
@@ -90,7 +90,7 @@ function renderSidebar(activePage = '') {
     document.body.insertAdjacentHTML('afterbegin', sidebarHTML);
     setupSidebarEvents();
     loadSidebarStats();
-    
+
     // Intercetta i click sui link per gestire il Focus Mode
     setupNavigationInterception();
 }
@@ -116,14 +116,14 @@ function setupNavigationInterception() {
     document.addEventListener('click', (e) => {
         const link = e.target.closest('a[href]');
         if (!link) return;
-        
+
         const href = link.getAttribute('href');
         if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
-        
+
         // Verifica se il Focus Mode è attivo
         if (window.FocusManager && window.FocusManager.isInSession()) {
             const isAllowed = window.FocusManager.isAllowedPage(href);
-            
+
             if (!isAllowed) {
                 e.preventDefault();
                 window.FocusManager.showNavigationConfirm(href);
@@ -146,8 +146,8 @@ async function loadSidebarStats() {
             const levelEl = document.getElementById('sidebarLevel');
             if (levelEl) levelEl.textContent = stats.level || 1;
         }
-    } catch (e) { 
-        console.error('Errore stats sidebar:', e); 
+    } catch (e) {
+        console.error('Errore stats sidebar:', e);
     }
 }
 
@@ -203,8 +203,8 @@ async function loadTopbarStats() {
             if (xpEl) xpEl.textContent = formatNumber(stats.totalXp || 0);
             if (levelEl) levelEl.textContent = stats.level || 1;
         }
-    } catch (e) { 
-        console.error('Errore stats topbar:', e); 
+    } catch (e) {
+        console.error('Errore stats topbar:', e);
     }
 }
 
@@ -260,10 +260,35 @@ function logout() {
         window.FocusManager.showNavigationConfirm('login.html', true);
         return;
     }
-    
+
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     window.location.href = 'login.html';
+}
+
+// ==================== API FETCH HELPER ====================
+async function apiFetch(endpoint, options = {}) {
+    const token = localStorage.getItem('token');
+    const defaultHeaders = {
+        'Content-Type': 'application/json'
+    };
+
+    if (token) {
+        defaultHeaders['Authorization'] = `Bearer ${token}`;
+    }
+
+    const config = {
+        ...options,
+        headers: {
+            ...defaultHeaders,
+            ...options.headers
+        }
+    };
+
+    const baseUrl = '/api';
+    const url = endpoint.startsWith('/') ? `${baseUrl}${endpoint}` : `${baseUrl}/${endpoint}`;
+
+    return fetch(url, config);
 }
 
 // Esporta per uso globale
@@ -272,3 +297,6 @@ window.renderSidebar = renderSidebar;
 window.renderTopbar = renderTopbar;
 window.logout = logout;
 window.checkAuth = checkAuth;
+window.apiFetch = apiFetch;
+window.getUserInitials = getUserInitials;
+window.getUserDisplayName = getUserDisplayName;

@@ -4,7 +4,7 @@
 # Questo workflow esegue:
 # 1. Build e test del progetto
 # 2. Analisi qualità codice con SonarCloud
-# 3. Build Docker image
+# 3. Build Docker imagegit s
 # =============================================================================
 
 name: CI/CD Pipeline
