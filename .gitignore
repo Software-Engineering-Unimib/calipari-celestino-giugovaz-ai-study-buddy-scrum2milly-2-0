@@ -193,3 +193,7 @@ buildNumber.properties
 
 .env
 application-local.properties
+
+/bin/
+
+.DS_Store
