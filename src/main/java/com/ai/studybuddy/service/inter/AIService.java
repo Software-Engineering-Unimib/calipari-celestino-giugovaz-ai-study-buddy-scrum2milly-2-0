@@ -1,6 +1,7 @@
 package com.ai.studybuddy.service.inter;
 
 import com.ai.studybuddy.util.enums.DifficultyLevel;
+import com.ai.studybuddy.util.enums.EducationLevel;
 import com.google.gson.JsonArray;
 
 /**
@@ -11,7 +12,7 @@ public interface AIService {
     /**
      * Genera spiegazione personalizzata
      */
-    String generateExplanation(String topic, String studentLevel);
+
 
     /**
      * Genera quiz
@@ -45,13 +46,13 @@ public interface AIService {
      */
     JsonArray parseFlashcardsResponse(String aiResponse);
 
-	String generateExplanation(String topic, String studentLevel, String language);
+	String generateExplanation(String topic, EducationLevel educationLevel, String language);
 
-	String generateQuiz(String topic, int numQuestions, String difficulty, String language);
+	String generateQuiz(String topic, int numQuestions, String difficulty, EducationLevel educationLevel,  String language);
 
-	String generateQuiz(String topic, int numQuestions, DifficultyLevel difficulty, String language);
+	String generateQuiz(String topic, int numQuestions, DifficultyLevel difficulty, EducationLevel educationLevel,  String language);
 
-	String generateFlashcards(String topic, int numCards, DifficultyLevel difficulty, String language);
+	String generateFlashcards(String topic, int numCards, DifficultyLevel difficulty, EducationLevel educationLevel,  String language);
 
 	String generateFlashcardsWithContext(String topic, int numCards, DifficultyLevel difficulty, String context,
 			String language);

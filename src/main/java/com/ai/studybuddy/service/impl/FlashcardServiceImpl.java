@@ -118,6 +118,7 @@ public class FlashcardServiceImpl implements FlashcardService {
                     request.getTopic(),
                     request.getNumberOfCards(),
                     request.getDifficultyLevel(),
+                    user.getEducationLevel(),
                     language
             );
         }

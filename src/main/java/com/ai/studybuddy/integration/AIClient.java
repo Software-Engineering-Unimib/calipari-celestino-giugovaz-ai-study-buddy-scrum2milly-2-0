@@ -1,4 +1,4 @@
-package com.ai.studybuddy.config.integration;
+package com.ai.studybuddy.integration;
 
 /**
  * Interfaccia per client di servizi AI.

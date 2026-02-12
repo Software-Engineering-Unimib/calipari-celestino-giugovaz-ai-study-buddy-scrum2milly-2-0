@@ -1,4 +1,4 @@
-package com.ai.studybuddy.config.integration;
+package com.ai.studybuddy.integration;
 
 import com.ai.studybuddy.exception.AIServiceException;
 import com.ai.studybuddy.exception.AIServiceException.AIErrorType;
