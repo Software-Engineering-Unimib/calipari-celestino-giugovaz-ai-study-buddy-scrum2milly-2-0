@@ -273,7 +273,163 @@
             <p style="color: var(--text-muted);">Caricamento...</p>
         </div>
     </div>
+// AGGIUNGI QUESTA SEZIONE DOPO "Stats Grid" in profile.html
 
+<!-- Language Settings Section -->
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="section-header" style="margin-bottom: 1rem;">
+        <div>
+            <h2 class="section-title" style="font-size: 1.25rem;">
+                <i class="bi bi-translate text-primary"></i> Lingua Preferita
+            </h2>
+            <p class="section-subtitle">Scegli la lingua per i contenuti AI</p>
+        </div>
+    </div>
+
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <div class="mb-3" style="position: relative;">
+                <label for="languageSelect" class="form-label" style="color: var(--text-muted); font-size: 0.875rem;">
+                    Lingua attuale
+                </label>
+                <div class="input-group">
+                    <span class="input-group-text" style="background: var(--dark-card); border-color: var(--dark-border); color: var(--text-muted);">
+                        <span id="currentLanguageFlag" style="font-size: 1.5rem;">🇮🇹</span>
+                    </span>
+                    <select class="form-select" id="languageSelect" style="background: var(--dark-card); border-color: var(--dark-border); color: #fff;">
+                        <option value="it">🇮🇹 Italiano</option>
+                        <option value="en">🇺🇸 English</option>
+                        <option value="es">🇪🇸 Español</option>
+                        <option value="fr">🇫🇷 Français</option>
+                        <option value="de">🇩🇪 Deutsch</option>
+                        <option value="pt">🇵🇹 Português</option>
+                        <option value="ru">🇷🇺 Русский</option>
+                    </select>
+                </div>
+                <small class="text-muted">
+                    <i class="bi bi-info-circle"></i> 
+                    Questa lingua verrà utilizzata per spiegazioni, quiz e flashcards generati dall'AI
+                </small>
+            </div>
+        </div>
+        <div class="col-md-6 text-end">
+            <button class="btn btn-primary" onclick="saveLanguage()" id="saveLanguageBtn">
+                <i class="bi bi-check-lg"></i> Salva Impostazioni
+            </button>
+        </div>
+    </div>
+    <div id="languageMessage" style="display: none; margin-top: 1rem;"></div>
+</div>
+
+<script>
+    // ==================== GESTIONE LINGUA ====================
+    const languageFlags = { 'it': '🇮🇹', 'en': '🇺🇸', 'es': '🇪🇸', 'fr': '🇫🇷', 'de': '🇩🇪', 'pt': '🇵🇹', 'ru': '🇷🇺' };
+
+    async function loadCurrentLanguage() {
+        try {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const currentLang = user.preferredLanguage || 'it';
+            
+            const selectEl = document.getElementById('languageSelect');
+            if (selectEl) {
+                selectEl.value = currentLang;
+                const flagEl = document.getElementById('currentLanguageFlag');
+                if (flagEl) flagEl.textContent = languageFlags[currentLang] || '🌐';
+                
+                selectEl.addEventListener('change', function() {
+                    const flagEl = document.getElementById('currentLanguageFlag');
+                    if (flagEl) flagEl.textContent = languageFlags[this.value] || '🌐';
+                });
+            }
+        } catch (error) { console.error('Errore caricamento lingua:', error); }
+    }
+
+    async function saveLanguage() {
+        const selectEl = document.getElementById('languageSelect');
+        const newLanguage = selectEl.value;
+        const btn = document.getElementById('saveLanguageBtn');
+        const messageEl = document.getElementById('languageMessage');
+
+        if (!newLanguage) { showLanguageMessage('Seleziona una lingua', 'danger'); return; }
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Salvataggio...';
+
+        try {
+            const response = await apiFetch('/auth/update-language', {
+                method: 'PUT',
+                body: JSON.stringify({ preferredLanguage: newLanguage })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                showLanguageMessage(`✅ Lingua aggiornata a ${selectEl.options[selectEl.selectedIndex].text}`, 'success');
+                
+                // Aggiorna localStorage
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                user.preferredLanguage = newLanguage;
+                localStorage.setItem('user', JSON.stringify(user));
+            } else {
+                showLanguageMessage('❌ ' + (data.message || 'Errore nel salvataggio'), 'danger');
+            }
+        } catch (error) {
+            console.error('Errore salvataggio lingua:', error);
+            showLanguageMessage('❌ Errore di connessione. Riprova.', 'danger');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check-lg"></i> Salva Impostazioni';
+        }
+    }
+
+    function showLanguageMessage(message, type) {
+        const messageEl = document.getElementById('languageMessage');
+        if (!messageEl) return;
+        const alertClass = { 'success': 'alert-success', 'danger': 'alert-danger', 'warning': 'alert-warning' }[type] || 'alert-info';
+        messageEl.className = `alert ${alertClass}`;
+        messageEl.innerHTML = message;
+        messageEl.style.display = 'block';
+        setTimeout(() => messageEl.style.display = 'none', 5000);
+    }
+
+    // CHIAMA loadCurrentLanguage() in DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // ... codice esistente ...
+        loadCurrentLanguage();
+    });
+
+    // FIX per loadRecommendations() - usa endpoint /recommendations
+    async function loadRecommendations() {
+        try {
+            const response = await apiFetch('/recommendations');
+            if (response.ok) {
+                const recs = await response.json();
+                renderRecommendations(recs);
+            }
+        } catch (error) {
+            renderRecommendations([]);
+        }
+    }
+
+    async function generateRecommendations() {
+        const btn = event.target.closest('button');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading-spinner" style="width:16px;height:16px;"></span>';
+        try {
+            await apiFetch('/recommendations/generate', { method: 'POST' });
+            await loadRecommendations();
+        } catch (e) {}
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Aggiorna';
+    }
+
+    async function dismissRec(id) {
+        try {
+            await apiFetch(`/recommendations/${id}/dismiss`, { method: 'POST' });
+            loadRecommendations();
+        } catch (e) {}
+    }
+</script>
     <!-- Badges Section -->
     <div class="section-header" style="margin-top: 2.5rem;">
         <div>

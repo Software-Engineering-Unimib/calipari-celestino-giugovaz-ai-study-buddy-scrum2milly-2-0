@@ -15,13 +15,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Servizio principale per la generazione di contenuti AI.
- *
- * Implementa una strategia di fallback a 2 livelli:
- * 1. Groq Primary Model (llama-3.3-70b-versatile) - più potente
- * 2. Groq Fallback Model (mixtral-8x7b-32768) - più veloce
- *
+ * 
+ * ⚠️ La lingua è SEMPRE obbligatoria e deve arrivare dal profilo utente.
+ *    Nessun default fisso! I metodi legacy lanciano eccezione.
  */
 @Service
 public class AIServiceImpl implements AIService {
@@ -44,87 +45,129 @@ public class AIServiceImpl implements AIService {
     }
 
     // ========================================
-    // METODI PUBBLICI - GENERAZIONE CONTENUTI
+    // METODI CON LINGUA (OBBLIGATORIA)
     // ========================================
 
     @Override
-    public String generateExplanation(String topic, String studentLevel) {
+    public String generateExplanation(String topic, String studentLevel, String language) {
+        log.info("Generazione spiegazione - topic: '{}', livello: {}, lingua: {}", 
+                topic, studentLevel, language);
 
-
-        log.info("Generazione spiegazione per topic: '{}', livello: {}", topic, studentLevel);
-
-        String prompt = buildExplanationPrompt(topic, studentLevel);
+        String prompt = buildExplanationPrompt(topic, studentLevel, language);
         return callAIWithFallback(prompt);
     }
 
     @Override
-    public String generateQuiz(String topic, int numQuestions, String difficulty) {
-        log.info("Generazione quiz - topic: '{}', domande: {}, difficoltà: {}",
-                topic, numQuestions, difficulty);
+    public String generateQuiz(String topic, int numQuestions, String difficulty, String language) {
+        log.info("Generazione quiz - topic: '{}', domande: {}, difficoltà: {}, lingua: {}",
+                topic, numQuestions, difficulty, language);
 
-        String prompt = buildQuizPrompt(topic, numQuestions, difficulty);
+        String prompt = buildQuizPrompt(topic, numQuestions, difficulty, language);
         return callAIWithFallback(prompt);
     }
 
     @Override
-    public String generateQuiz(String topic, int numQuestions, DifficultyLevel difficulty) {
-        return generateQuiz(topic, numQuestions, difficulty.getLevel());
+    public String generateQuiz(String topic, int numQuestions, DifficultyLevel difficulty, String language) {
+        return generateQuiz(topic, numQuestions, difficulty.getLevel(), language);
     }
 
     @Override
-    @Deprecated
-    public String generateFlashCard(String topic, int numCards, String difficulty) {
-        DifficultyLevel level = DifficultyLevel.fromString(difficulty);
-        return generateFlashcards(topic, numCards, level);
-    }
+    public String generateFlashcards(String topic, int numCards, DifficultyLevel difficulty, String language) {
+        log.info("Generazione flashcards - topic: '{}', carte: {}, difficoltà: {}, lingua: {}",
+                topic, numCards, difficulty, language);
 
-    @Override
-    public String generateFlashcards(String topic, int numCards, DifficultyLevel difficulty) {
-        log.info("Generazione flashcards - topic: '{}', carte: {}, difficoltà: {}",
-                topic, numCards, difficulty);
-
-        String prompt = buildFlashcardsPrompt(topic, numCards, difficulty);
+        String prompt = buildFlashcardsPrompt(topic, numCards, difficulty, language);
         return callAIWithFallback(prompt);
     }
 
     @Override
     public String generateFlashcardsWithContext(String topic, int numCards,
-                                                DifficultyLevel difficulty, String context) {
-        log.info("Generazione flashcards con contesto - topic: '{}', carte: {}", topic, numCards);
+                                                DifficultyLevel difficulty, String context, String language) {
+        log.info("Generazione flashcards con contesto - topic: '{}', carte: {}, lingua: {}",
+                topic, numCards, language);
 
-        String prompt = buildFlashcardsWithContextPrompt(topic, numCards, difficulty, context);
+        String prompt = buildFlashcardsWithContextPrompt(topic, numCards, difficulty, context, language);
         return callAIWithFallback(prompt);
     }
+
+    // ========================================
+    // METODI LEGACY (DEPRECATI - NON USARE)
+    // ========================================
+
+    @Override
+    @Deprecated
+    public String generateExplanation(String topic, String studentLevel) {
+        throw new UnsupportedOperationException(
+            "Metodo deprecato: la lingua è obbligatoria. Usa generateExplanation(topic, studentLevel, language)"
+        );
+    }
+
+    @Override
+    @Deprecated
+    public String generateQuiz(String topic, int numQuestions, String difficulty) {
+        throw new UnsupportedOperationException(
+            "Metodo deprecato: la lingua è obbligatoria. Usa generateQuiz(topic, numQuestions, difficulty, language)"
+        );
+    }
+
+    @Override
+    @Deprecated
+    public String generateQuiz(String topic, int numQuestions, DifficultyLevel difficulty) {
+        throw new UnsupportedOperationException(
+            "Metodo deprecato: la lingua è obbligatoria. Usa generateQuiz(topic, numQuestions, difficulty, language)"
+        );
+    }
+
+    @Override
+    @Deprecated
+    public String generateFlashCard(String topic, int numCards, String difficulty) {
+        throw new UnsupportedOperationException(
+            "Metodo deprecato: usa generateFlashcards(topic, numCards, difficulty, language)"
+        );
+    }
+
+    @Override
+    @Deprecated
+    public String generateFlashcards(String topic, int numCards, DifficultyLevel difficulty) {
+        throw new UnsupportedOperationException(
+            "Metodo deprecato: la lingua è obbligatoria. Usa generateFlashcards(topic, numCards, difficulty, language)"
+        );
+    }
+
+    @Override
+    @Deprecated
+    public String generateFlashcardsWithContext(String topic, int numCards,
+                                                DifficultyLevel difficulty, String context) {
+        throw new UnsupportedOperationException(
+            "Metodo deprecato: la lingua è obbligatoria. Usa generateFlashcardsWithContext(topic, numCards, difficulty, context, language)"
+        );
+    }
+
+    // ========================================
+    // PARSING RISPOSTE
+    // ========================================
 
     @Override
     public JsonArray parseFlashcardsResponse(String aiResponse) {
         try {
-
-
-
-            if(aiResponse == null || aiResponse.isEmpty())
+            if (aiResponse == null || aiResponse.isEmpty()) {
                 throw new AIServiceException(AIErrorType.RESPONSE_NULL);
+            }
+            
             String cleaned = cleanJsonResponse(aiResponse);
             return gson.fromJson(cleaned, JsonArray.class);
         } catch (JsonSyntaxException e) {
-
+            log.error("Errore parsing JSON: {}", aiResponse);
             throw new AIServiceException(AIErrorType.PARSE_ERROR,
                     "Impossibile interpretare la risposta dell'AI");
         }
     }
 
     // ========================================
-    // METODI PUBBLICI - UTILITÀ
+    // METODI UTILITÀ
     // ========================================
 
-    /**
-     * Verifica quale modello è disponibile
-     */
-
-    //* SERVONO QUESTI METODI getAvailableModel e isAnyModelAvailable PER I TEST
-
-
-
+    @Override
     public String getAvailableModel() {
         if (primaryClient.isAvailable()) {
             return primaryClient.getModelName();
@@ -135,59 +178,35 @@ public class AIServiceImpl implements AIService {
         return "Nessun modello AI disponibile";
     }
 
-
+    @Override
     public boolean isAnyModelAvailable() {
         return primaryClient.isAvailable() || fallbackClient.isAvailable();
     }
 
-    /**
-     * Verifica se almeno un modello AI è disponibile
-
-    public boolean isAnyModelAvailable() {
-        return primaryClient.isAvailable() || fallbackClient.isAvailable();
-    }
-
-
     // ========================================
-    // METODI PRIVATI - FALLBACK LOGIC
+    // FALLBACK LOGIC
     // ========================================
 
-    /**
-     * Chiamata AI con fallback automatico tra modelli
-     */
     private String callAIWithFallback(String prompt) {
-
-        // TEST MODE: Forza fallback
-
         if (testFallback) {
             log.warn("⚠️ TEST MODE ATTIVO: Forzando fallback al modello secondario");
-            log.warn("⚠️ Per disattivare: imposta ai.groq.test-fallback=false");
             throw new AIServiceException(AIErrorType.RATE_LIMIT, "Test fallback");
         }
 
-
-        // LIVELLO 1: Prova con modello principale (Llama 3.3 70B)
         try {
-
-
             log.debug("Tentativo con {}", primaryClient.getModelName());
             return primaryClient.generateText(prompt);
-
         } catch (Exception primaryError) {
             log.warn("Primary model fallito: {}", primaryError.getMessage());
 
-            // LIVELLO 2: Prova con modello di fallback (Mixtral 8x7B)
             try {
                 log.info("🔄 Fallback a {}", fallbackClient.getModelName());
                 return fallbackClient.generateText(prompt);
-
             } catch (WebClientResponseException e) {
                 handleWebClientException(e);
                 throw new AIServiceException(AIErrorType.SERVICE_UNAVAILABLE);
-
             } catch (Exception fallbackError) {
-                log.error("❌ Anche il fallback model è fallito: {}",
-                        fallbackError.getMessage());
+                log.error("❌ Anche il fallback model è fallito: {}", fallbackError.getMessage());
 
                 if (fallbackError.getMessage() != null &&
                         fallbackError.getMessage().contains("timeout")) {
@@ -201,73 +220,122 @@ public class AIServiceImpl implements AIService {
     }
 
     // ========================================
-    // METODI PRIVATI - COSTRUZIONE PROMPT
+    // COSTRUZIONE PROMPT RAFFORZATI (LINGUA OBBLIGATORIA + LIVELLO)
     // ========================================
 
     /**
-     * Costruisce il prompt per spiegazioni
+     * Costruisce il prompt per spiegazioni con istruzioni linguistiche vincolanti.
      */
-    private String buildExplanationPrompt(String topic, String studentLevel) {
+    private String buildExplanationPrompt(String topic, String studentLevel, String language) {
+        String languageInstruction = getLanguageInstruction(language);
+        
         return String.format(
-                "Sei un tutor paziente e chiaro. Rispondi sempre in italiano. " +
-                        "Spiega '%s' a uno studente di livello %s. " +
-                        "Usa esempi concreti e un linguaggio semplice.",
-                topic, studentLevel
+                "%s\n\n" +
+                "⚠️ È ASSOLUTAMENTE OBBLIGATORIO rispondere ESCLUSIVAMENTE nella lingua specificata.\n" +
+                "⚠️ QUALSIASI PAROLA, FRASE O SPIEGAZIONE IN ITALIANO O IN ALTRA LINGUA È VIETATA E SARÀ CONSIDERATA ERRORE.\n\n" +
+                "Sei un tutor paziente e chiaro.\n" +
+                "Spiega '%s' a uno studente di livello %s.\n" +
+                "Usa esempi concreti e un linguaggio appropriato al livello.\n" +
+                "Parla SOLO nella lingua specificata e NON COMMENTARE la richiesta.\n" +
+                "Adatta il contenuto alla cultura e al sistema educativo della lingua target se rilevante.\n\n" +
+                "La spiegazione deve essere chiara, ben strutturata e facile da capire.\n\n" +
+                "RICORDA: TUTTA LA RISPOSTA DEVE ESSERE NELLA LINGUA: %s.",
+                languageInstruction, topic, studentLevel, language
         );
     }
 
     /**
-     * Costruisce il prompt per quiz
+     * Costruisce il prompt per quiz con istruzioni linguistiche vincolanti e formato JSON.
      */
-    private String buildQuizPrompt(String topic, int numQuestions, String difficulty) {
+    private String buildQuizPrompt(String topic, int numQuestions, String difficulty, String language) {
+        String languageInstruction = getLanguageInstruction(language);
+        
         return String.format(
-                "Sei un generatore di quiz educativi. Rispondi SOLO con JSON valido, senza testo aggiuntivo. " +
-                        "Genera %d domande a scelta multipla su '%s' con difficoltà %s. " +
-                        "Formato JSON richiesto: [{\"question\": \"...\", \"options\": [\"A\", \"B\", \"C\", \"D\"], \"correct\": \"A\"}]" +
-                        "IMPORTANTE: Il campo 'correct' deve contenere SOLO la lettera della risposta corretta (A, B, C o D), non il testo. " +
-                        "Rispondi SOLO con l'array JSON, nient'altro.",
-                numQuestions, topic, difficulty
+                "%s\n\n" +
+                "⚠️ È ASSOLUTAMENTE OBBLIGATORIO rispondere ESCLUSIVAMENTE nella lingua specificata.\n" +
+                "⚠️ TUTTO IL CONTENUTO (domande, opzioni, eventuali testi) DEVE ESSERE NELLA LINGUA: %s.\n" +
+                "⚠️ NON AGGIUNGERE NESSUN TESTO FUORI DAL JSON, NEPPURE INTRODUZIONI O COMMENTI.\n\n" +
+                "Sei un generatore di quiz educativi. Rispondi SOLO con JSON valido, senza testo aggiuntivo.\n" +
+                "Genera %d domande a scelta multipla su '%s' con difficoltà %s.\n" +
+                "Formato JSON richiesto: [{\"question\": \"...\", \"options\": [\"A\", \"B\", \"C\", \"D\"], \"correct\": \"A\"}]\n" +
+                "IMPORTANTE: Il campo 'correct' deve contenere SOLO la lettera della risposta corretta (A, B, C o D), non il testo.\n" +
+                "TUTTO il contenuto (domande e opzioni) deve essere ESCLUSIVAMENTE nella lingua specificata.\n" +
+                "Rispondi SOLO con l'array JSON, nient'altro.",
+                languageInstruction, language, numQuestions, topic, difficulty
         );
     }
 
     /**
-     * Costruisce il prompt per flashcards
+     * Costruisce il prompt per flashcards con istruzioni linguistiche vincolanti e formato JSON.
      */
-    private String buildFlashcardsPrompt(String topic, int numCards, DifficultyLevel difficulty) {
+    private String buildFlashcardsPrompt(String topic, int numCards, DifficultyLevel difficulty, String language) {
+        String languageInstruction = getLanguageInstruction(language);
+        
         return String.format(
-                "Sei un generatore di flashcards educative. Rispondi SOLO con JSON valido, senza testo aggiuntivo. " +
-                        "Genera %d flashcards su '%s' con difficoltà %s. " +
-                        "Formato JSON richiesto: [{\"front\": \"domanda o concetto\", \"back\": \"risposta o spiegazione\"}]" +
-                        "Le flashcards devono essere chiare, concise e utili per il ripasso. " +
-                        "Rispondi SOLO con l'array JSON, nient'altro.",
-                numCards, topic, difficulty.getLevel()
+                "%s\n\n" +
+                "⚠️ È ASSOLUTAMENTE OBBLIGATORIO rispondere ESCLUSIVAMENTE nella lingua specificata.\n" +
+                "⚠️ TUTTO IL CONTENUTO (front, back) DEVE ESSERE NELLA LINGUA: %s.\n" +
+                "⚠️ NON AGGIUNGERE NESSUN TESTO FUORI DAL JSON, NEPPURE INTRODUZIONI O COMMENTI.\n\n" +
+                "Sei un generatore di flashcards educative. Rispondi SOLO con JSON valido, senza testo aggiuntivo.\n" +
+                "Genera %d flashcards su '%s' con difficoltà %s.\n" +
+                "Formato JSON richiesto: [{\"front\": \"domanda o concetto\", \"back\": \"risposta o spiegazione\"}]\n" +
+                "Le flashcards devono essere chiare, concise e utili per il ripasso.\n" +
+                "TUTTO il contenuto (front e back) deve essere ESCLUSIVAMENTE nella lingua specificata.\n" +
+                "Rispondi SOLO con l'array JSON, nient'altro.",
+                languageInstruction, language, numCards, topic, difficulty.getLevel()
         );
     }
 
     /**
-     * Costruisce il prompt per flashcards con contesto
+     * Costruisce il prompt per flashcards con contesto, con istruzioni linguistiche vincolanti.
      */
     private String buildFlashcardsWithContextPrompt(String topic, int numCards,
-                                                    DifficultyLevel difficulty, String context) {
+                                                    DifficultyLevel difficulty, String context, String language) {
+        String languageInstruction = getLanguageInstruction(language);
+        
         return String.format(
-                "Sei un generatore di flashcards educative. Rispondi SOLO con JSON valido, senza testo aggiuntivo. " +
-                        "Genera %d flashcards su '%s' con difficoltà %s. " +
-                        "Contesto aggiuntivo: %s. " +
-                        "Formato JSON richiesto: [{\"front\": \"domanda o concetto\", \"back\": \"risposta o spiegazione\"}]" +
-                        "Le flashcards devono essere chiare, concise e utili per il ripasso. " +
-                        "Rispondi SOLO con l'array JSON, nient'altro.",
-                numCards, topic, difficulty.getLevel(),
+                "%s\n\n" +
+                "⚠️ È ASSOLUTAMENTE OBBLIGATORIO rispondere ESCLUSIVAMENTE nella lingua specificata.\n" +
+                "⚠️ TUTTO IL CONTENUTO (front, back) DEVE ESSERE NELLA LINGUA: %s.\n" +
+                "⚠️ NON AGGIUNGERE NESSUN TESTO FUORI DAL JSON, NEPPURE INTRODUZIONI O COMMENTI.\n\n" +
+                "Sei un generatore di flashcards educative. Rispondi SOLO con JSON valido, senza testo aggiuntivo.\n" +
+                "Genera %d flashcards su '%s' con difficoltà %s.\n" +
+                "Contesto aggiuntivo: %s.\n\n" +
+                "Formato JSON richiesto: [{\"front\": \"domanda o concetto\", \"back\": \"risposta o spiegazione\"}]\n" +
+                "Le flashcards devono essere chiare, concise e utili per il ripasso.\n" +
+                "TUTTO il contenuto (front e back) deve essere ESCLUSIVAMENTE nella lingua specificata.\n" +
+                "Rispondi SOLO con l'array JSON, nient'altro.",
+                languageInstruction, language, numCards, topic, difficulty.getLevel(),
                 context != null ? context : "nessuno"
         );
     }
 
+    /**
+     * Restituisce l'istruzione di lingua per il prompt.
+     * ⚠️ language NON può essere null!
+     */
+    private String getLanguageInstruction(String language) {
+        if (language == null) {
+            throw new IllegalArgumentException("La lingua non può essere null");
+        }
+        
+        Map<String, String> languageInstructions = new HashMap<>();
+        languageInstructions.put("it", "Rispondi SEMPRE in italiano.");
+        languageInstructions.put("en", "Respond ALWAYS in English.");
+        languageInstructions.put("es", "Responde SIEMPRE en español.");
+        languageInstructions.put("fr", "Réponds TOUJOURS en français.");
+        languageInstructions.put("de", "Antworte IMMER auf Deutsch.");
+        languageInstructions.put("pt", "Responda SEMPRE em português.");
+        languageInstructions.put("ru", "Отвечай ВСЕГДА на русском языке.");
+      
+        return languageInstructions.getOrDefault(language.toLowerCase(), 
+                String.format("Rispondi SEMPRE in %s.", language));
+    }
+
     // ========================================
-    // METODI PRIVATI - UTILITÀ
+    // UTILITÀ
     // ========================================
 
-    /**
-     * Pulisce la risposta JSON dall'AI
-     */
     private String cleanJsonResponse(String response) {
         if (response == null || response.isBlank()) {
             throw new AIServiceException(AIErrorType.PARSE_ERROR, "Risposta AI vuota");
@@ -278,9 +346,6 @@ public class AIServiceImpl implements AIService {
                 .trim();
     }
 
-    /**
-     * Gestisce le eccezioni WebClient
-     */
     private void handleWebClientException(WebClientResponseException e) {
         int statusCode = e.getStatusCode().value();
         log.error("Errore API Groq - Status: {}, Body: {}",
@@ -291,9 +356,7 @@ public class AIServiceImpl implements AIService {
                 throw new AIServiceException(AIErrorType.RATE_LIMIT);
             case 401:
                 throw new AIServiceException(AIErrorType.INVALID_API_KEY);
-            case 503:
-            case 502:
-            case 504:
+            case 503: case 502: case 504:
                 throw new AIServiceException(AIErrorType.SERVICE_UNAVAILABLE);
             default:
                 throw new AIServiceException(AIErrorType.SERVICE_UNAVAILABLE,

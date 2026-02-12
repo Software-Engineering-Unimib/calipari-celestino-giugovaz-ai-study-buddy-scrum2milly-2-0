@@ -44,4 +44,19 @@ public interface AIService {
      * Parsa la risposta JSON delle flashcards
      */
     JsonArray parseFlashcardsResponse(String aiResponse);
+
+	String generateExplanation(String topic, String studentLevel, String language);
+
+	String generateQuiz(String topic, int numQuestions, String difficulty, String language);
+
+	String generateQuiz(String topic, int numQuestions, DifficultyLevel difficulty, String language);
+
+	String generateFlashcards(String topic, int numCards, DifficultyLevel difficulty, String language);
+
+	String generateFlashcardsWithContext(String topic, int numCards, DifficultyLevel difficulty, String context,
+			String language);
+
+	String getAvailableModel();
+
+	boolean isAnyModelAvailable();
 }

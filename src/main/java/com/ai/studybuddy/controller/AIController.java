@@ -59,20 +59,28 @@ public class AIController {
     @GetMapping("/explain")
     public ResponseEntity<ExplanationResponse> getExplanation(
             @RequestParam String topic,
+            @RequestParam(required = false) String level,  // Opzionale
             @RequestParam(required = false) String subject,
             Principal principal) {
 
         User user = userService.getCurrentUser(principal);
+        
+        // PRIORITÀ: 
+        // 1. Se level è fornito nella request, usalo
+        // 2. Altrimenti usa il livello dal profilo utente (educationLevel)
+        // 3. Default "Università"
+        String educationLevel = level;
+        if (educationLevel == null || educationLevel.isBlank()) {
+            educationLevel = user.getEducationLevel() != null 
+                    ? user.getEducationLevel().getDisplayName() 
+                    : "Università";
+        }
 
-        // Prende il livello dal profilo utente, NON più dal request
-        String level = user.getEducationLevel() != null
-                ? user.getEducationLevel().getDisplayName()
-                : "Università"; // Default se non impostato
+        logger.info("Richiesta spiegazione '{}' da utente: {} - Livello: {}, Lingua: {}", 
+                topic, user.getEmail(), educationLevel, user.getPreferredLanguage());
 
-        logger.info("Richiesta spiegazione '{}' da utente: {} - Livello: {}",
-                topic, user.getEmail(), level);
-
-        ExplanationResponse response = explanationService.generateExplanation(topic, level, subject, user);
+        ExplanationResponse response = explanationService.generateExplanation(
+                topic, educationLevel, subject, user);
 
         logger.info("Spiegazione generata - XP: +{}, Totale: {}",
                 response.getXpEarned(), response.getTotalXp());
@@ -94,14 +102,15 @@ public class AIController {
             Principal principal) {
 
         User user = userService.getCurrentUser(principal);
-        logger.info("Generazione e salvataggio quiz '{}' ({} domande) per utente: {}",
-                topic, numberOfQuestions, user.getEmail());
+        logger.info("Generazione e salvataggio quiz '{}' ({} domande) per utente: {}, lingua: {}",
+                topic, numberOfQuestions, user.getEmail(), user.getPreferredLanguage());
 
         QuizGenerateRequest request = QuizGenerateRequest.builder()
                 .topic(topic)
                 .numberOfQuestions(numberOfQuestions)
                 .difficultyLevel(DifficultyLevel.fromString(difficulty))
                 .subject(subject)
+                .language(user.getPreferredLanguage())
                 .build();
 
         Quiz quiz = quizService.generateQuiz(request, user);
@@ -267,14 +276,15 @@ public class AIController {
             Principal principal) {
 
         User user = userService.getCurrentUser(principal);
-        logger.info("Generazione e salvataggio {} flashcard '{}' nel deck {} per utente: {}",
-                numberOfCards, topic, deckId, user.getEmail());
+        logger.info("Generazione e salvataggio {} flashcard '{}' nel deck {} per utente: {}, lingua: {}",
+                numberOfCards, topic, deckId, user.getEmail(), user.getPreferredLanguage());
 
         List<Flashcard> createdCards = flashcardServiceImpl.generateAndSaveFlashcards(
                 deckId,
                 topic,
                 numberOfCards,
                 difficulty,
+                user.getPreferredLanguage(),
                 user
         );
 
@@ -293,6 +303,26 @@ public class AIController {
         response.setTotalXp(xpEvent.getNewTotalXp());
         response.setLeveledUp(xpEvent.isLeveledUp());
 
+        return ResponseEntity.ok(response);
+    }
+
+    // ==================== DEBUG / UTILITY ====================
+
+    /**
+     * Endpoint di debug per verificare la lingua e il livello dell'utente
+     */
+    @GetMapping("/debug/user-info")
+    public ResponseEntity<Map<String, Object>> debugUserInfo(Principal principal) {
+        User user = userService.getCurrentUser(principal);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("userId", user.getId());
+        response.put("email", user.getEmail());
+        response.put("preferredLanguage", user.getPreferredLanguage());
+        response.put("educationLevel", user.getEducationLevel());
+        response.put("fullName", user.getFullName());
+        response.put("streakDays", user.getStreakDays());
+        
         return ResponseEntity.ok(response);
     }
 

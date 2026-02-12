@@ -60,21 +60,21 @@ public class QuizServiceImpl implements QuizService {
     @Override
     @Transactional
     public Quiz generateQuiz(QuizGenerateRequest request, User user) {
-        log.info("Generazione quiz - topic: {}, domande: {}, difficoltà: {}",
-                request.getTopic(), request.getNumberOfQuestions(), request.getDifficultyLevel());
+        log.info("Generazione quiz - topic: {}, domande: {}, difficoltà: {}, lingua: {}",
+                request.getTopic(), request.getNumberOfQuestions(), 
+                request.getDifficultyLevel(), request.getLanguage());
 
-        // 1. Crea entity Quiz
         Quiz quiz = quizMapper.toEntity(request, user);
         quiz = quizRepository.save(quiz);
 
-        // 2. Genera domande con AI
+        // ✅ PASSA LA LINGUA DALLA REQUEST!
         String aiResponse = aiService.generateQuiz(
                 request.getTopic(),
                 request.getNumberOfQuestions(),
-                request.getDifficultyLevel()
+                request.getDifficultyLevel(),
+                request.getLanguage()
         );
 
-        // 3. Parsa e salva domande
         JsonArray questionsJson = parseQuizJson(aiResponse);
 
         for (int i = 0; i < questionsJson.size(); i++) {
@@ -84,7 +84,8 @@ public class QuizServiceImpl implements QuizService {
         }
 
         quiz = quizRepository.save(quiz);
-        log.info("Quiz generato con ID: {}, {} domande", quiz.getId(), quiz.getNumberOfQuestions());
+        log.info("Quiz generato con ID: {}, {} domande, lingua: {}", 
+                quiz.getId(), quiz.getNumberOfQuestions(), request.getLanguage());
 
         return quiz;
     }
@@ -96,6 +97,7 @@ public class QuizServiceImpl implements QuizService {
                 .topic(topic)
                 .numberOfQuestions(numberOfQuestions)
                 .difficultyLevel(DifficultyLevel.fromString(difficulty))
+                .language(user.getPreferredLanguage()) // ⚠️ fallback con lingua utente
                 .build();
         return selfProxy.generateQuiz(request, user);
     }
@@ -115,14 +117,11 @@ public class QuizServiceImpl implements QuizService {
 
         Quiz quiz = findQuizByIdAndUser(request.getQuizId(), userId);
 
-        // Verifica se già completato
         if (Boolean.TRUE.equals(quiz.getIsCompleted())) {
             log.warn("Quiz {} già completato", request.getQuizId());
-            // Restituisce comunque il risultato esistente
             return buildQuizResultResponse(quiz);
         }
 
-        // Applica le risposte
         Map<UUID, String> answers = request.getAnswers();
         int correctCount = 0;
 
@@ -131,13 +130,10 @@ public class QuizServiceImpl implements QuizService {
             if (answer != null) {
                 question.setUserAnswer(answer);
                 boolean isCorrect = question.checkAnswer(answer);
-                if (isCorrect) {
-                    correctCount++;
-                }
+                if (isCorrect) correctCount++;
             }
         }
 
-        // Completa e calcola punteggio
         quiz.complete();
         quiz = quizRepository.save(quiz);
 
@@ -147,45 +143,22 @@ public class QuizServiceImpl implements QuizService {
         return buildQuizResultResponse(quiz);
     }
 
-    /**
-     * Costruisce il QuizResultResponse dal Quiz completato
-     */
     private QuizResultResponse buildQuizResultResponse(Quiz quiz) {
         QuizResultResponse response = new QuizResultResponse();
-
         response.setQuizId(quiz.getId());
         response.setTopic(quiz.getTopic());
         response.setSubject(quiz.getSubject());
         response.setScore(quiz.getScore() != null ? quiz.getScore() : 0);
         response.setTotalQuestions(quiz.getNumberOfQuestions() != null ? quiz.getNumberOfQuestions() : 0);
 
-        // Calcola percentuale
         double percentage = 0;
         if (quiz.getNumberOfQuestions() != null && quiz.getNumberOfQuestions() > 0) {
             percentage = (double) response.getScore() / response.getTotalQuestions() * 100;
         }
         response.setScorePercentage(percentage);
+        response.setPassed(percentage >= 60);
 
-        // Quiz superato se >= 60%
-        boolean passed = percentage >= 60;
-        response.setPassed(passed);
 
-        // Feedback
-        String feedback;
-        if (percentage >= 90) {
-            feedback = "Eccellente! 🏆 Ottima padronanza dell'argomento!";
-        } else if (percentage >= 70) {
-            feedback = "Molto bene! 👍 Continua così!";
-        } else if (percentage >= 60) {
-            feedback = "Buono! ✅ Hai superato il quiz.";
-        } else if (percentage >= 40) {
-            feedback = "Quasi! 📚 Ripassa un po' e riprova.";
-        } else {
-            feedback = "Da migliorare 💪 Ti consiglio di ripassare l'argomento.";
-        }
-        response.setFeedback(feedback);
-
-        // Risultati delle singole domande
         List<QuizResultResponse.QuestionResult> questionResults = new ArrayList<>();
         for (Question q : quiz.getQuestions()) {
             QuizResultResponse.QuestionResult qr = new QuizResultResponse.QuestionResult();
@@ -200,6 +173,47 @@ public class QuizServiceImpl implements QuizService {
         response.setQuestionResults(questionResults);
 
         return response;
+    }
+
+    private String generateFeedback(double percentage, String language) {
+        switch (language.toLowerCase()) {
+            case "en":
+                if (percentage >= 90) return "Excellent! 🏆 Great mastery of the topic!";
+                else if (percentage >= 70) return "Very good! 👍 Keep it up!";
+                else if (percentage >= 60) return "Good! ✅ You passed the quiz.";
+                else if (percentage >= 40) return "Almost! 📚 Review a bit and try again.";
+                else return "Needs improvement 💪 I recommend reviewing the topic.";
+            case "es":
+                if (percentage >= 90) return "¡Excelente! 🏆 ¡Gran dominio del tema!";
+                else if (percentage >= 70) return "¡Muy bien! 👍 ¡Sigue así!";
+                else if (percentage >= 60) return "¡Bien! ✅ Has aprobado el cuestionario.";
+                else if (percentage >= 40) return "¡Casi! 📚 Repasa un poco y vuelve a intentarlo.";
+                else return "Necesita mejorar 💪 Te recomiendo repasar el tema.";
+            case "fr":
+                if (percentage >= 90) return "Excellent ! 🏆 Très bonne maîtrise du sujet !";
+                else if (percentage >= 70) return "Très bien ! 👍 Continuez comme ça !";
+                else if (percentage >= 60) return "Bien ! ✅ Vous avez réussi le quiz.";
+                else if (percentage >= 40) return "Presque ! 📚 Revoyez un peu et réessayez.";
+                else return "À améliorer 💪 Je vous recommande de revoir le sujet.";
+            case "de":
+                if (percentage >= 90) return "Ausgezeichnet! 🏆 Großartige Beherrschung des Themas!";
+                else if (percentage >= 70) return "Sehr gut! 👍 Weiter so!";
+                else if (percentage >= 60) return "Gut! ✅ Du hast das Quiz bestanden.";
+                else if (percentage >= 40) return "Fast! 📚 Ein bisschen nacharbeiten und erneut versuchen.";
+                else return "Verbesserungsbedarf 💪 Ich empfehle, das Thema nochmals zu wiederholen.";
+            case "pt":
+                if (percentage >= 90) return "Excelente! 🏆 Grande domínio do tópico!";
+                else if (percentage >= 70) return "Muito bom! 👍 Continue assim!";
+                else if (percentage >= 60) return "Bom! ✅ Você passou no questionário.";
+                else if (percentage >= 40) return "Quase! 📚 Revisa um pouco e tenta novamente.";
+                else return "Precisa melhorar 💪 Recomendo revisar o tópico.";
+            default: // italiano
+                if (percentage >= 90) return "Eccellente! 🏆 Ottima padronanza dell'argomento!";
+                else if (percentage >= 70) return "Molto bene! 👍 Continua così!";
+                else if (percentage >= 60) return "Buono! ✅ Hai superato il quiz.";
+                else if (percentage >= 40) return "Quasi! 📚 Ripassa un po' e riprova.";
+                else return "Da migliorare 💪 Ti consiglio di ripassare l'argomento.";
+        }
     }
 
     @Override
@@ -249,14 +263,14 @@ public class QuizServiceImpl implements QuizService {
     }
 
     @Override
-    public QuizService.QuizStats getUserStats(UUID userId) {
+    public QuizStats getUserStats(UUID userId) {
         long totalQuizzes = quizRepository.countByUserId(userId);
         long completedQuizzes = quizRepository.countByUserIdAndIsCompletedTrue(userId);
         Double averageScore = quizRepository.getAverageScoreByUserId(userId);
         List<Quiz> passedQuizzes = quizRepository.findPassedQuizzes(userId);
         List<Quiz> failedQuizzes = quizRepository.findFailedQuizzes(userId);
 
-        return new QuizService.QuizStats(
+        return new QuizStats(
                 totalQuizzes,
                 completedQuizzes,
                 passedQuizzes.size(),
@@ -270,8 +284,6 @@ public class QuizServiceImpl implements QuizService {
         LocalDateTime since = LocalDateTime.now().minusDays(days);
         return quizRepository.findRecentQuizzes(userId, since);
     }
-
-    // ==================== HELPER METHODS ====================
 
     private Quiz findQuizByIdAndUser(UUID quizId, UUID userId) {
         return quizRepository.findByIdAndUserId(quizId, userId)

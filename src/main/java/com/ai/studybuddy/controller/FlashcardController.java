@@ -32,17 +32,16 @@ public class FlashcardController {
     private final FlashcardService flashcardService;
     private final FlashcardDeckService deckService;
     private final UserService userService;
-    private final GamificationServiceImpl gamificationService;  // AGGIUNTO
+    private final GamificationServiceImpl gamificationService;
 
-    // Constructor injection
     public FlashcardController(FlashcardService flashcardService,
                                FlashcardDeckService deckService,
                                UserService userService,
-                               GamificationServiceImpl gamificationService) {  // AGGIUNTO
+                               GamificationServiceImpl gamificationService) {
         this.flashcardService = flashcardService;
         this.deckService = deckService;
         this.userService = userService;
-        this.gamificationService = gamificationService;  // AGGIUNTO
+        this.gamificationService = gamificationService;
     }
 
     // ==================== DECK ENDPOINTS ====================
@@ -50,7 +49,7 @@ public class FlashcardController {
     @GetMapping("/decks")
     public ResponseEntity<List<FlashcardDeck>> getAllDecks(Principal principal) {
         User user = userService.getCurrentUser(principal);
-        logger.info("Recupero deck per utente: {}", user.getEmail());
+        logger.debug("Recupero deck per utente: {}", user.getEmail());
 
         List<FlashcardDeck> decks = deckService.getUserDecks(user.getId());
         return ResponseEntity.ok(decks);
@@ -170,10 +169,10 @@ public class FlashcardController {
         // Registra la revisione
         Flashcard card = flashcardService.reviewFlashcard(cardId, wasCorrect, user.getId());
 
-        // ✅ ASSEGNA XP PER FLASHCARD STUDIATA (+2 XP)
+        // ✅ ASSEGNA XP PER FLASHCARD STUDIATA
         XpEventResponse xpEvent = gamificationService.recordFlashcardXp(user, 1);
 
-        logger.info("Flashcard {} reviewata da {}, XP guadagnati: {}",
+        logger.debug("Flashcard {} reviewata da {}, XP guadagnati: {}",
                 cardId, user.getEmail(), xpEvent.getXpEarned());
 
         // Costruisci risposta con info flashcard + XP
@@ -216,7 +215,7 @@ public class FlashcardController {
                 ? ((Number) body.get("cardsStudied")).intValue()
                 : 0;
 
-        // Durata sessione in minuti (opzionale, per future sessioni focus)
+        // Durata sessione in minuti (opzionale)
         int durationMinutes = body.containsKey("durationMinutes")
                 ? ((Number) body.get("durationMinutes")).intValue()
                 : 0;
@@ -236,6 +235,10 @@ public class FlashcardController {
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
         response.put("cardsStudied", cardsStudied);
+        
+        if (durationMinutes > 0) {
+            response.put("durationMinutes", durationMinutes);
+        }
 
         if (xpEvent != null) {
             response.put("xpEarned", xpEvent.getXpEarned());

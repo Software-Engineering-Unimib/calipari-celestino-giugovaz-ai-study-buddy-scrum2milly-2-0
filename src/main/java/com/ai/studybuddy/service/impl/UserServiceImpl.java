@@ -19,6 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -27,15 +28,18 @@ import java.util.UUID;
 public class UserServiceImpl implements UserService, UserDetailsService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
+    private static final String DEFAULT_LANGUAGE = "it";
+    private static final List<String> SUPPORTED_LANGUAGES = Arrays.asList("it", "en", "es", "fr", "de", "pt", "ru");
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // Constructor injection
     public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
+
+    // ==================== CRUD BASE ====================
 
     @Override
     public List<User> getAllUsers() {
@@ -78,9 +82,27 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         );
     }
 
+    // ==================== REGISTRAZIONE UNIFICATA ====================
+
     @Override
     @Transactional
-    public User registerUser(String firstName, String lastName, String email, String password, EducationLevel educationLevel) {
+    public User registerUser(String firstName, String lastName, String email, 
+                            String password, EducationLevel educationLevel) {
+        return registerUser(firstName, lastName, email, password, educationLevel, null);
+    }
+
+    @Override
+    @Transactional
+    public User registerUser(String firstName, String lastName, String email, 
+                            String password, String preferredLanguage) {
+        return registerUser(firstName, lastName, email, password, null, preferredLanguage);
+    }
+
+    @Override
+    @Transactional
+    public User registerUser(String firstName, String lastName, String email, 
+                            String password, EducationLevel educationLevel, 
+                            String preferredLanguage) {
         if (existsByEmail(email)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, Const.EMAIL_EXISTS);
         }
@@ -90,13 +112,40 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         user.setLastName(lastName);
         user.setEmail(email);
         user.setPasswordHash(passwordEncoder.encode(password));
-        user.setEducationLevel(educationLevel);
+        
+        // ⭐ IMPOSTA EDUCATION LEVEL (se presente)
+        if (educationLevel != null) {
+            user.setEducationLevel(educationLevel);
+        }
+        
+        // ⭐ IMPOSTA LINGUA PREFERITA (default "it" se non specificata)
+        String language = (preferredLanguage != null && !preferredLanguage.isBlank()) 
+                ? preferredLanguage 
+                : DEFAULT_LANGUAGE;
+        
+        // Valida la lingua (solo se è stata fornita esplicitamente)
+        if (preferredLanguage != null && !SUPPORTED_LANGUAGES.contains(preferredLanguage)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                    "Lingua non supportata: " + preferredLanguage);
+        }
+        
+        user.setPreferredLanguage(language);
+        
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
+        user.setLevel(1);
+        user.setTotalPoints(0);
+        user.setStreakDays(0);
 
-        logger.info("Registrazione nuovo utente: {}", email);
+        logger.info("Registrazione nuovo utente: {} - Livello: {}, Lingua: {}", 
+                email, 
+                user.getEducationLevel() != null ? user.getEducationLevel().getDisplayName() : "NON SPECIFICATO",
+                user.getPreferredLanguage());
+                
         return userRepository.save(user);
     }
+
+    // ==================== UTILITY ====================
 
     @Override
     public boolean existsByEmail(String email) {
@@ -127,6 +176,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         user.setUpdatedAt(LocalDateTime.now());
         return userRepository.save(user);
     }
+
+    // ==================== GAMIFICATION ====================
 
     @Override
     @Transactional
@@ -168,5 +219,29 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         userRepository.save(user);
 
         logger.info("Utente {} streak resettato", userId);
+    }
+
+    // ==================== MULTILINGUA ====================
+
+    @Override
+    @Transactional
+    public User updatePreferredLanguage(UUID userId, String language) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, Const.USER_NOT_FOUND));
+
+        // Valida la lingua
+        if (!SUPPORTED_LANGUAGES.contains(language)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                    "Lingua non supportata. Supportate: " + SUPPORTED_LANGUAGES);
+        }
+
+        String oldLanguage = user.getPreferredLanguage();
+        user.setPreferredLanguage(language);
+        user.setUpdatedAt(LocalDateTime.now());
+        User updated = userRepository.save(user);
+
+        logger.info("Lingua aggiornata per utente {}: {} -> {}", 
+                userId, oldLanguage != null ? oldLanguage : "it", language);
+        return updated;
     }
 }
