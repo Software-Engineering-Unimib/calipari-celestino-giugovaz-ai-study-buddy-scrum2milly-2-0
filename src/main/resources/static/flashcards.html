@@ -486,7 +486,7 @@
         document.getElementById('generateBtnText').style.display = 'none';
         document.getElementById('generateBtnSpinner').style.display = 'inline-flex';
         try {
-            const response = await apiFetch(`/ai/flashcards/generate?deckId=${currentDeck.id}&topic=${encodeURIComponent(topic)}&numberOfCards=${document.getElementById('generateCount').value}&difficulty=${document.getElementById('generateDifficulty').value}`, { method: 'POST' });
+            const response = await apiFetch(`/flashcards/generate?deckId=${currentDeck.id}&topic=${encodeURIComponent(topic)}&numberOfCards=${document.getElementById('generateCount').value}&difficulty=${document.getElementById('generateDifficulty').value}`, { method: 'POST' });
             if (response.ok) { hideGenerateCardsModal(); showAlert('Flashcards generate!', 'success'); await openDeck(currentDeck.id); loadStats(); }
         } catch (e) { showAlert('Errore generazione', 'error'); }
         finally { btn.disabled = false; document.getElementById('generateBtnText').style.display = 'inline-flex'; document.getElementById('generateBtnSpinner').style.display = 'none'; }

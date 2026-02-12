@@ -642,7 +642,7 @@ class UserServiceImplTest {
         when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
 
         // Act
-        User result = userService.registerUser("Mario", "Rossi", email, password, null);
+        User result = userService.registerUser("Mario", "Rossi", email, password, (EducationLevel) null);
 
         // Assert
         assertThat(result).isNotNull();

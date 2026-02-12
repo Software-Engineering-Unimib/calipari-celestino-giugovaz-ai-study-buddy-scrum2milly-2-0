@@ -16,9 +16,9 @@ import org.springframework.web.reactive.function.client.WebClient;
  * per tutte le richieste AI.
  */
 @Component("groqPrimaryClient")
-public class GroqPrimaryClient implements AIClient {
+public class PrimaryClient implements AIClient {
 
-    private static final Logger log = LoggerFactory.getLogger(GroqPrimaryClient.class);
+    private static final Logger log = LoggerFactory.getLogger(PrimaryClient.class);
 
     @Value("${ai.groq.api-key}")
     private String apiKey;
@@ -31,7 +31,7 @@ public class GroqPrimaryClient implements AIClient {
     private final Gson gson = new Gson();
 
     // Constructor Injection
-    public GroqPrimaryClient(WebClient.Builder webClientBuilder, ResponseParser responseParser) {
+    public PrimaryClient(WebClient.Builder webClientBuilder, ResponseParser responseParser) {
         this.webClient = webClientBuilder
                 .baseUrl("https://api.groq.com/openai/v1")
                 .build();

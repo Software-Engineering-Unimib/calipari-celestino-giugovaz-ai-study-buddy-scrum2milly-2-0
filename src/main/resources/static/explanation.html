@@ -566,7 +566,7 @@
                 else { throw new Error('Errore creazione deck'); }
             }
             generatedDeckId = deckId;
-            const response = await apiFetch(`/ai/flashcards/generate?deckId=${deckId}&topic=${encodeURIComponent(currentTopic)}&numberOfCards=${count}&difficulty=${difficulty}`, { method: 'POST' });
+            const response = await apiFetch(`/flashcards/generate?deckId=${deckId}&topic=${encodeURIComponent(currentTopic)}&numberOfCards=${count}&difficulty=${difficulty}`, { method: 'POST' });
             if (response.ok) { showGenerationSuccess('flashcard', count); } else { throw new Error('Errore'); }
         } catch (error) { showNotification('Errore nella generazione delle flashcards', 'error'); closeGenerationModal(); }
     }

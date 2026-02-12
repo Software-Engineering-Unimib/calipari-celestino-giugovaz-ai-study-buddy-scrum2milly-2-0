@@ -2,10 +2,12 @@ package com.ai.studybuddy.controller;
 
 import com.ai.studybuddy.dto.flashcard.FlashcardCreateRequest;
 import com.ai.studybuddy.dto.flashcard.FlashcardDeckCreateRequest;
+import com.ai.studybuddy.dto.flashcard.GenerateFlashcardsResponse;
 import com.ai.studybuddy.dto.gamification.GamificationDTO.XpEventResponse;
 import com.ai.studybuddy.model.flashcard.Flashcard;
 import com.ai.studybuddy.model.flashcard.FlashcardDeck;
 import com.ai.studybuddy.model.user.User;
+import com.ai.studybuddy.service.impl.FlashcardServiceImpl;
 import com.ai.studybuddy.service.impl.GamificationServiceImpl;
 import com.ai.studybuddy.service.inter.FlashcardDeckService;
 import com.ai.studybuddy.service.inter.FlashcardService;
@@ -30,18 +32,58 @@ public class FlashcardController {
     private static final Logger logger = LoggerFactory.getLogger(FlashcardController.class);
 
     private final FlashcardService flashcardService;
+    private final FlashcardServiceImpl flashcardServiceImpl;
     private final FlashcardDeckService deckService;
     private final UserService userService;
     private final GamificationServiceImpl gamificationService;
 
     public FlashcardController(FlashcardService flashcardService,
+                               FlashcardServiceImpl flashcardServiceImpl,
                                FlashcardDeckService deckService,
                                UserService userService,
                                GamificationServiceImpl gamificationService) {
         this.flashcardService = flashcardService;
+        this.flashcardServiceImpl = flashcardServiceImpl;
         this.deckService = deckService;
         this.userService = userService;
         this.gamificationService = gamificationService;
+    }
+
+    // ==================== AI GENERATION ====================
+
+    /**
+     * Genera e salva flashcards con AI
+     * ASSEGNA XP PER FLASHCARDS GENERATE (+2 XP per card)
+     * ENDPOINT: POST /api/flashcards/generate
+     */
+    @PostMapping("/generate")
+    public ResponseEntity<GenerateFlashcardsResponse> generateAndSaveFlashcards(
+            @RequestParam UUID deckId,
+            @RequestParam String topic,
+            @RequestParam(defaultValue = "5") int numberOfCards,
+            @RequestParam(defaultValue = "MEDIUM") String difficulty,
+            Principal principal) {
+
+        User user = userService.getCurrentUser(principal);
+        logger.info("Generazione e salvataggio {} flashcard '{}' nel deck {} per utente: {}, lingua: {}",
+                numberOfCards, topic, deckId, user.getEmail(), user.getPreferredLanguage());
+
+        List<Flashcard> createdCards = flashcardServiceImpl.generateAndSaveFlashcards(
+                deckId, topic, numberOfCards, difficulty, user.getPreferredLanguage(), user);
+
+        XpEventResponse xpEvent = gamificationService.recordFlashcardXp(user, createdCards.size());
+
+        GenerateFlashcardsResponse response = new GenerateFlashcardsResponse(
+                true,
+                String.format("Generate %d flashcard con successo (+%d XP)",
+                        createdCards.size(), xpEvent.getXpEarned()),
+                createdCards);
+
+        response.setXpEarned(xpEvent.getXpEarned());
+        response.setTotalXp(xpEvent.getNewTotalXp());
+        response.setLeveledUp(xpEvent.isLeveledUp());
+
+        return ResponseEntity.ok(response);
     }
 
     // ==================== DECK ENDPOINTS ====================
@@ -155,7 +197,7 @@ public class FlashcardController {
 
     /**
      * Registra una revisione di flashcard
-     * ✅ ASSEGNA XP PER FLASHCARD STUDIATA (+2 XP per card)
+     * ASSEGNA XP PER FLASHCARD STUDIATA (+2 XP per card)
      */
     @PostMapping("/cards/{cardId}/review")
     public ResponseEntity<Map<String, Object>> reviewFlashcard(
@@ -166,16 +208,13 @@ public class FlashcardController {
         User user = userService.getCurrentUser(principal);
         Boolean wasCorrect = body.get("wasCorrect");
 
-        // Registra la revisione
         Flashcard card = flashcardService.reviewFlashcard(cardId, wasCorrect, user.getId());
 
-        // ✅ ASSEGNA XP PER FLASHCARD STUDIATA
         XpEventResponse xpEvent = gamificationService.recordFlashcardXp(user, 1);
 
         logger.debug("Flashcard {} reviewata da {}, XP guadagnati: {}",
                 cardId, user.getEmail(), xpEvent.getXpEarned());
 
-        // Costruisci risposta con info flashcard + XP
         Map<String, Object> response = new HashMap<>();
         response.put("flashcard", card);
         response.put("xpEarned", xpEvent.getXpEarned());
@@ -200,7 +239,7 @@ public class FlashcardController {
 
     /**
      * Completa una sessione di studio di più flashcards
-     * ✅ ASSEGNA XP PER TUTTE LE FLASHCARDS STUDIATE
+     * ASSEGNA XP PER TUTTE LE FLASHCARDS STUDIATE
      */
     @PostMapping("/decks/{deckId}/complete-session")
     public ResponseEntity<Map<String, Object>> completeStudySession(
@@ -210,20 +249,16 @@ public class FlashcardController {
 
         User user = userService.getCurrentUser(principal);
 
-        // Numero di carte studiate nella sessione
         int cardsStudied = body.containsKey("cardsStudied")
                 ? ((Number) body.get("cardsStudied")).intValue()
                 : 0;
 
-        // Durata sessione in minuti (opzionale)
         int durationMinutes = body.containsKey("durationMinutes")
                 ? ((Number) body.get("durationMinutes")).intValue()
                 : 0;
 
-        // Registra la sessione di studio nel deck
         deckService.recordStudySession(deckId, user.getId());
 
-        // ✅ ASSEGNA XP PER TUTTE LE FLASHCARDS STUDIATE
         XpEventResponse xpEvent = null;
         if (cardsStudied > 0) {
             xpEvent = gamificationService.recordFlashcardXp(user, cardsStudied);
@@ -231,11 +266,10 @@ public class FlashcardController {
                     cardsStudied, xpEvent.getXpEarned());
         }
 
-        // Costruisci risposta
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
         response.put("cardsStudied", cardsStudied);
-        
+
         if (durationMinutes > 0) {
             response.put("durationMinutes", durationMinutes);
         }

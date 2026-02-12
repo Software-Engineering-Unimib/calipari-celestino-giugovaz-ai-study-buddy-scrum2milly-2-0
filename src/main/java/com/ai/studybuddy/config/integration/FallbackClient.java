@@ -19,9 +19,9 @@ import java.time.Duration;
  * Client Groq di fallback con logging dettagliato per debug
  */
 @Component("groqFallbackClient")
-public class GroqFallbackClient implements AIClient {
+public class FallbackClient implements AIClient {
 
-    private static final Logger log = LoggerFactory.getLogger(GroqFallbackClient.class);
+    private static final Logger log = LoggerFactory.getLogger(FallbackClient.class);
     private final ResponseParser responseParser;
 
     @Value("${ai.groq.api-key}")
@@ -36,7 +36,7 @@ public class GroqFallbackClient implements AIClient {
     private static final Duration TIMEOUT = Duration.ofSeconds(30);
 
     //Constructor Injection
-    public GroqFallbackClient(WebClient.Builder webClientBuilder, ResponseParser responseParser) {
+    public FallbackClient(WebClient.Builder webClientBuilder, ResponseParser responseParser) {
         this.webClient = webClientBuilder
                 .baseUrl("https://api.groq.com/openai/v1")
                 .build();
