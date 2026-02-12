@@ -279,10 +279,10 @@ public class AIServiceImpl implements AIService {
                 "Sei un generatore di flashcards educative. Rispondi SOLO con JSON valido, senza testo aggiuntivo.\n" +
                 "Genera %d flashcards su '%s' con difficoltà %s.\n" +
                 "Formato JSON richiesto: [{\"front\": \"domanda o concetto\", \"back\": \"risposta o spiegazione\"}]\n" +
-                "Le flashcards devono essere chiare, concise e utili per il ripasso.\n" +
+                "Le flashcards devono essere chiare, concise e utili per il ripasso.\n" +"Per uno studente di livello %s"+
                 "TUTTO il contenuto (front e back) deve essere ESCLUSIVAMENTE nella lingua specificata.\n" +
                 "Rispondi SOLO con l'array JSON, nient'altro.",
-                languageInstruction, language, numCards, topic, difficulty.getLevel()
+                languageInstruction, language, numCards, topic, difficulty.getLevel(), educationLevel
         );
     }
 
