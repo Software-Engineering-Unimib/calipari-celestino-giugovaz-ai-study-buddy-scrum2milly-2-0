@@ -9,6 +9,10 @@
 
 name: CI/CD Pipeline
 
+permissions:
+  contents: read
+  checks: write
+
 on:
   push:
     branches: [ main, develop ]
