@@ -197,3 +197,4 @@ application-local.properties
 /bin/
 
 .DS_Store
+*.und/
