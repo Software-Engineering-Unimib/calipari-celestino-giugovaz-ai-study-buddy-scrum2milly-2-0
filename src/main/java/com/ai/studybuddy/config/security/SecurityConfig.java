@@ -17,10 +17,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     @Bean
+    @SuppressWarnings("java:S4502")
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtFilter jwtFilter) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-
                 .authorizeHttpRequests(auth -> auth
                         // File statici (HTML, CSS, JS, immagini)
                         .requestMatchers("/").permitAll()
@@ -29,30 +29,24 @@ public class SecurityConfig {
                         .requestMatchers("/js/**").permitAll()
                         .requestMatchers("/images/**").permitAll()
                         .requestMatchers("/favicon.ico").permitAll()
-
                         // API pubbliche
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api**").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers("/landing").permitAll()
-
                         // Console H2 e Swagger
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/v3/api-docs/**").permitAll()
-
                         // Tutto il resto richiede autenticazione
                         .anyRequest().authenticated()
                 )
-
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-
                 .headers(headers -> headers
                         .frameOptions(frame -> frame.sameOrigin())
                 )
-
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

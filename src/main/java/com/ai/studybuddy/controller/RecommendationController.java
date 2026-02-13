@@ -26,6 +26,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/recommendations")
 @CrossOrigin(origins = "*")
+@SuppressWarnings("java:S5122")
 public class RecommendationController {
 
     private static final Logger logger = LoggerFactory.getLogger(RecommendationController.class);

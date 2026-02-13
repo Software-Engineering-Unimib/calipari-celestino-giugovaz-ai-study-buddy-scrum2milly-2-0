@@ -13,7 +13,6 @@ import com.ai.studybuddy.repository.*;
 import com.ai.studybuddy.service.inter.GamificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,28 +41,30 @@ public class GamificationServiceImpl implements GamificationService {
     private static final int XP_FLASHCARD_PER_CARD = 2;// +2 XP per flashcard
     private static final int XP_FOCUS_SESSION = 15;    // +15 XP per sessione focus
 
-    @Autowired
-    private UserStatsRepository userStatsRepository;
+    private final UserStatsRepository userStatsRepository;
+    private final BadgeRepository badgeRepository;
+    private final UserBadgeRepository userBadgeRepository;
+    private final RecommendationRepository recommendationRepository;
+    private final UserRepository userRepository;
+    private final UserProgressRepository userProgressRepository;
 
-    @Autowired
-    private BadgeRepository badgeRepository;
-
-    @Autowired
-    private UserBadgeRepository userBadgeRepository;
-
-    @Autowired
-    private RecommendationRepository recommendationRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private UserProgressRepository userProgressRepository;  // Repository esistente!
+    public GamificationServiceImpl(
+            UserStatsRepository userStatsRepository,
+            BadgeRepository badgeRepository,
+            UserBadgeRepository userBadgeRepository,
+            RecommendationRepository recommendationRepository,
+            UserRepository userRepository,
+            UserProgressRepository userProgressRepository) {
+        this.userStatsRepository = userStatsRepository;
+        this.badgeRepository = badgeRepository;
+        this.userBadgeRepository = userBadgeRepository;
+        this.recommendationRepository = recommendationRepository;
+        this.userRepository = userRepository;
+        this.userProgressRepository = userProgressRepository;
+    }
 
     // ==================== XP & STATISTICHE ====================
 
-    @Override
-    @Transactional
     public UserStats getOrCreateUserStats(UUID userId) {
         return userStatsRepository.findByUserId(userId)
                 .orElseGet(() -> {
@@ -76,6 +77,7 @@ public class GamificationServiceImpl implements GamificationService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserStatsResponse getUserStatsResponse(UUID userId) {
         UserStats stats = getOrCreateUserStats(userId);
         long badgeCount = userBadgeRepository.countByUserId(userId);
@@ -278,6 +280,7 @@ public class GamificationServiceImpl implements GamificationService {
     // ==================== BADGE ====================
 
     @Override
+    @Transactional(readOnly = true)
     public List<BadgeResponse> getAllBadgesWithStatus(UUID userId) {
         List<Badge> allBadges = badgeRepository.findByIsActiveTrueOrderByRequirementValueAsc();
         UserStats stats = getOrCreateUserStats(userId);
@@ -298,6 +301,7 @@ public class GamificationServiceImpl implements GamificationService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<BadgeResponse> getUnlockedBadges(UUID userId) {
         return userBadgeRepository.findByUserIdOrderByUnlockedAtDesc(userId)
                 .stream()
@@ -306,6 +310,7 @@ public class GamificationServiceImpl implements GamificationService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<BadgeResponse> getNewBadges(UUID userId) {
         return userBadgeRepository.findByUserIdAndIsNewTrue(userId)
                 .stream()
@@ -394,11 +399,10 @@ public class GamificationServiceImpl implements GamificationService {
         return Math.min(progress, 100.0);
     }
 
-
-
     // ==================== LEADERBOARD ====================
 
     @Override
+    @Transactional(readOnly = true)
     public List<LeaderboardEntry> getXpLeaderboard(int limit) {
         return userStatsRepository.findTopByTotalXp(limit)
                 .stream()
@@ -407,6 +411,7 @@ public class GamificationServiceImpl implements GamificationService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<LeaderboardEntry> getWeeklyLeaderboard(int limit) {
         return userStatsRepository.findTopByWeeklyXp(limit)
                 .stream()
@@ -415,6 +420,7 @@ public class GamificationServiceImpl implements GamificationService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<LeaderboardEntry> getStreakLeaderboard(int limit) {
         return userStatsRepository.findTopByStreak(limit)
                 .stream()
@@ -423,6 +429,7 @@ public class GamificationServiceImpl implements GamificationService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int getUserRank(UUID userId, String type) {
         List<UserStats> allStats = switch (type) {
             case "XP" -> userStatsRepository.findTopByTotalXp(1000);

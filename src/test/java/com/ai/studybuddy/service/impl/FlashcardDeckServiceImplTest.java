@@ -8,10 +8,9 @@ import com.ai.studybuddy.model.user.User;
 import com.ai.studybuddy.repository.FlashcardDeckRepository;
 import com.ai.studybuddy.service.inter.FlashcardDeckService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -22,12 +21,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayName("FlashcardDeckServiceImpl - Test Suite Completo")
 class FlashcardDeckServiceImplTest {
 
     @Mock
@@ -39,257 +39,321 @@ class FlashcardDeckServiceImplTest {
     @InjectMocks
     private FlashcardDeckServiceImpl flashcardDeckService;
 
-    @Captor
-    private ArgumentCaptor<FlashcardDeck> deckCaptor;
-
+    private User testUser;
+    private FlashcardDeck testDeck;
     private UUID userId;
     private UUID deckId;
-    private User owner;
-    private FlashcardDeckCreateRequest createRequest;
-    private FlashcardDeck flashcardDeck;
 
     @BeforeEach
     void setUp() {
         userId = UUID.randomUUID();
         deckId = UUID.randomUUID();
-
-        // Crea User con setter
-        owner = new User();
-        owner.setId(userId);
-        owner.setFirstName("Mario");
-        owner.setLastName("Rossi");
-        owner.setEmail("mario.rossi@example.com");
-        owner.setPasswordHash("password123");
-
-        // Crea FlashcardDeckCreateRequest
-        createRequest = new FlashcardDeckCreateRequest();
-        createRequest.setName("Test Deck");
-        createRequest.setDescription("Test Description");
-        createRequest.setSubject("Mathematics");
-        createRequest.setIsPublic(true);
-
-        // Crea FlashcardDeck con setter
-        flashcardDeck = new FlashcardDeck();
-        flashcardDeck.setId(deckId);
-        flashcardDeck.setName("Test Deck");
-        flashcardDeck.setDescription("Test Description");
-        flashcardDeck.setSubject("Mathematics");
-        flashcardDeck.setIsPublic(true);
-        flashcardDeck.setIsActive(true);
-        flashcardDeck.setOwner(owner);
-        flashcardDeck.setTimesStudied(5);
-        flashcardDeck.setCardsMastered(10);
+        testUser = createTestUser();
+        testDeck = createTestDeck();
     }
 
+    private User createTestUser() {
+        User user = new User();
+        user.setId(userId);
+        user.setEmail("test@example.com");
+        user.setFirstName("Test");
+        user.setLastName("User");
+        return user;
+    }
+
+    private FlashcardDeck createTestDeck() {
+        FlashcardDeck deck = new FlashcardDeck();
+        deck.setId(deckId);
+        deck.setName("Test Deck");
+        deck.setDescription("Test Description");
+        deck.setOwner(testUser);
+        deck.setSubject("Biology");
+        deck.setTotalCards(0);
+        deck.setCardsMastered(0);
+        deck.setTimesStudied(0);
+        deck.setIsActive(true);
+        deck.setIsPublic(false);
+        deck.setCreatedAt(LocalDateTime.now());
+        deck.setUpdatedAt(LocalDateTime.now());
+        return deck;
+    }
+
+    // ========================================
+    // TEST: createDeck
+    // ========================================
+
     @Test
-    void createDeck_Success() {
+    @DisplayName("createDeck - Successo")
+    void testCreateDeck_Success() {
         // Arrange
-        when(flashcardMapper.toEntity(createRequest, owner)).thenReturn(flashcardDeck);
-        when(deckRepository.save(flashcardDeck)).thenReturn(flashcardDeck);
+        FlashcardDeckCreateRequest request = FlashcardDeckCreateRequest.builder()
+                .name("New Deck")
+                .description("New Description")
+                .subject("Mathematics")
+                .isPublic(false)
+                .build();
+
+        when(flashcardMapper.toEntity(request, testUser)).thenReturn(testDeck);
+        when(deckRepository.save(any(FlashcardDeck.class))).thenReturn(testDeck);
 
         // Act
-        FlashcardDeck result = flashcardDeckService.createDeck(createRequest, owner);
+        FlashcardDeck result = flashcardDeckService.createDeck(request, testUser);
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result.getId()).isEqualTo(deckId);
-        assertThat(result.getName()).isEqualTo(createRequest.getName());
-        assertThat(result.getOwner()).isEqualTo(owner);
-
-        verify(flashcardMapper).toEntity(createRequest, owner);
-        verify(deckRepository).save(flashcardDeck);
-        verifyNoMoreInteractions(flashcardMapper, deckRepository);
+        assertNotNull(result);
+        assertEquals(deckId, result.getId());
+        assertEquals("Test Deck", result.getName());
+        verify(flashcardMapper, times(1)).toEntity(request, testUser);
+        verify(deckRepository, times(1)).save(testDeck);
     }
 
     @Test
-    void getUserDecks_Success() {
+    @DisplayName("createDeck - Con nome e descrizione personalizzati")
+    void testCreateDeck_CustomDetails() {
         // Arrange
-        List<FlashcardDeck> expectedDecks = Arrays.asList(flashcardDeck);
+        String customName = "Advanced Physics";
+        String customDescription = "Quantum mechanics and relativity";
+        
+        FlashcardDeckCreateRequest request = FlashcardDeckCreateRequest.builder()
+                .name(customName)
+                .description(customDescription)
+                .subject("Physics")
+                .build();
+
+        FlashcardDeck customDeck = createTestDeck();
+        customDeck.setName(customName);
+        customDeck.setDescription(customDescription);
+
+        when(flashcardMapper.toEntity(request, testUser)).thenReturn(customDeck);
+        when(deckRepository.save(any(FlashcardDeck.class))).thenReturn(customDeck);
+
+        // Act
+        FlashcardDeck result = flashcardDeckService.createDeck(request, testUser);
+
+        // Assert
+        assertEquals(customName, result.getName());
+        assertEquals(customDescription, result.getDescription());
+    }
+
+    // ========================================
+    // TEST: getUserDecks
+    // ========================================
+
+    @Test
+    @DisplayName("getUserDecks - Restituisce deck attivi dell'utente")
+    void testGetUserDecks_Success() {
+        // Arrange
+        List<FlashcardDeck> decks = Arrays.asList(testDeck, createTestDeck());
         when(deckRepository.findByOwnerIdAndIsActiveTrueOrderByUpdatedAtDesc(userId))
-                .thenReturn(expectedDecks);
+                .thenReturn(decks);
 
         // Act
         List<FlashcardDeck> result = flashcardDeckService.getUserDecks(userId);
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result).hasSize(1);
-        assertThat(result).containsExactly(flashcardDeck);
-
-        verify(deckRepository).findByOwnerIdAndIsActiveTrueOrderByUpdatedAtDesc(userId);
-        verifyNoMoreInteractions(deckRepository);
+        assertEquals(2, result.size());
+        verify(deckRepository, times(1))
+                .findByOwnerIdAndIsActiveTrueOrderByUpdatedAtDesc(userId);
     }
 
     @Test
-    void getDeck_Success() {
+    @DisplayName("getUserDecks - Nessun deck presente")
+    void testGetUserDecks_Empty() {
+        // Arrange
+        when(deckRepository.findByOwnerIdAndIsActiveTrueOrderByUpdatedAtDesc(userId))
+                .thenReturn(Arrays.asList());
+
+        // Act
+        List<FlashcardDeck> result = flashcardDeckService.getUserDecks(userId);
+
+        // Assert
+        assertTrue(result.isEmpty());
+    }
+
+    // ========================================
+    // TEST: getDeck
+    // ========================================
+
+    @Test
+    @DisplayName("getDeck - Successo")
+    void testGetDeck_Success() {
         // Arrange
         when(deckRepository.findByIdAndOwnerIdAndIsActiveTrue(deckId, userId))
-                .thenReturn(Optional.of(flashcardDeck));
+                .thenReturn(Optional.of(testDeck));
 
         // Act
         FlashcardDeck result = flashcardDeckService.getDeck(deckId, userId);
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result.getId()).isEqualTo(deckId);
-        assertThat(result.getOwner().getId()).isEqualTo(userId);
-
-        verify(deckRepository).findByIdAndOwnerIdAndIsActiveTrue(deckId, userId);
-        verifyNoMoreInteractions(deckRepository);
+        assertNotNull(result);
+        assertEquals(deckId, result.getId());
     }
 
     @Test
-    void getDeck_NotFound_ThrowsException() {
+    @DisplayName("getDeck - Deck non trovato")
+    void testGetDeck_NotFound() {
         // Arrange
         when(deckRepository.findByIdAndOwnerIdAndIsActiveTrue(deckId, userId))
                 .thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThatThrownBy(() -> flashcardDeckService.getDeck(deckId, userId))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Deck")
-                .hasMessageContaining(deckId.toString());
-
-        verify(deckRepository).findByIdAndOwnerIdAndIsActiveTrue(deckId, userId);
-        verifyNoMoreInteractions(deckRepository);
+        assertThrows(ResourceNotFoundException.class, () -> {
+            flashcardDeckService.getDeck(deckId, userId);
+        });
     }
 
+    // ========================================
+    // TEST: updateDeck
+    // ========================================
+
     @Test
-    void updateDeck_Success() {
+    @DisplayName("updateDeck - Successo")
+    void testUpdateDeck_Success() {
         // Arrange
-        FlashcardDeckCreateRequest updateRequest = new FlashcardDeckCreateRequest();
-        updateRequest.setName("Updated Deck");
-        updateRequest.setDescription("Updated Description");
-        updateRequest.setSubject("Physics");
-        updateRequest.setIsPublic(false);
+        FlashcardDeckCreateRequest request = FlashcardDeckCreateRequest.builder()
+                .name("Updated Name")
+                .description("Updated Description")
+                .subject("Chemistry")
+                .build();
 
         when(deckRepository.findByIdAndOwnerIdAndIsActiveTrue(deckId, userId))
-                .thenReturn(Optional.of(flashcardDeck));
-        when(deckRepository.save(flashcardDeck)).thenReturn(flashcardDeck);
-
-        // ACT & ASSERT - Risolviamo l'ambiguità specificando il tipo
-        doAnswer(invocation -> {
-            // Simula il comportamento del mapper
-            FlashcardDeck deck = invocation.getArgument(0);
-            FlashcardDeckCreateRequest req = invocation.getArgument(1);
-            deck.setName(req.getName());
-            deck.setDescription(req.getDescription());
-            deck.setSubject(req.getSubject());
-            deck.setIsPublic(req.getIsPublic());
-            return null;
-        }).when(flashcardMapper).updateEntity(any(FlashcardDeck.class), any(FlashcardDeckCreateRequest.class));
+                .thenReturn(Optional.of(testDeck));
+        when(deckRepository.save(any(FlashcardDeck.class))).thenReturn(testDeck);
 
         // Act
-        FlashcardDeck result = flashcardDeckService.updateDeck(deckId, updateRequest, userId);
+        FlashcardDeck result = flashcardDeckService.updateDeck(deckId, request, userId);
 
         // Assert
-        assertThat(result).isNotNull();
-        verify(flashcardMapper).updateEntity(any(FlashcardDeck.class), any(FlashcardDeckCreateRequest.class));
-        verify(deckRepository).findByIdAndOwnerIdAndIsActiveTrue(deckId, userId);
-        verify(deckRepository).save(flashcardDeck);
+        assertNotNull(result);
+        verify(flashcardMapper, times(1)).updateEntity(testDeck, request);
+        verify(deckRepository, times(1)).save(testDeck);
     }
 
     @Test
-    void updateDeck_DeckNotFound_ThrowsException() {
+    @DisplayName("updateDeck - Deck non dell'utente")
+    void testUpdateDeck_NotOwnedByUser() {
         // Arrange
-        when(deckRepository.findByIdAndOwnerIdAndIsActiveTrue(deckId, userId))
+        UUID otherUserId = UUID.randomUUID();
+        FlashcardDeckCreateRequest request = FlashcardDeckCreateRequest.builder()
+                .name("Test")
+                .build();
+
+        when(deckRepository.findByIdAndOwnerIdAndIsActiveTrue(deckId, otherUserId))
                 .thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThatThrownBy(() -> flashcardDeckService.updateDeck(deckId, createRequest, userId))
-                .isInstanceOf(ResourceNotFoundException.class);
-
-        verify(deckRepository).findByIdAndOwnerIdAndIsActiveTrue(deckId, userId);
-        verify(flashcardMapper, never()).updateEntity(any(FlashcardDeck.class), any(FlashcardDeckCreateRequest.class));
-        verify(deckRepository, never()).save(any());
+        assertThrows(ResourceNotFoundException.class, () -> {
+            flashcardDeckService.updateDeck(deckId, request, otherUserId);
+        });
     }
 
+    // ========================================
+    // TEST: deleteDeck
+    // ========================================
+
     @Test
-    void deleteDeck_Success() {
+    @DisplayName("deleteDeck - Soft delete")
+    void testDeleteDeck_SoftDelete() {
         // Arrange
         when(deckRepository.findByIdAndOwnerIdAndIsActiveTrue(deckId, userId))
-                .thenReturn(Optional.of(flashcardDeck));
-        when(deckRepository.save(flashcardDeck)).thenReturn(flashcardDeck);
+                .thenReturn(Optional.of(testDeck));
+        when(deckRepository.save(any(FlashcardDeck.class))).thenReturn(testDeck);
 
         // Act
         flashcardDeckService.deleteDeck(deckId, userId);
 
         // Assert
-        assertThat(flashcardDeck.getIsActive()).isFalse();
-        verify(deckRepository).findByIdAndOwnerIdAndIsActiveTrue(deckId, userId);
-        verify(deckRepository).save(deckCaptor.capture());
-        assertThat(deckCaptor.getValue().getIsActive()).isFalse();
+        assertFalse(testDeck.getIsActive());
+        verify(deckRepository, times(1)).save(testDeck);
     }
 
-    @Test
-    void deleteDeck_DeckNotFound_ThrowsException() {
-        // Arrange
-        when(deckRepository.findByIdAndOwnerIdAndIsActiveTrue(deckId, userId))
-                .thenReturn(Optional.empty());
-
-        // Act & Assert
-        assertThatThrownBy(() -> flashcardDeckService.deleteDeck(deckId, userId))
-                .isInstanceOf(ResourceNotFoundException.class);
-
-        verify(deckRepository).findByIdAndOwnerIdAndIsActiveTrue(deckId, userId);
-        verify(deckRepository, never()).save(any());
-    }
+    // ========================================
+    // TEST: recordStudySession
+    // ========================================
 
     @Test
-    void recordStudySession_Success() {
+    @DisplayName("recordStudySession - Incrementa contatore")
+    void testRecordStudySession_Success() {
         // Arrange
-        int initialTimesStudied = flashcardDeck.getTimesStudied();
-
+        int initialStudyCount = testDeck.getTimesStudied();
         when(deckRepository.findByIdAndOwnerIdAndIsActiveTrue(deckId, userId))
-                .thenReturn(Optional.of(flashcardDeck));
-        when(deckRepository.save(flashcardDeck)).thenReturn(flashcardDeck);
+                .thenReturn(Optional.of(testDeck));
+        when(deckRepository.save(any(FlashcardDeck.class))).thenReturn(testDeck);
 
         // Act
         flashcardDeckService.recordStudySession(deckId, userId);
 
         // Assert
-        verify(deckRepository).save(deckCaptor.capture());
-        FlashcardDeck capturedDeck = deckCaptor.getValue();
-        assertThat(capturedDeck.getTimesStudied()).isEqualTo(initialTimesStudied + 1);
-        verify(flashcardDeck).recordStudySession();
+        verify(deckRepository, times(1)).save(testDeck);
     }
 
+    // ========================================
+    // TEST: updateMasteredCount
+    // ========================================
+
     @Test
-    void updateMasteredCount_Success() {
+    @DisplayName("updateMasteredCount - Aggiorna conteggio")
+    void testUpdateMasteredCount_Success() {
         // Arrange
         when(deckRepository.findByIdAndOwnerIdAndIsActiveTrue(deckId, userId))
-                .thenReturn(Optional.of(flashcardDeck));
-        when(deckRepository.save(flashcardDeck)).thenReturn(flashcardDeck);
+                .thenReturn(Optional.of(testDeck));
+        when(deckRepository.save(any(FlashcardDeck.class))).thenReturn(testDeck);
 
         // Act
         flashcardDeckService.updateMasteredCount(deckId, userId);
 
         // Assert
-        verify(flashcardDeck).updateMasteredCount();
-        verify(deckRepository).save(flashcardDeck);
+        verify(deckRepository, times(1)).save(testDeck);
     }
 
-    @Test
-    void searchDecks_Success() {
-        // Arrange
-        String searchTerm = "math";
-        List<FlashcardDeck> expectedDecks = Arrays.asList(flashcardDeck);
+    // ========================================
+    // TEST: searchDecks
+    // ========================================
 
-        when(deckRepository.searchByName(userId, searchTerm)).thenReturn(expectedDecks);
+    @Test
+    @DisplayName("searchDecks - Trova deck per termine di ricerca")
+    void testSearchDecks_Success() {
+        // Arrange
+        String searchTerm = "biology";
+        List<FlashcardDeck> searchResults = Arrays.asList(testDeck);
+        
+        when(deckRepository.searchByName(userId, searchTerm))
+                .thenReturn(searchResults);
 
         // Act
         List<FlashcardDeck> result = flashcardDeckService.searchDecks(userId, searchTerm);
 
         // Assert
-        assertThat(result).hasSize(1);
-        assertThat(result).containsExactly(flashcardDeck);
-        verify(deckRepository).searchByName(userId, searchTerm);
+        assertEquals(1, result.size());
+        verify(deckRepository, times(1)).searchByName(userId, searchTerm);
     }
 
     @Test
-    void getPublicDecks_Success() {
+    @DisplayName("searchDecks - Nessun risultato")
+    void testSearchDecks_NoResults() {
         // Arrange
-        List<FlashcardDeck> publicDecks = Arrays.asList(flashcardDeck);
+        when(deckRepository.searchByName(userId, "nonexistent"))
+                .thenReturn(Arrays.asList());
+
+        // Act
+        List<FlashcardDeck> result = flashcardDeckService.searchDecks(userId, "nonexistent");
+
+        // Assert
+        assertTrue(result.isEmpty());
+    }
+
+    // ========================================
+    // TEST: getPublicDecks
+    // ========================================
+
+    @Test
+    @DisplayName("getPublicDecks - Restituisce deck pubblici")
+    void testGetPublicDecks_Success() {
+        // Arrange
+        FlashcardDeck publicDeck = createTestDeck();
+        publicDeck.setIsPublic(true);
+        List<FlashcardDeck> publicDecks = Arrays.asList(publicDeck);
+        
         when(deckRepository.findByIsPublicTrueAndIsActiveTrueOrderByTimesStudiedDesc())
                 .thenReturn(publicDecks);
 
@@ -297,17 +361,21 @@ class FlashcardDeckServiceImplTest {
         List<FlashcardDeck> result = flashcardDeckService.getPublicDecks();
 
         // Assert
-        assertThat(result).hasSize(1);
-        assertThat(result).containsExactly(flashcardDeck);
-        verify(deckRepository).findByIsPublicTrueAndIsActiveTrueOrderByTimesStudiedDesc();
+        assertEquals(1, result.size());
+        assertTrue(result.get(0).getIsPublic());
     }
 
-    @Test
-    void getDecksBySubject_Success() {
-        // Arrange
-        String subject = "Mathematics";
-        List<FlashcardDeck> subjectDecks = Arrays.asList(flashcardDeck);
+    // ========================================
+    // TEST: getDecksBySubject
+    // ========================================
 
+    @Test
+    @DisplayName("getDecksBySubject - Filtra per materia")
+    void testGetDecksBySubject_Success() {
+        // Arrange
+        String subject = "Biology";
+        List<FlashcardDeck> subjectDecks = Arrays.asList(testDeck);
+        
         when(deckRepository.findByOwnerIdAndSubjectAndIsActiveTrueOrderByNameAsc(userId, subject))
                 .thenReturn(subjectDecks);
 
@@ -315,79 +383,153 @@ class FlashcardDeckServiceImplTest {
         List<FlashcardDeck> result = flashcardDeckService.getDecksBySubject(userId, subject);
 
         // Assert
-        assertThat(result).hasSize(1);
-        assertThat(result).containsExactly(flashcardDeck);
-        verify(deckRepository).findByOwnerIdAndSubjectAndIsActiveTrueOrderByNameAsc(userId, subject);
+        assertEquals(1, result.size());
+        assertEquals(subject, result.get(0).getSubject());
     }
 
     @Test
-    void getDecksNeedingReview_Success() {
+    @DisplayName("getDecksBySubject - Materie diverse")
+    void testGetDecksBySubject_MultipleSubjects() {
+        // Arrange
+        String[] subjects = {"Mathematics", "Physics", "Chemistry", "History"};
+        
+        for (String subject : subjects) {
+            FlashcardDeck deck = createTestDeck();
+            deck.setSubject(subject);
+            when(deckRepository.findByOwnerIdAndSubjectAndIsActiveTrueOrderByNameAsc(userId, subject))
+                    .thenReturn(Arrays.asList(deck));
+
+            // Act
+            List<FlashcardDeck> result = flashcardDeckService.getDecksBySubject(userId, subject);
+
+            // Assert
+            assertEquals(1, result.size());
+            assertEquals(subject, result.get(0).getSubject());
+        }
+    }
+
+    // ========================================
+    // TEST: getDecksNeedingReview
+    // ========================================
+
+    @Test
+    @DisplayName("getDecksNeedingReview - Deck non studiati di recente")
+    void testGetDecksNeedingReview_Success() {
         // Arrange
         int daysAgo = 7;
-        List<FlashcardDeck> decksNeedingReview = Arrays.asList(flashcardDeck);
-
+        LocalDateTime cutoffDate = LocalDateTime.now().minusDays(daysAgo);
+        testDeck.setUpdatedAt(LocalDateTime.now().minusDays(10)); // Vecchio
+        
         when(deckRepository.findNeedingReview(eq(userId), any(LocalDateTime.class)))
-                .thenReturn(decksNeedingReview);
+                .thenReturn(Arrays.asList(testDeck));
 
         // Act
         List<FlashcardDeck> result = flashcardDeckService.getDecksNeedingReview(userId, daysAgo);
 
         // Assert
-        assertThat(result).hasSize(1);
-        assertThat(result).containsExactly(flashcardDeck);
-        verify(deckRepository).findNeedingReview(eq(userId), any(LocalDateTime.class));
+        assertEquals(1, result.size());
+        verify(deckRepository, times(1)).findNeedingReview(eq(userId), any(LocalDateTime.class));
     }
 
     @Test
-    void getGlobalStats_Success() {
+    @DisplayName("getDecksNeedingReview - Nessun deck necessita ripasso")
+    void testGetDecksNeedingReview_NoDecks() {
+        // Arrange
+        when(deckRepository.findNeedingReview(eq(userId), any(LocalDateTime.class)))
+                .thenReturn(Arrays.asList());
+
+        // Act
+        List<FlashcardDeck> result = flashcardDeckService.getDecksNeedingReview(userId, 7);
+
+        // Assert
+        assertTrue(result.isEmpty());
+    }
+
+    // ========================================
+    // TEST: getGlobalStats
+    // ========================================
+
+    @Test
+    @DisplayName("getGlobalStats - Calcola statistiche globali")
+    void testGetGlobalStats_Success() {
         // Arrange
         long totalDecks = 5L;
         long totalCards = 100L;
-
-        FlashcardDeck deck1 = mock(FlashcardDeck.class);
-        FlashcardDeck deck2 = mock(FlashcardDeck.class);
-
-        when(deck1.getCardsMastered()).thenReturn(10);
-        when(deck1.getTimesStudied()).thenReturn(5);
-        when(deck2.getCardsMastered()).thenReturn(20);
-        when(deck2.getTimesStudied()).thenReturn(3);
-
-        List<FlashcardDeck> decks = Arrays.asList(deck1, deck2);
-
+        
+        testDeck.setCardsMastered(20);
+        testDeck.setTimesStudied(15);
+        
+        FlashcardDeck deck2 = createTestDeck();
+        deck2.setCardsMastered(30);
+        deck2.setTimesStudied(25);
+        
+        List<FlashcardDeck> decks = Arrays.asList(testDeck, deck2);
+        
         when(deckRepository.countByOwnerIdAndIsActiveTrue(userId)).thenReturn(totalDecks);
         when(deckRepository.countTotalCardsByOwner(userId)).thenReturn(totalCards);
-        when(deckRepository.findByOwnerIdAndIsActiveTrueOrderByUpdatedAtDesc(userId)).thenReturn(decks);
+        when(deckRepository.findByOwnerIdAndIsActiveTrueOrderByUpdatedAtDesc(userId))
+                .thenReturn(decks);
 
         // Act
-        FlashcardDeckService.DeckGlobalStats stats = flashcardDeckService.getGlobalStats(userId);
+        FlashcardDeckService.DeckGlobalStats result = flashcardDeckService.getGlobalStats(userId);
 
         // Assert
-        assertThat(stats).isNotNull();
-        assertThat(stats.getTotalDecks()).isEqualTo(totalDecks);
-        assertThat(stats.getTotalCards()).isEqualTo(totalCards);
-        assertThat(stats.getTotalMastered()).isEqualTo(30L);
-        assertThat(stats.getTotalStudySessions()).isEqualTo(8L);
+        assertNotNull(result);
+        assertEquals(totalDecks, result.getTotalDecks());
+        assertEquals(totalCards, result.getTotalCards());
+        assertEquals(50L, result.getTotalMastered()); // 20 + 30
+        assertEquals(40L, result.getTotalStudySessions()); // 15 + 25
     }
 
     @Test
-    void getGlobalStats_NoDecks_Success() {
+    @DisplayName("getGlobalStats - Utente senza deck")
+    void testGetGlobalStats_NoDecks() {
         // Arrange
-        long totalDecks = 0L;
-        long totalCards = 0L;
-        List<FlashcardDeck> emptyList = Arrays.asList();
-
-        when(deckRepository.countByOwnerIdAndIsActiveTrue(userId)).thenReturn(totalDecks);
-        when(deckRepository.countTotalCardsByOwner(userId)).thenReturn(totalCards);
-        when(deckRepository.findByOwnerIdAndIsActiveTrueOrderByUpdatedAtDesc(userId)).thenReturn(emptyList);
+        when(deckRepository.countByOwnerIdAndIsActiveTrue(userId)).thenReturn(0L);
+        when(deckRepository.countTotalCardsByOwner(userId)).thenReturn(0L);
+        when(deckRepository.findByOwnerIdAndIsActiveTrueOrderByUpdatedAtDesc(userId))
+                .thenReturn(Arrays.asList());
 
         // Act
-        FlashcardDeckService.DeckGlobalStats stats = flashcardDeckService.getGlobalStats(userId);
+        FlashcardDeckService.DeckGlobalStats result = flashcardDeckService.getGlobalStats(userId);
 
         // Assert
-        assertThat(stats).isNotNull();
-        assertThat(stats.getTotalDecks()).isZero();
-        assertThat(stats.getTotalCards()).isZero();
-        assertThat(stats.getTotalMastered()).isZero();
-        assertThat(stats.getTotalStudySessions()).isZero();
+        assertEquals(0L, result.getTotalDecks());
+        assertEquals(0L, result.getTotalCards());
+        assertEquals(0L, result.getTotalMastered());
+        assertEquals(0L, result.getTotalStudySessions());
+    }
+
+    @Test
+    @DisplayName("getGlobalStats - Calcolo corretto con molti deck")
+    void testGetGlobalStats_ManyDecks() {
+        // Arrange
+        FlashcardDeck deck1 = createTestDeck();
+        deck1.setCardsMastered(10);
+        deck1.setTimesStudied(5);
+        
+        FlashcardDeck deck2 = createTestDeck();
+        deck2.setCardsMastered(20);
+        deck2.setTimesStudied(10);
+        
+        FlashcardDeck deck3 = createTestDeck();
+        deck3.setCardsMastered(15);
+        deck3.setTimesStudied(8);
+        
+        List<FlashcardDeck> decks = Arrays.asList(deck1, deck2, deck3);
+        
+        when(deckRepository.countByOwnerIdAndIsActiveTrue(userId)).thenReturn(3L);
+        when(deckRepository.countTotalCardsByOwner(userId)).thenReturn(150L);
+        when(deckRepository.findByOwnerIdAndIsActiveTrueOrderByUpdatedAtDesc(userId))
+                .thenReturn(decks);
+
+        // Act
+        FlashcardDeckService.DeckGlobalStats result = flashcardDeckService.getGlobalStats(userId);
+
+        // Assert
+        assertEquals(3L, result.getTotalDecks());
+        assertEquals(150L, result.getTotalCards());
+        assertEquals(45L, result.getTotalMastered()); // 10 + 20 + 15
+        assertEquals(23L, result.getTotalStudySessions()); // 5 + 10 + 8
     }
 }

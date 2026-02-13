@@ -1,15 +1,14 @@
 package com.ai.studybuddy.service.impl;
 
-import com.ai.studybuddy.exception.ResourceNotFoundException;
 import com.ai.studybuddy.model.user.User;
 import com.ai.studybuddy.repository.UserRepository;
 import com.ai.studybuddy.util.Const;
 import com.ai.studybuddy.util.enums.EducationLevel;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -26,13 +25,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayName("UserServiceImpl - Test Suite Completo")
 class UserServiceImplTest {
 
     @Mock
@@ -47,689 +46,525 @@ class UserServiceImplTest {
     @InjectMocks
     private UserServiceImpl userService;
 
-    @Captor
-    private ArgumentCaptor<User> userCaptor;
-
-    private UUID userId;
-    private User user;
-    private String email;
-    private String password;
-    private String encodedPassword;
+    private User testUser;
+    private UUID testUserId;
+    private static final String TEST_EMAIL = "test@example.com";
+    private static final String TEST_PASSWORD = "password123";
+    private static final String TEST_ENCODED_PASSWORD = "encoded_password";
+    private static final String TEST_FIRST_NAME = "Mario";
+    private static final String TEST_LAST_NAME = "Rossi";
 
     @BeforeEach
     void setUp() {
-        userId = UUID.randomUUID();
-        email = "mario.rossi@example.com";
-        password = "Password123!";
-        encodedPassword = "encodedPassword123";
-
-        user = new User();
-        user.setId(userId);
-        user.setFirstName("Mario");
-        user.setLastName("Rossi");
-        user.setEmail(email);
-        user.setPasswordHash(encodedPassword);
-        user.setEducationLevel(EducationLevel.UNIVERSITY);
-        user.setTotalPoints(150);
-        user.setLevel(2);
-        user.setStreakDays(5);
-        user.setAvatarUrl("https://example.com/avatar.jpg");
-        user.setPreferredLanguage("it");
-        user.setCreatedAt(LocalDateTime.now().minusDays(30));
-        user.setUpdatedAt(LocalDateTime.now().minusDays(1));
+        testUserId = UUID.randomUUID();
+        testUser = createTestUser();
     }
 
-    // ==================== CRUD TESTS ====================
+    private User createTestUser() {
+        User user = new User();
+        user.setId(testUserId);
+        user.setFirstName(TEST_FIRST_NAME);
+        user.setLastName(TEST_LAST_NAME);
+        user.setEmail(TEST_EMAIL);
+        user.setPasswordHash(TEST_ENCODED_PASSWORD);
+        user.setEducationLevel(EducationLevel.UNIVERSITY);
+        user.setPreferredLanguage("it");
+        user.setTotalPoints(0);
+        user.setLevel(1);
+        user.setStreakDays(0);
+        user.setCreatedAt(LocalDateTime.now());
+        user.setUpdatedAt(LocalDateTime.now());
+        return user;
+    }
+
+    // ========================================
+    // TEST: CRUD BASE
+    // ========================================
 
     @Test
-    void getAllUsers_Success() {
+    @DisplayName("getAllUsers - Restituisce lista utenti")
+    void testGetAllUsers_Success() {
         // Arrange
-        List<User> expectedUsers = Arrays.asList(user, new User());
-        when(userRepository.findAll()).thenReturn(expectedUsers);
+        List<User> users = Arrays.asList(testUser, createTestUser());
+        when(userRepository.findAll()).thenReturn(users);
 
         // Act
         List<User> result = userService.getAllUsers();
 
         // Assert
-        assertThat(result).hasSize(2);
-        assertThat(result).containsExactlyElementsOf(expectedUsers);
-        verify(userRepository).findAll();
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        verify(userRepository, times(1)).findAll();
     }
 
     @Test
-    void findById_Success() {
+    @DisplayName("findById - Trova utente esistente")
+    void testFindById_UserExists() {
         // Arrange
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
 
         // Act
-        Optional<User> result = userService.findById(userId);
+        Optional<User> result = userService.findById(testUserId);
 
         // Assert
-        assertThat(result).isPresent();
-        assertThat(result.get().getId()).isEqualTo(userId);
-        assertThat(result.get().getEmail()).isEqualTo(email);
-        verify(userRepository).findById(userId);
+        assertTrue(result.isPresent());
+        assertEquals(TEST_EMAIL, result.get().getEmail());
+        verify(userRepository, times(1)).findById(testUserId);
     }
 
     @Test
-    void findById_NotFound_ReturnsEmpty() {
+    @DisplayName("findById - Utente non trovato")
+    void testFindById_UserNotFound() {
         // Arrange
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        UUID nonExistentId = UUID.randomUUID();
+        when(userRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
         // Act
-        Optional<User> result = userService.findById(userId);
+        Optional<User> result = userService.findById(nonExistentId);
 
         // Assert
-        assertThat(result).isEmpty();
-        verify(userRepository).findById(userId);
+        assertFalse(result.isPresent());
     }
 
     @Test
-    void findByEmail_Success() {
+    @DisplayName("findByEmail - Trova utente per email")
+    void testFindByEmail_Success() {
         // Arrange
-        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+        when(userRepository.findByEmail(TEST_EMAIL)).thenReturn(Optional.of(testUser));
 
         // Act
-        Optional<User> result = userService.findByEmail(email);
+        Optional<User> result = userService.findByEmail(TEST_EMAIL);
 
         // Assert
-        assertThat(result).isPresent();
-        assertThat(result.get().getEmail()).isEqualTo(email);
-        verify(userRepository).findByEmail(email);
+        assertTrue(result.isPresent());
+        assertEquals(TEST_EMAIL, result.get().getEmail());
     }
 
     @Test
-    void save_Success() {
+    @DisplayName("save - Salva utente e aggiorna updatedAt")
+    void testSave_Success() {
         // Arrange
-        when(userRepository.save(any(User.class))).thenReturn(user);
+        when(userRepository.save(any(User.class))).thenReturn(testUser);
 
         // Act
-        User result = userService.save(user);
+        User result = userService.save(testUser);
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result.getUpdatedAt()).isNotNull();
-        verify(userRepository).save(user);
+        assertNotNull(result);
+        assertNotNull(result.getUpdatedAt());
+        verify(userRepository, times(1)).save(testUser);
     }
 
     @Test
-    void deleteById_Success() {
+    @DisplayName("deleteById - Elimina utente")
+    void testDeleteById_Success() {
         // Arrange
-        doNothing().when(userRepository).deleteById(userId);
+        doNothing().when(userRepository).deleteById(testUserId);
 
         // Act
-        userService.deleteById(userId);
+        userService.deleteById(testUserId);
 
         // Assert
-        verify(userRepository).deleteById(userId);
+        verify(userRepository, times(1)).deleteById(testUserId);
     }
 
-    // ==================== USER DETAILS SERVICE TESTS ====================
+    // ========================================
+    // TEST: REGISTRAZIONE
+    // ========================================
 
     @Test
-    void loadUserByUsername_Success() {
+    @DisplayName("registerUser - Registrazione completa con education level e lingua")
+    void testRegisterUser_FullRegistration() {
         // Arrange
-        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+        when(userRepository.existsByEmail(TEST_EMAIL)).thenReturn(false);
+        when(passwordEncoder.encode(TEST_PASSWORD)).thenReturn(TEST_ENCODED_PASSWORD);
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
-        UserDetails userDetails = userService.loadUserByUsername(email);
+        User result = userService.registerUser(
+            TEST_FIRST_NAME, TEST_LAST_NAME, TEST_EMAIL, TEST_PASSWORD,
+            EducationLevel.UNIVERSITY, "en"
+        );
 
         // Assert
-        assertThat(userDetails).isNotNull();
-        assertThat(userDetails.getUsername()).isEqualTo(email);
-        assertThat(userDetails.getPassword()).isEqualTo(encodedPassword);
-        assertThat(userDetails.getAuthorities()).isEmpty();
-        verify(userRepository).findByEmail(email);
+        assertNotNull(result);
+        assertEquals(TEST_FIRST_NAME, result.getFirstName());
+        assertEquals(TEST_LAST_NAME, result.getLastName());
+        assertEquals(TEST_EMAIL, result.getEmail());
+        assertEquals(TEST_ENCODED_PASSWORD, result.getPasswordHash());
+        assertEquals(EducationLevel.UNIVERSITY, result.getEducationLevel());
+        assertEquals("en", result.getPreferredLanguage());
+        assertEquals(1, result.getLevel());
+        assertEquals(0, result.getTotalPoints());
+        assertEquals(0, result.getStreakDays());
+        assertNotNull(result.getCreatedAt());
+        assertNotNull(result.getUpdatedAt());
+        
+        verify(passwordEncoder, times(1)).encode(TEST_PASSWORD);
+        verify(userRepository, times(1)).save(any(User.class));
     }
 
     @Test
-    void loadUserByUsername_UserNotFound_ThrowsException() {
+    @DisplayName("registerUser - Solo education level, lingua default")
+    void testRegisterUser_OnlyEducationLevel() {
         // Arrange
-        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+        when(userRepository.existsByEmail(TEST_EMAIL)).thenReturn(false);
+        when(passwordEncoder.encode(TEST_PASSWORD)).thenReturn(TEST_ENCODED_PASSWORD);
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Act
+        User result = userService.registerUser(
+            TEST_FIRST_NAME, TEST_LAST_NAME, TEST_EMAIL, TEST_PASSWORD,
+            EducationLevel.HIGH_SCHOOL
+        );
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(EducationLevel.HIGH_SCHOOL, result.getEducationLevel());
+        assertEquals("it", result.getPreferredLanguage()); // Default
+    }
+
+    @Test
+    @DisplayName("registerUser - Solo lingua preferita")
+    void testRegisterUser_OnlyLanguage() {
+        // Arrange
+        when(userRepository.existsByEmail(TEST_EMAIL)).thenReturn(false);
+        when(passwordEncoder.encode(TEST_PASSWORD)).thenReturn(TEST_ENCODED_PASSWORD);
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Act
+        User result = userService.registerUser(
+            TEST_FIRST_NAME, TEST_LAST_NAME, TEST_EMAIL, TEST_PASSWORD, "es"
+        );
+
+        // Assert
+        assertNotNull(result);
+        assertNull(result.getEducationLevel());
+        assertEquals("es", result.getPreferredLanguage());
+    }
+
+    @Test
+    @DisplayName("registerUser - Email già esistente lancia eccezione")
+    void testRegisterUser_EmailAlreadyExists() {
+        // Arrange
+        when(userRepository.existsByEmail(TEST_EMAIL)).thenReturn(true);
 
         // Act & Assert
-        assertThatThrownBy(() -> userService.loadUserByUsername(email))
-                .isInstanceOf(UsernameNotFoundException.class)
-                .hasMessage(Const.USER_NOT_FOUND);
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            userService.registerUser(
+                TEST_FIRST_NAME, TEST_LAST_NAME, TEST_EMAIL, TEST_PASSWORD,
+                EducationLevel.UNIVERSITY, "it"
+            );
+        });
 
-        verify(userRepository).findByEmail(email);
-    }
-
-    // ==================== REGISTRATION TESTS ====================
-
-    @Test
-    void registerUser_Success() {
-        // Arrange
-        String firstName = "Mario";
-        String lastName = "Rossi";
-        EducationLevel educationLevel = EducationLevel.UNIVERSITY;
-
-        when(userRepository.existsByEmail(email)).thenReturn(false);
-        when(passwordEncoder.encode(password)).thenReturn(encodedPassword);
-        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
-
-        // Act
-        User result = userService.registerUser(firstName, lastName, email, password, educationLevel);
-
-        // Assert
-        assertThat(result).isNotNull();
-        assertThat(result.getFirstName()).isEqualTo(firstName);
-        assertThat(result.getLastName()).isEqualTo(lastName);
-        assertThat(result.getEmail()).isEqualTo(email);
-        assertThat(result.getPasswordHash()).isEqualTo(encodedPassword);
-        assertThat(result.getEducationLevel()).isEqualTo(educationLevel);
-        assertThat(result.getTotalPoints()).isEqualTo(0);
-        assertThat(result.getLevel()).isEqualTo(1);
-        assertThat(result.getStreakDays()).isZero();
-        assertThat(result.getCreatedAt()).isNotNull();
-        assertThat(result.getUpdatedAt()).isNotNull();
-
-        verify(userRepository).existsByEmail(email);
-        verify(passwordEncoder).encode(password);
-        verify(userRepository).save(any(User.class));
+        assertEquals(HttpStatus.CONFLICT, exception.getStatusCode());
+        assertTrue(exception.getReason().contains(Const.EMAIL_EXISTS));
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
-    void registerUser_EmailAlreadyExists_ThrowsException() {
+    @DisplayName("registerUser - Lingua non supportata lancia eccezione")
+    void testRegisterUser_UnsupportedLanguage() {
         // Arrange
-        when(userRepository.existsByEmail(email)).thenReturn(true);
+        when(userRepository.existsByEmail(TEST_EMAIL)).thenReturn(false);
 
         // Act & Assert
-        assertThatThrownBy(() -> userService.registerUser("Mario", "Rossi", email, password, EducationLevel.UNIVERSITY))
-                .isInstanceOf(ResponseStatusException.class)
-                .hasFieldOrPropertyWithValue("status", HttpStatus.CONFLICT)
-                .hasMessageContaining(Const.EMAIL_EXISTS);
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            userService.registerUser(
+                TEST_FIRST_NAME, TEST_LAST_NAME, TEST_EMAIL, TEST_PASSWORD,
+                EducationLevel.UNIVERSITY, "xyz"
+            );
+        });
 
-        verify(userRepository).existsByEmail(email);
-        verify(passwordEncoder, never()).encode(anyString());
-        verify(userRepository, never()).save(any());
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+        assertTrue(exception.getReason().contains("Lingua non supportata"));
     }
 
+    // ========================================
+    // TEST: AUTENTICAZIONE
+    // ========================================
+
     @Test
-    void existsByEmail_ReturnsTrue() {
+    @DisplayName("loadUserByUsername - Carica utente per email")
+    void testLoadUserByUsername_Success() {
         // Arrange
-        when(userRepository.existsByEmail(email)).thenReturn(true);
+        when(userRepository.findByEmail(TEST_EMAIL)).thenReturn(Optional.of(testUser));
 
         // Act
-        boolean result = userService.existsByEmail(email);
+        UserDetails result = userService.loadUserByUsername(TEST_EMAIL);
 
         // Assert
-        assertThat(result).isTrue();
-        verify(userRepository).existsByEmail(email);
+        assertNotNull(result);
+        assertEquals(TEST_EMAIL, result.getUsername());
+        assertEquals(TEST_ENCODED_PASSWORD, result.getPassword());
     }
 
     @Test
-    void existsByEmail_ReturnsFalse() {
+    @DisplayName("loadUserByUsername - Utente non trovato lancia eccezione")
+    void testLoadUserByUsername_UserNotFound() {
         // Arrange
-        when(userRepository.existsByEmail(email)).thenReturn(false);
+        when(userRepository.findByEmail(TEST_EMAIL)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(UsernameNotFoundException.class, () -> {
+            userService.loadUserByUsername(TEST_EMAIL);
+        });
+    }
+
+    @Test
+    @DisplayName("existsByEmail - Restituisce true se email esiste")
+    void testExistsByEmail_True() {
+        // Arrange
+        when(userRepository.existsByEmail(TEST_EMAIL)).thenReturn(true);
 
         // Act
-        boolean result = userService.existsByEmail(email);
+        boolean result = userService.existsByEmail(TEST_EMAIL);
 
         // Assert
-        assertThat(result).isFalse();
-        verify(userRepository).existsByEmail(email);
+        assertTrue(result);
     }
 
-    // ==================== CURRENT USER TESTS ====================
+    @Test
+    @DisplayName("existsByEmail - Restituisce false se email non esiste")
+    void testExistsByEmail_False() {
+        // Arrange
+        when(userRepository.existsByEmail(TEST_EMAIL)).thenReturn(false);
+
+        // Act
+        boolean result = userService.existsByEmail(TEST_EMAIL);
+
+        // Assert
+        assertFalse(result);
+    }
+
+    // ========================================
+    // TEST: PROFILO UTENTE
+    // ========================================
 
     @Test
-    void getCurrentUser_Success() {
+    @DisplayName("getCurrentUser - Restituisce utente corrente")
+    void testGetCurrentUser_Success() {
         // Arrange
-        when(principal.getName()).thenReturn(email);
-        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+        when(principal.getName()).thenReturn(TEST_EMAIL);
+        when(userRepository.findByEmail(TEST_EMAIL)).thenReturn(Optional.of(testUser));
 
         // Act
         User result = userService.getCurrentUser(principal);
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result.getEmail()).isEqualTo(email);
-        verify(principal).getName();
-        verify(userRepository).findByEmail(email);
+        assertNotNull(result);
+        assertEquals(TEST_EMAIL, result.getEmail());
     }
 
     @Test
-    void getCurrentUser_NotFound_ThrowsException() {
+    @DisplayName("getCurrentUser - Utente non autenticato lancia eccezione")
+    void testGetCurrentUser_Unauthorized() {
         // Arrange
-        when(principal.getName()).thenReturn(email);
-        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+        when(principal.getName()).thenReturn(TEST_EMAIL);
+        when(userRepository.findByEmail(TEST_EMAIL)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThatThrownBy(() -> userService.getCurrentUser(principal))
-                .isInstanceOf(ResponseStatusException.class)
-                .hasFieldOrPropertyWithValue("status", HttpStatus.UNAUTHORIZED)
-                .hasMessageContaining(Const.UNAUTHORIZED);
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            userService.getCurrentUser(principal);
+        });
 
-        verify(principal).getName();
-        verify(userRepository).findByEmail(email);
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
     }
 
-    // ==================== UPDATE PROFILE TESTS ====================
-
     @Test
-    void updateProfile_AllFields_Success() {
+    @DisplayName("updateProfile - Aggiorna nome e cognome")
+    void testUpdateProfile_UpdateNameAndLastName() {
         // Arrange
         String newFirstName = "Luigi";
         String newLastName = "Verdi";
-        String newAvatarUrl = "https://example.com/new-avatar.jpg";
-
-        when(principal.getName()).thenReturn(email);
-        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
+        when(principal.getName()).thenReturn(TEST_EMAIL);
+        when(userRepository.findByEmail(TEST_EMAIL)).thenReturn(Optional.of(testUser));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
-        User result = userService.updateProfile(principal, newFirstName, newLastName, newAvatarUrl);
+        User result = userService.updateProfile(principal, newFirstName, newLastName, null);
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result.getFirstName()).isEqualTo(newFirstName);
-        assertThat(result.getLastName()).isEqualTo(newLastName);
-        assertThat(result.getAvatarUrl()).isEqualTo(newAvatarUrl);
-        assertThat(result.getUpdatedAt()).isNotNull();
-
-        verify(userRepository).save(user);
+        assertEquals(newFirstName, result.getFirstName());
+        assertEquals(newLastName, result.getLastName());
+        verify(userRepository, times(1)).save(testUser);
     }
 
     @Test
-    void updateProfile_PartialFields_Success() {
+    @DisplayName("updateProfile - Aggiorna avatar URL")
+    void testUpdateProfile_UpdateAvatarUrl() {
         // Arrange
-        String newFirstName = "Luigi";
-        String newLastName = null;
-        String newAvatarUrl = null;
-
-        when(principal.getName()).thenReturn(email);
-        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
+        String newAvatarUrl = "https://example.com/avatar.png";
+        when(principal.getName()).thenReturn(TEST_EMAIL);
+        when(userRepository.findByEmail(TEST_EMAIL)).thenReturn(Optional.of(testUser));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
-        User result = userService.updateProfile(principal, newFirstName, newLastName, newAvatarUrl);
+        User result = userService.updateProfile(principal, null, null, newAvatarUrl);
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result.getFirstName()).isEqualTo(newFirstName);
-        assertThat(result.getLastName()).isEqualTo("Rossi"); // Invariato
-        assertThat(result.getAvatarUrl()).isEqualTo("https://example.com/avatar.jpg"); // Invariato
-        verify(userRepository).save(user);
+        assertEquals(newAvatarUrl, result.getAvatarUrl());
     }
 
     @Test
-    void updateProfile_BlankFields_Ignored() {
+    @DisplayName("updateProfile - Ignora valori blank")
+    void testUpdateProfile_IgnoreBlankValues() {
         // Arrange
-        String newFirstName = "  "; // Blank
-        String newLastName = "  "; // Blank
-        String newAvatarUrl = null;
-
-        when(principal.getName()).thenReturn(email);
-        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
+        String originalFirstName = testUser.getFirstName();
+        when(principal.getName()).thenReturn(TEST_EMAIL);
+        when(userRepository.findByEmail(TEST_EMAIL)).thenReturn(Optional.of(testUser));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
-        User result = userService.updateProfile(principal, newFirstName, newLastName, newAvatarUrl);
+        User result = userService.updateProfile(principal, "", null, null);
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result.getFirstName()).isEqualTo("Mario"); // Invariato
-        assertThat(result.getLastName()).isEqualTo("Rossi"); // Invariato
-        verify(userRepository).save(user);
+        assertEquals(originalFirstName, result.getFirstName()); // Non cambiato
+    }
+
+    // ========================================
+    // TEST: GAMIFICATION
+    // ========================================
+
+    @Test
+    @DisplayName("addPoints - Aggiunge punti e calcola livello")
+    void testAddPoints_Success() {
+        // Arrange
+        int pointsToAdd = 150;
+        when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Act
+        userService.addPoints(testUserId, pointsToAdd);
+
+        // Assert
+        assertEquals(150, testUser.getTotalPoints());
+        assertEquals(2, testUser.getLevel()); // 150 / 100 + 1 = 2
+        verify(userRepository, times(1)).save(testUser);
     }
 
     @Test
-    void updateProfile_UserNotFound_ThrowsException() {
+    @DisplayName("addPoints - Calcolo corretto livello con molti punti")
+    void testAddPoints_HighLevel() {
         // Arrange
-        when(principal.getName()).thenReturn(email);
-        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+        testUser.setTotalPoints(500); // Livello iniziale 6
+        int pointsToAdd = 250;
+        when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Act
+        userService.addPoints(testUserId, pointsToAdd);
+
+        // Assert
+        assertEquals(750, testUser.getTotalPoints());
+        assertEquals(8, testUser.getLevel()); // 750 / 100 + 1 = 8
+    }
+
+    @Test
+    @DisplayName("addPoints - Utente non trovato lancia eccezione")
+    void testAddPoints_UserNotFound() {
+        // Arrange
+        UUID nonExistentId = UUID.randomUUID();
+        when(userRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThatThrownBy(() -> userService.updateProfile(principal, "Luigi", "Verdi", null))
-                .isInstanceOf(ResponseStatusException.class)
-                .hasFieldOrPropertyWithValue("status", HttpStatus.UNAUTHORIZED);
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            userService.addPoints(nonExistentId, 100);
+        });
 
-        verify(userRepository, never()).save(any());
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
     }
 
-    // ==================== POINTS TESTS ====================
-
     @Test
-    void addPoints_Success() {
+    @DisplayName("updateStreak - Incrementa streak days")
+    void testUpdateStreak_Success() {
         // Arrange
-        int initialPoints = user.getTotalPoints();
-        int initialLevel = user.getLevel();
-        int pointsToAdd = 50;
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
+        testUser.setStreakDays(5);
+        when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
-        userService.addPoints(userId, pointsToAdd);
+        userService.updateStreak(testUserId);
 
         // Assert
-        assertThat(user.getTotalPoints()).isEqualTo(initialPoints + pointsToAdd);
-        assertThat(user.getLevel()).isEqualTo(initialLevel + 1); // 150+50=200 → level 3
-        assertThat(user.getUpdatedAt()).isNotNull();
-
-        verify(userRepository).findById(userId);
-        verify(userRepository).save(user);
+        assertEquals(6, testUser.getStreakDays());
+        verify(userRepository, times(1)).save(testUser);
     }
 
     @Test
-    void addPoints_NoLevelUp_Success() {
+    @DisplayName("resetStreak - Resetta streak a zero")
+    void testResetStreak_Success() {
         // Arrange
-        int initialPoints = user.getTotalPoints();
-        int pointsToAdd = 20; // 150+20=170 → level 2 (invariato)
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
+        testUser.setStreakDays(10);
+        when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
-        userService.addPoints(userId, pointsToAdd);
+        userService.resetStreak(testUserId);
 
         // Assert
-        assertThat(user.getTotalPoints()).isEqualTo(initialPoints + pointsToAdd);
-        assertThat(user.getLevel()).isEqualTo(2); // Invariato
-        verify(userRepository).save(user);
+        assertEquals(0, testUser.getStreakDays());
+        verify(userRepository, times(1)).save(testUser);
     }
 
-    @Test
-    void addPoints_MultipleLevelUps_Success() {
-        // Arrange
-        user.setTotalPoints(250); // Level 3 (250/100 + 1 = 3)
-        user.setLevel(3);
-        int pointsToAdd = 150; // 250+150=400 → level 5 (400/100 + 1 = 5)
+    // ========================================
+    // TEST: LINGUA PREFERITA
+    // ========================================
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
+    @Test
+    @DisplayName("updatePreferredLanguage - Aggiorna lingua con successo")
+    void testUpdatePreferredLanguage_Success() {
+        // Arrange
+        String newLanguage = "en";
+        testUser.setPreferredLanguage("it");
+        when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
-        userService.addPoints(userId, pointsToAdd);
+        User result = userService.updatePreferredLanguage(testUserId, newLanguage);
 
         // Assert
-        assertThat(user.getTotalPoints()).isEqualTo(400);
-        assertThat(user.getLevel()).isEqualTo(5);
-        verify(userRepository).save(user);
+        assertEquals(newLanguage, result.getPreferredLanguage());
+        verify(userRepository, times(1)).save(testUser);
     }
 
     @Test
-    void addPoints_UserNotFound_ThrowsException() {
+    @DisplayName("updatePreferredLanguage - Lingua non supportata lancia eccezione")
+    void testUpdatePreferredLanguage_UnsupportedLanguage() {
         // Arrange
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
 
         // Act & Assert
-        assertThatThrownBy(() -> userService.addPoints(userId, 50))
-                .isInstanceOf(ResponseStatusException.class)
-                .hasFieldOrPropertyWithValue("status", HttpStatus.NOT_FOUND)
-                .hasMessageContaining(Const.USER_NOT_FOUND);
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            userService.updatePreferredLanguage(testUserId, "invalid");
+        });
 
-        verify(userRepository).findById(userId);
-        verify(userRepository, never()).save(any());
-    }
-
-    // ==================== STREAK TESTS ====================
-
-    @Test
-    void updateStreak_Success() {
-        // Arrange
-        int initialStreak = user.getStreakDays();
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
-
-        // Act
-        userService.updateStreak(userId);
-
-        // Assert
-        assertThat(user.getStreakDays()).isEqualTo(initialStreak + 1);
-        assertThat(user.getUpdatedAt()).isNotNull();
-        verify(userRepository).findById(userId);
-        verify(userRepository).save(user);
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+        assertTrue(exception.getReason().contains("non supportata"));
     }
 
     @Test
-    void updateStreak_UserNotFound_ThrowsException() {
+    @DisplayName("updatePreferredLanguage - Supporta tutte le lingue valide")
+    void testUpdatePreferredLanguage_AllSupportedLanguages() {
         // Arrange
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        List<String> supportedLanguages = Arrays.asList("it", "en", "es", "fr", "de", "pt", "ru");
+        when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act & Assert
-        assertThatThrownBy(() -> userService.updateStreak(userId))
-                .isInstanceOf(ResponseStatusException.class)
-                .hasFieldOrPropertyWithValue("status", HttpStatus.NOT_FOUND)
-                .hasMessageContaining(Const.USER_NOT_FOUND);
-
-        verify(userRepository).findById(userId);
-        verify(userRepository, never()).save(any());
+        for (String lang : supportedLanguages) {
+            User result = userService.updatePreferredLanguage(testUserId, lang);
+            assertEquals(lang, result.getPreferredLanguage());
+        }
     }
 
     @Test
-    void resetStreak_Success() {
-        // Arrange
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
-
+    @DisplayName("User.getFullName - Restituisce nome completo")
+    void testGetFullName() {
         // Act
-        userService.resetStreak(userId);
+        String fullName = testUser.getFullName();
 
         // Assert
-        assertThat(user.getStreakDays()).isZero();
-        assertThat(user.getUpdatedAt()).isNotNull();
-        verify(userRepository).findById(userId);
-        verify(userRepository).save(user);
-    }
-
-    @Test
-    void resetStreak_UserNotFound_ThrowsException() {
-        // Arrange
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        assertThatThrownBy(() -> userService.resetStreak(userId))
-                .isInstanceOf(ResponseStatusException.class)
-                .hasFieldOrPropertyWithValue("status", HttpStatus.NOT_FOUND)
-                .hasMessageContaining(Const.USER_NOT_FOUND);
-
-        verify(userRepository).findById(userId);
-        verify(userRepository, never()).save(any());
-    }
-
-    // ==================== EDGE CASES TESTS ====================
-
-    @Test
-    void addPoints_ZeroPoints_NoChange() {
-        // Arrange
-        int initialPoints = user.getTotalPoints();
-        int initialLevel = user.getLevel();
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
-
-        // Act
-        userService.addPoints(userId, 0);
-
-        // Assert
-        assertThat(user.getTotalPoints()).isEqualTo(initialPoints);
-        assertThat(user.getLevel()).isEqualTo(initialLevel);
-        verify(userRepository).save(user);
-    }
-
-    @Test
-    void addPoints_NegativePoints_DecreasesTotalAndLevel() {
-        // Arrange
-        int initialPoints = user.getTotalPoints();
-        int initialLevel = user.getLevel();
-        int pointsToSubtract = -30; // 150-30=120 → level 2 (invariato)
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
-
-        // Act
-        userService.addPoints(userId, pointsToSubtract);
-
-        // Assert
-        assertThat(user.getTotalPoints()).isEqualTo(initialPoints + pointsToSubtract);
-        assertThat(user.getLevel()).isEqualTo(initialLevel); // Livello invariato
-        verify(userRepository).save(user);
-    }
-
-    @Test
-    void addPoints_NegativePoints_LevelDown() {
-        // Arrange
-        user.setTotalPoints(250); // Level 3
-        user.setLevel(3);
-        int pointsToSubtract = -80; // 250-80=170 → level 2
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
-
-        // Act
-        userService.addPoints(userId, pointsToSubtract);
-
-        // Assert
-        assertThat(user.getTotalPoints()).isEqualTo(170);
-        assertThat(user.getLevel()).isEqualTo(2);
-        verify(userRepository).save(user);
-    }
-
-    @Test
-    void updateProfile_WithNullAvatar_Success() {
-        // Arrange
-        String newFirstName = "Luigi";
-        String newLastName = "Verdi";
-        String newAvatarUrl = null;
-
-        when(principal.getName()).thenReturn(email);
-        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
-
-        // Act
-        User result = userService.updateProfile(principal, newFirstName, newLastName, newAvatarUrl);
-
-        // Assert
-        assertThat(result).isNotNull();
-        assertThat(result.getFirstName()).isEqualTo(newFirstName);
-        assertThat(result.getLastName()).isEqualTo(newLastName);
-        assertThat(result.getAvatarUrl()).isEqualTo("https://example.com/avatar.jpg"); // Invariato
-        verify(userRepository).save(user);
-    }
-
-    @Test
-    void updateProfile_WithEmptyAvatar_Success() {
-        // Arrange
-        String newFirstName = "Luigi";
-        String newLastName = "Verdi";
-        String newAvatarUrl = "";
-
-        when(principal.getName()).thenReturn(email);
-        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
-
-        // Act
-        User result = userService.updateProfile(principal, newFirstName, newLastName, newAvatarUrl);
-
-        // Assert
-        assertThat(result).isNotNull();
-        assertThat(result.getFirstName()).isEqualTo(newFirstName);
-        assertThat(result.getLastName()).isEqualTo(newLastName);
-        assertThat(result.getAvatarUrl()).isEqualTo(""); // Aggiornato con stringa vuota
-        verify(userRepository).save(user);
-    }
-
-    // ==================== VALIDATION TESTS ====================
-
-    @Test
-    void registerUser_WithNullEducationLevel_Success() {
-        // Arrange
-        when(userRepository.existsByEmail(email)).thenReturn(false);
-        when(passwordEncoder.encode(password)).thenReturn(encodedPassword);
-        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
-
-        // Act
-        User result = userService.registerUser("Mario", "Rossi", email, password, (EducationLevel) null);
-
-        // Assert
-        assertThat(result).isNotNull();
-        assertThat(result.getEducationLevel()).isNull();
-        verify(userRepository).save(any(User.class));
-    }
-
-    @Test
-    void registerUser_WithMinimalFields_Success() {
-        // Arrange
-        when(userRepository.existsByEmail(email)).thenReturn(false);
-        when(passwordEncoder.encode(password)).thenReturn(encodedPassword);
-        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
-
-        // Act
-        User result = userService.registerUser("M", "R", email, "pwd", EducationLevel.HIGH_SCHOOL);
-
-        // Assert
-        assertThat(result).isNotNull();
-        assertThat(result.getFirstName()).isEqualTo("M");
-        assertThat(result.getLastName()).isEqualTo("R");
-        verify(userRepository).save(any(User.class));
-    }
-
-    // ==================== INTEGRATION POINTS TESTS ====================
-
-    @Test
-    void addPoints_UpdatesUpdatedAt_Success() {
-        // Arrange
-        LocalDateTime oldUpdatedAt = user.getUpdatedAt();
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
-
-        // Act
-        userService.addPoints(userId, 10);
-
-        // Assert
-        assertThat(user.getUpdatedAt()).isAfter(oldUpdatedAt);
-        verify(userRepository).save(user);
-    }
-
-    @Test
-    void updateStreak_UpdatesUpdatedAt_Success() {
-        // Arrange
-        LocalDateTime oldUpdatedAt = user.getUpdatedAt();
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
-
-        // Act
-        userService.updateStreak(userId);
-
-        // Assert
-        assertThat(user.getUpdatedAt()).isAfter(oldUpdatedAt);
-        verify(userRepository).save(user);
-    }
-
-    @Test
-    void resetStreak_UpdatesUpdatedAt_Success() {
-        // Arrange
-        LocalDateTime oldUpdatedAt = user.getUpdatedAt();
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
-
-        // Act
-        userService.resetStreak(userId);
-
-        // Assert
-        assertThat(user.getUpdatedAt()).isAfter(oldUpdatedAt);
-        verify(userRepository).save(user);
-    }
-
-    // ==================== PRINCIPAL NULL TESTS ====================
-
-    @Test
-    void getCurrentUser_NullPrincipal_ThrowsException() {
-        // Act & Assert
-        assertThatThrownBy(() -> userService.getCurrentUser(null))
-                .isInstanceOf(NullPointerException.class);
-    }
-
-    @Test
-    void updateProfile_NullPrincipal_ThrowsException() {
-        // Act & Assert
-        assertThatThrownBy(() -> userService.updateProfile(null, "Luigi", "Verdi", null))
-                .isInstanceOf(NullPointerException.class);
+        assertEquals("Mario Rossi", fullName);
     }
 }

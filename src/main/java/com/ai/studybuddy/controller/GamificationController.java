@@ -6,7 +6,6 @@ import com.ai.studybuddy.service.inter.GamificationService;
 import com.ai.studybuddy.service.inter.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,11 +33,13 @@ public class GamificationController {
 
     private static final Logger logger = LoggerFactory.getLogger(GamificationController.class);
 
-    @Autowired
-    private GamificationService gamificationService;
+    private final GamificationService gamificationService;
+    private final UserService userService;
 
-    @Autowired
-    private UserService userService;
+    public GamificationController(GamificationService gamificationService, UserService userService) {
+        this.gamificationService = gamificationService;
+        this.userService = userService;
+    }
 
     // ==================== STATISTICHE ====================
 

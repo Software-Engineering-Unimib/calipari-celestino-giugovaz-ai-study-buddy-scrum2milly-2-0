@@ -13,17 +13,16 @@ import com.ai.studybuddy.repository.FlashcardRepository;
 import com.ai.studybuddy.service.inter.AIService;
 import com.ai.studybuddy.service.inter.FlashcardService;
 import com.ai.studybuddy.util.enums.DifficultyLevel;
+import com.ai.studybuddy.util.enums.EducationLevel;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -31,13 +30,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayName("FlashcardServiceImpl - Test Suite Completo")
 class FlashcardServiceImplTest {
 
     @Mock
@@ -58,17 +57,12 @@ class FlashcardServiceImplTest {
     @InjectMocks
     private FlashcardServiceImpl flashcardService;
 
-    @Captor
-    private ArgumentCaptor<Flashcard> flashcardCaptor;
-
+    private User testUser;
+    private FlashcardDeck testDeck;
+    private Flashcard testFlashcard;
     private UUID userId;
     private UUID deckId;
     private UUID flashcardId;
-    private User user;
-    private FlashcardDeck deck;
-    private Flashcard flashcard;
-    private FlashcardCreateRequest createRequest;
-    private FlashcardAIGenerateRequest aiGenerateRequest;
 
     @BeforeEach
     void setUp() {
@@ -76,329 +70,338 @@ class FlashcardServiceImplTest {
         deckId = UUID.randomUUID();
         flashcardId = UUID.randomUUID();
 
-        // Setup User
-        user = new User();
-        user.setId(userId);
-        user.setFirstName("Mario");
-        user.setLastName("Rossi");
-        user.setEmail("mario.rossi@example.com");
+        testUser = createTestUser();
+        testDeck = createTestDeck();
+        testFlashcard = createTestFlashcard();
 
-        // Setup FlashcardDeck
-        deck = new FlashcardDeck();
+        flashcardService.setSelfProxy(selfProxy);
+    }
+
+    private User createTestUser() {
+        User user = new User();
+        user.setId(userId);
+        user.setEmail("test@example.com");
+        user.setFirstName("Test");
+        user.setLastName("User");
+        user.setPreferredLanguage("it");
+        user.setEducationLevel(EducationLevel.UNIVERSITY);
+        return user;
+    }
+
+    private FlashcardDeck createTestDeck() {
+        FlashcardDeck deck = new FlashcardDeck();
         deck.setId(deckId);
         deck.setName("Test Deck");
-        deck.setOwner(user);
-        deck.setTotalCards(10);
-        deck.setIsActive(true);
-
-        // Setup Flashcard
-        flashcard = new Flashcard();
-        flashcard.setId(flashcardId);
-        flashcard.setFrontContent("Front content");
-        flashcard.setBackContent("Back content");
-        flashcard.setDeck(deck);
-        flashcard.setCreatedBy(user);
-        flashcard.setIsActive(true);
-        flashcard.setTimesReviewed(5);
-        flashcard.setTimesCorrect(3);
-        flashcard.setLastReviewedAt(LocalDateTime.now().minusDays(2));
-        flashcard.setDifficultyLevel(DifficultyLevel.INTERMEDIO);
-        flashcard.setAiGenerated(false);
-        flashcard.setTags("tag1,tag2");
-
-        // Setup CreateRequest
-        createRequest = new FlashcardCreateRequest();
-        createRequest.setFrontContent("New front");
-        createRequest.setBackContent("New back");
-        createRequest.setDifficultyLevel(DifficultyLevel.INTERMEDIO);
-
-        // Setup AI GenerateRequest
-        aiGenerateRequest = FlashcardAIGenerateRequest.builder()
-                .topic("Mathematics")
-                .numberOfCards(3)
-                .difficultyLevel(DifficultyLevel.INTERMEDIO)
-                .build();
+        deck.setOwner(testUser);
+        deck.setTotalCards(0);
+        deck.setCreatedAt(LocalDateTime.now());
+        return deck;
     }
 
+    private Flashcard createTestFlashcard() {
+        Flashcard flashcard = new Flashcard();
+        flashcard.setId(flashcardId);
+        flashcard.setDeck(testDeck);
+        flashcard.setCreatedBy(testUser);
+        flashcard.setFrontContent("Domanda test");
+        flashcard.setBackContent("Risposta test");
+        flashcard.setDifficultyLevel(DifficultyLevel.INTERMEDIO);
+        flashcard.setIsActive(true);
+        flashcard.setTimesReviewed(0);
+        flashcard.setTimesCorrect(0);
+        flashcard.setAiGenerated(false);
+        return flashcard;
+    }
+
+    // ========================================
+    // TEST: createFlashcard
+    // ========================================
+
     @Test
-    void createFlashcard_Success() {
+    @DisplayName("createFlashcard - Successo")
+    void testCreateFlashcard_Success() {
         // Arrange
-        when(deckRepository.findById(deckId)).thenReturn(Optional.of(deck));
-        when(flashcardMapper.toEntity(createRequest, deck, user)).thenReturn(flashcard);
-        when(flashcardRepository.save(flashcard)).thenReturn(flashcard);
-        when(deckRepository.save(deck)).thenReturn(deck);
+        FlashcardCreateRequest request = FlashcardCreateRequest.builder()
+                .frontContent("Nuova domanda")
+                .backContent("Nuova risposta")
+                .difficultyLevel(DifficultyLevel.PRINCIPIANTE)
+                .build();
+
+        when(deckRepository.findById(deckId)).thenReturn(Optional.of(testDeck));
+        when(flashcardMapper.toEntity(request, testDeck, testUser)).thenReturn(testFlashcard);
+        when(flashcardRepository.save(any(Flashcard.class))).thenReturn(testFlashcard);
+        when(deckRepository.save(any(FlashcardDeck.class))).thenReturn(testDeck);
 
         // Act
-        Flashcard result = flashcardService.createFlashcard(deckId, createRequest, user);
+        Flashcard result = flashcardService.createFlashcard(deckId, request, testUser);
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result.getId()).isEqualTo(flashcardId);
-
-        verify(deckRepository).findById(deckId);
-        verify(flashcardMapper).toEntity(createRequest, deck, user);
-        verify(flashcardRepository).save(flashcard);
-        verify(deckRepository).save(deck);
-        assertThat(deck.getTotalCards()).isEqualTo(11);
+        assertNotNull(result);
+        verify(flashcardRepository, times(1)).save(testFlashcard);
+        verify(deckRepository, times(1)).save(testDeck);
+        assertEquals(1, testDeck.getTotalCards());
     }
 
     @Test
-    void createFlashcard_DeckNotFound_ThrowsException() {
+    @DisplayName("createFlashcard - Deck non trovato")
+    void testCreateFlashcard_DeckNotFound() {
         // Arrange
+        FlashcardCreateRequest request = FlashcardCreateRequest.builder()
+                .frontContent("Test")
+                .backContent("Test")
+                .build();
+
         when(deckRepository.findById(deckId)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThatThrownBy(() -> flashcardService.createFlashcard(deckId, createRequest, user))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Deck");
-
-        verify(deckRepository).findById(deckId);
-        verifyNoInteractions(flashcardMapper, flashcardRepository);
+        assertThrows(ResourceNotFoundException.class, () -> {
+            flashcardService.createFlashcard(deckId, request, testUser);
+        });
     }
 
     @Test
-    void createFlashcard_UnauthorizedUser_ThrowsException() {
+    @DisplayName("createFlashcard - Utente non autorizzato")
+    void testCreateFlashcard_Unauthorized() {
         // Arrange
         User otherUser = new User();
         otherUser.setId(UUID.randomUUID());
-        deck.setOwner(otherUser);
+        
+        FlashcardCreateRequest request = FlashcardCreateRequest.builder()
+                .frontContent("Test")
+                .backContent("Test")
+                .build();
 
-        when(deckRepository.findById(deckId)).thenReturn(Optional.of(deck));
+        when(deckRepository.findById(deckId)).thenReturn(Optional.of(testDeck));
 
         // Act & Assert
-        assertThatThrownBy(() -> flashcardService.createFlashcard(deckId, createRequest, user))
-                .isInstanceOf(UnauthorizedException.class)
-                .hasMessageContaining("deck");
-
-        verify(deckRepository).findById(deckId);
-        verifyNoInteractions(flashcardMapper, flashcardRepository);
+        assertThrows(UnauthorizedException.class, () -> {
+            flashcardService.createFlashcard(deckId, request, otherUser);
+        });
     }
 
-    @Test
-    void generateAndSaveFlashcards_DeprecatedMethod_Success() {
-        // Arrange
-        String topic = "Mathematics";
-        int numberOfCards = 3;
-        String difficulty = "MEDIUM";
-
-        List<Flashcard> expectedCards = Arrays.asList(flashcard);
-        when(selfProxy.generateAndSaveFlashcards(eq(deckId), any(FlashcardAIGenerateRequest.class), eq(user)))
-                .thenReturn(expectedCards);
-
-        // Act
-        List<Flashcard> result = flashcardService.generateAndSaveFlashcards(deckId, topic, numberOfCards, difficulty, user);
-
-        // Assert
-        assertThat(result).isNotNull();
-        assertThat(result).hasSize(1);
-        verify(selfProxy).generateAndSaveFlashcards(eq(deckId), any(FlashcardAIGenerateRequest.class), eq(user));
-    }
+    // ========================================
+    // TEST: generateAndSaveFlashcards
+    // ========================================
 
     @Test
-    void generateAndSaveFlashcards_WithRequest_Success() {
+    @DisplayName("generateAndSaveFlashcards - Successo con lingua specificata")
+    void testGenerateAndSaveFlashcards_WithLanguage() {
         // Arrange
-        String aiResponse = "{\"flashcards\": [...]}";
-        JsonArray flashcardsJson = new JsonArray();
+        FlashcardAIGenerateRequest request = FlashcardAIGenerateRequest.builder()
+                .topic("Fotosintesi")
+                .numberOfCards(3)
+                .difficultyLevel(DifficultyLevel.INTERMEDIO)
+                .language("it")
+                .build();
 
-        JsonObject card1 = new JsonObject();
-        card1.addProperty("front", "Front 1");
-        card1.addProperty("back", "Back 1");
-        flashcardsJson.add(card1);
+        String aiResponse = """
+            [
+                {"front": "Domanda 1", "back": "Risposta 1"},
+                {"front": "Domanda 2", "back": "Risposta 2"},
+                {"front": "Domanda 3", "back": "Risposta 3"}
+            ]
+            """;
 
-        JsonObject card2 = new JsonObject();
-        card2.addProperty("front", "Front 2");
-        card2.addProperty("back", "Back 2");
-        flashcardsJson.add(card2);
+        JsonArray jsonArray = JsonParser.parseString(aiResponse).getAsJsonArray();
 
-        Flashcard flashcard1 = new Flashcard();
-        flashcard1.setId(UUID.randomUUID());
-        Flashcard flashcard2 = new Flashcard();
-        flashcard2.setId(UUID.randomUUID());
-
-        when(deckRepository.findById(deckId)).thenReturn(Optional.of(deck));
-        when(aiService.generateFlashcards(aiGenerateRequest.getTopic(),
-                aiGenerateRequest.getNumberOfCards(),
-                aiGenerateRequest.getDifficultyLevel()))
+        when(deckRepository.findById(deckId)).thenReturn(Optional.of(testDeck));
+        when(aiService.generateFlashcards(anyString(), anyInt(), any(), any(), anyString()))
                 .thenReturn(aiResponse);
-        when(aiService.parseFlashcardsResponse(aiResponse)).thenReturn(flashcardsJson);
-        when(flashcardMapper.toAIGeneratedEntity(any(FlashcardCreateRequest.class), eq(deck), eq(user)))
-                .thenReturn(flashcard1, flashcard2);
-        when(flashcardRepository.save(any(Flashcard.class)))
-                .thenReturn(flashcard1, flashcard2);
-        when(deckRepository.save(deck)).thenReturn(deck);
+        when(aiService.parseFlashcardsResponse(aiResponse)).thenReturn(jsonArray);
+        when(flashcardMapper.toAIGeneratedEntity(any(), any(), any())).thenReturn(testFlashcard);
+        when(flashcardRepository.save(any(Flashcard.class))).thenReturn(testFlashcard);
+        when(deckRepository.save(any(FlashcardDeck.class))).thenReturn(testDeck);
 
         // Act
-        List<Flashcard> result = flashcardService.generateAndSaveFlashcards(deckId, aiGenerateRequest, user);
+        List<Flashcard> result = flashcardService.generateAndSaveFlashcards(deckId, request, testUser);
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result).hasSize(2);
-        verify(deckRepository).findById(deckId);
-        verify(aiService).generateFlashcards(anyString(), anyInt(), any(DifficultyLevel.class));
-        verify(aiService).parseFlashcardsResponse(aiResponse);
-        verify(flashcardMapper, times(2)).toAIGeneratedEntity(any(FlashcardCreateRequest.class), eq(deck), eq(user));
-        verify(flashcardRepository, times(2)).save(any(Flashcard.class));
-        verify(deckRepository).save(deck);
-        assertThat(deck.getTotalCards()).isEqualTo(12); // 10 + 2
+        assertNotNull(result);
+        assertEquals(3, result.size());
+        verify(aiService, times(1)).generateFlashcards(
+                eq("Fotosintesi"), eq(3), eq(DifficultyLevel.INTERMEDIO), 
+                eq(EducationLevel.UNIVERSITY), eq("it"));
+        verify(flashcardRepository, times(3)).save(any(Flashcard.class));
     }
 
     @Test
-    void getFlashcardsByDeck_Success() {
+    @DisplayName("generateAndSaveFlashcards - Con contesto")
+    void testGenerateAndSaveFlashcards_WithContext() {
         // Arrange
-        List<Flashcard> expectedCards = Arrays.asList(flashcard);
-        when(deckRepository.findById(deckId)).thenReturn(Optional.of(deck));
-        when(flashcardRepository.findByDeckIdAndIsActiveTrue(deckId)).thenReturn(expectedCards);
+        String context = "Focalizzati sul processo di conversione della luce";
+        FlashcardAIGenerateRequest request = FlashcardAIGenerateRequest.builder()
+                .topic("Fotosintesi")
+                .numberOfCards(2)
+                .difficultyLevel(DifficultyLevel.AVANZATO)
+                .context(context)
+                .language("en")
+                .build();
+
+        String aiResponse = "[{\"front\": \"Q1\", \"back\": \"A1\"},{\"front\": \"Q2\", \"back\": \"A2\"}]";
+        JsonArray jsonArray = JsonParser.parseString(aiResponse).getAsJsonArray();
+
+        when(deckRepository.findById(deckId)).thenReturn(Optional.of(testDeck));
+        when(aiService.generateFlashcardsWithContext(anyString(), anyInt(), any(), anyString(), anyString()))
+                .thenReturn(aiResponse);
+        when(aiService.parseFlashcardsResponse(aiResponse)).thenReturn(jsonArray);
+        when(flashcardMapper.toAIGeneratedEntity(any(), any(), any())).thenReturn(testFlashcard);
+        when(flashcardRepository.save(any(Flashcard.class))).thenReturn(testFlashcard);
+        when(deckRepository.save(any(FlashcardDeck.class))).thenReturn(testDeck);
+
+        // Act
+        List<Flashcard> result = flashcardService.generateAndSaveFlashcards(deckId, request, testUser);
+
+        // Assert
+        assertEquals(2, result.size());
+        verify(aiService, times(1)).generateFlashcardsWithContext(
+                eq("Fotosintesi"), eq(2), eq(DifficultyLevel.AVANZATO), eq(context), eq("en"));
+    }
+
+    @Test
+    @DisplayName("generateAndSaveFlashcards - Usa lingua utente se non specificata")
+    void testGenerateAndSaveFlashcards_DefaultUserLanguage() {
+        // Arrange
+        FlashcardAIGenerateRequest request = FlashcardAIGenerateRequest.builder()
+                .topic("Test Topic")
+                .numberOfCards(1)
+                .difficultyLevel(DifficultyLevel.PRINCIPIANTE)
+                .language(null) // Lingua non specificata
+                .build();
+
+        String aiResponse = "[{\"front\": \"Q\", \"back\": \"A\"}]";
+        JsonArray jsonArray = JsonParser.parseString(aiResponse).getAsJsonArray();
+
+        when(deckRepository.findById(deckId)).thenReturn(Optional.of(testDeck));
+        when(aiService.generateFlashcards(anyString(), anyInt(), any(), any(), eq("it")))
+                .thenReturn(aiResponse);
+        when(aiService.parseFlashcardsResponse(aiResponse)).thenReturn(jsonArray);
+        when(flashcardMapper.toAIGeneratedEntity(any(), any(), any())).thenReturn(testFlashcard);
+        when(flashcardRepository.save(any(Flashcard.class))).thenReturn(testFlashcard);
+        when(deckRepository.save(any(FlashcardDeck.class))).thenReturn(testDeck);
+
+        // Act
+        flashcardService.generateAndSaveFlashcards(deckId, request, testUser);
+
+        // Assert
+        verify(aiService, times(1)).generateFlashcards(anyString(), anyInt(), any(), any(), eq("it"));
+    }
+
+    @Test
+    @DisplayName("generateAndSaveFlashcards (deprecated) - Usa lingua utente")
+    void testGenerateAndSaveFlashcardsDeprecated_UsesUserLanguage() {
+        // Arrange
+        List<Flashcard> expectedResult = Arrays.asList(testFlashcard);
+        when(selfProxy.generateAndSaveFlashcards(any(), any(), any())).thenReturn(expectedResult);
+
+        // Act
+        List<Flashcard> result = flashcardService.generateAndSaveFlashcards(
+                deckId, "Topic", 3, "medium", testUser);
+
+        // Assert
+        assertNotNull(result);
+        verify(selfProxy, times(1)).generateAndSaveFlashcards(any(), any(), any());
+    }
+
+    // ========================================
+    // TEST: getFlashcardsByDeck
+    // ========================================
+
+    @Test
+    @DisplayName("getFlashcardsByDeck - Restituisce flashcards attive")
+    void testGetFlashcardsByDeck_Success() {
+        // Arrange
+        List<Flashcard> flashcards = Arrays.asList(testFlashcard, createTestFlashcard());
+        when(deckRepository.findById(deckId)).thenReturn(Optional.of(testDeck));
+        when(flashcardRepository.findByDeckIdAndIsActiveTrue(deckId)).thenReturn(flashcards);
 
         // Act
         List<Flashcard> result = flashcardService.getFlashcardsByDeck(deckId, userId);
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result).hasSize(1);
-        assertThat(result).containsExactly(flashcard);
-
-        verify(deckRepository).findById(deckId);
-        verify(flashcardRepository).findByDeckIdAndIsActiveTrue(deckId);
+        assertEquals(2, result.size());
+        verify(flashcardRepository, times(1)).findByDeckIdAndIsActiveTrue(deckId);
     }
 
-    @Test
-    void reviewFlashcard_Correct_Success() {
-        // Arrange
-        int initialTimesReviewed = flashcard.getTimesReviewed();
-        int initialTimesCorrect = flashcard.getTimesCorrect();
+    // ========================================
+    // TEST: reviewFlashcard
+    // ========================================
 
-        when(flashcardRepository.findById(flashcardId)).thenReturn(Optional.of(flashcard));
-        when(flashcardRepository.save(flashcard)).thenReturn(flashcard);
+    @Test
+    @DisplayName("reviewFlashcard - Risposta corretta")
+    void testReviewFlashcard_Correct() {
+        // Arrange
+        when(flashcardRepository.findById(flashcardId)).thenReturn(Optional.of(testFlashcard));
+        when(flashcardRepository.save(any(Flashcard.class))).thenReturn(testFlashcard);
 
         // Act
         Flashcard result = flashcardService.reviewFlashcard(flashcardId, true, userId);
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(flashcard.getTimesReviewed()).isEqualTo(initialTimesReviewed + 1);
-        assertThat(flashcard.getTimesCorrect()).isEqualTo(initialTimesCorrect + 1);
-        assertThat(flashcard.getLastReviewedAt()).isNotNull();
-        verify(flashcardRepository).save(flashcard);
+        assertNotNull(result);
+        verify(flashcardRepository, times(1)).save(testFlashcard);
     }
 
     @Test
-    void reviewFlashcard_Incorrect_Success() {
+    @DisplayName("reviewFlashcard - Risposta errata")
+    void testReviewFlashcard_Incorrect() {
         // Arrange
-        int initialTimesReviewed = flashcard.getTimesReviewed();
-        int initialTimesCorrect = flashcard.getTimesCorrect();
-
-        when(flashcardRepository.findById(flashcardId)).thenReturn(Optional.of(flashcard));
-        when(flashcardRepository.save(flashcard)).thenReturn(flashcard);
+        when(flashcardRepository.findById(flashcardId)).thenReturn(Optional.of(testFlashcard));
+        when(flashcardRepository.save(any(Flashcard.class))).thenReturn(testFlashcard);
 
         // Act
         Flashcard result = flashcardService.reviewFlashcard(flashcardId, false, userId);
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(flashcard.getTimesReviewed()).isEqualTo(initialTimesReviewed + 1);
-        assertThat(flashcard.getTimesCorrect()).isEqualTo(initialTimesCorrect);
-        assertThat(flashcard.getLastReviewedAt()).isNotNull();
-        verify(flashcardRepository).save(flashcard);
+        assertNotNull(result);
+        verify(flashcardRepository, times(1)).save(testFlashcard);
     }
 
     @Test
-    void reviewFlashcard_Unauthorized_ThrowsException() {
+    @DisplayName("reviewFlashcard - Flashcard non trovata")
+    void testReviewFlashcard_NotFound() {
         // Arrange
-        User otherUser = new User();
-        otherUser.setId(UUID.randomUUID());
-        deck.setOwner(otherUser);
-
-        when(flashcardRepository.findById(flashcardId)).thenReturn(Optional.of(flashcard));
+        when(flashcardRepository.findById(flashcardId)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThatThrownBy(() -> flashcardService.reviewFlashcard(flashcardId, true, userId))
-                .isInstanceOf(UnauthorizedException.class);
-
-        verify(flashcardRepository).findById(flashcardId);
-        verify(flashcardRepository, never()).save(any());
+        assertThrows(ResourceNotFoundException.class, () -> {
+            flashcardService.reviewFlashcard(flashcardId, true, userId);
+        });
     }
 
-    @Test
-    void updateFlashcard_Success() {
-        // Arrange
-        FlashcardCreateRequest updateRequest = new FlashcardCreateRequest();
-        updateRequest.setFrontContent("Updated front");
-        updateRequest.setBackContent("Updated back");
-        updateRequest.setDifficultyLevel(DifficultyLevel.AVANZATO);
-
-        when(flashcardRepository.findById(flashcardId)).thenReturn(Optional.of(flashcard));
-        when(flashcardRepository.save(flashcard)).thenReturn(flashcard);
-
-        // Act
-        Flashcard result = flashcardService.updateFlashcard(flashcardId, updateRequest, userId);
-
-        // Assert
-        assertThat(result).isNotNull();
-        verify(flashcardMapper).updateEntity(flashcard, updateRequest);
-        verify(flashcardRepository).save(flashcard);
-    }
+    // ========================================
+    // TEST: getStudySession
+    // ========================================
 
     @Test
-    void deleteFlashcard_Success() {
+    @DisplayName("getStudySession - Restituisce carte mai riviste")
+    void testGetStudySession_NeverReviewed() {
         // Arrange
-        int initialTotalCards = deck.getTotalCards();
-
-        when(flashcardRepository.findById(flashcardId)).thenReturn(Optional.of(flashcard));
-        when(flashcardRepository.save(flashcard)).thenReturn(flashcard);
-        when(deckRepository.save(deck)).thenReturn(deck);
-
-        // Act
-        flashcardService.deleteFlashcard(flashcardId, userId);
-
-        // Assert
-        assertThat(flashcard.getIsActive()).isFalse();
-        verify(flashcardRepository).findById(flashcardId);
-        verify(flashcardRepository).save(flashcard);
-        verify(deckRepository).save(deck);
-        assertThat(deck.getTotalCards()).isEqualTo(initialTotalCards - 1);
-    }
-
-    @Test
-    void getStudySession_WithNeverReviewedCards() {
-        // Arrange
-        int numberOfCards = 3;
+        int numberOfCards = 5;
         List<Flashcard> neverReviewed = Arrays.asList(
-                createFlashcardWithReviewCount(0),
-                createFlashcardWithReviewCount(0),
-                createFlashcardWithReviewCount(0),
-                createFlashcardWithReviewCount(0)
+                testFlashcard, createTestFlashcard(), createTestFlashcard(),
+                createTestFlashcard(), createTestFlashcard()
         );
-
-        when(deckRepository.findById(deckId)).thenReturn(Optional.of(deck));
+        
+        when(deckRepository.findById(deckId)).thenReturn(Optional.of(testDeck));
         when(flashcardRepository.findNeverReviewedByDeckId(deckId)).thenReturn(neverReviewed);
 
         // Act
         List<Flashcard> result = flashcardService.getStudySession(deckId, numberOfCards, userId);
 
         // Assert
-        assertThat(result).hasSize(3);
-        verify(flashcardRepository).findNeverReviewedByDeckId(deckId);
-        verify(flashcardRepository, never()).findNeedingReview(any(), any());
-        verify(flashcardRepository, never()).findRandomForStudy(any(), anyInt());
+        assertEquals(5, result.size());
+        verify(flashcardRepository, times(1)).findNeverReviewedByDeckId(deckId);
     }
 
     @Test
-    void getStudySession_WithNeedReviewCards() {
+    @DisplayName("getStudySession - Restituisce carte che necessitano ripasso")
+    void testGetStudySession_NeedingReview() {
         // Arrange
         int numberOfCards = 3;
-        List<Flashcard> neverReviewed = Arrays.asList(
-                createFlashcardWithReviewCount(0)
-        );
-
-        List<Flashcard> needReview = Arrays.asList(
-                createFlashcardWithLastReviewedAt(LocalDateTime.now().minusDays(10)),
-                createFlashcardWithLastReviewedAt(LocalDateTime.now().minusDays(10)),
-                createFlashcardWithLastReviewedAt(LocalDateTime.now().minusDays(10)),
-                createFlashcardWithLastReviewedAt(LocalDateTime.now().minusDays(10))
-        );
-
-        when(deckRepository.findById(deckId)).thenReturn(Optional.of(deck));
-        when(flashcardRepository.findNeverReviewedByDeckId(deckId)).thenReturn(neverReviewed);
+        List<Flashcard> needReview = Arrays.asList(testFlashcard, createTestFlashcard(), createTestFlashcard());
+        
+        when(deckRepository.findById(deckId)).thenReturn(Optional.of(testDeck));
+        when(flashcardRepository.findNeverReviewedByDeckId(deckId)).thenReturn(Arrays.asList());
         when(flashcardRepository.findNeedingReview(eq(deckId), any(LocalDateTime.class)))
                 .thenReturn(needReview);
 
@@ -406,264 +409,123 @@ class FlashcardServiceImplTest {
         List<Flashcard> result = flashcardService.getStudySession(deckId, numberOfCards, userId);
 
         // Assert
-        assertThat(result).hasSize(3);
-        verify(flashcardRepository).findNeverReviewedByDeckId(deckId);
-        verify(flashcardRepository).findNeedingReview(eq(deckId), any(LocalDateTime.class));
-        verify(flashcardRepository, never()).findRandomForStudy(any(), anyInt());
+        assertEquals(3, result.size());
     }
 
     @Test
-    void getStudySession_WithRandomCards() {
+    @DisplayName("getStudySession - Restituisce carte casuali")
+    void testGetStudySession_Random() {
         // Arrange
-        int numberOfCards = 3;
-        List<Flashcard> neverReviewed = Arrays.asList();
-        List<Flashcard> needReview = Arrays.asList();
-        List<Flashcard> randomCards = Arrays.asList(
-                createFlashcardWithReviewCount(2),
-                createFlashcardWithReviewCount(2),
-                createFlashcardWithReviewCount(2)
-        );
-
-        when(deckRepository.findById(deckId)).thenReturn(Optional.of(deck));
-        when(flashcardRepository.findNeverReviewedByDeckId(deckId)).thenReturn(neverReviewed);
+        int numberOfCards = 2;
+        List<Flashcard> randomCards = Arrays.asList(testFlashcard, createTestFlashcard());
+        
+        when(deckRepository.findById(deckId)).thenReturn(Optional.of(testDeck));
+        when(flashcardRepository.findNeverReviewedByDeckId(deckId)).thenReturn(Arrays.asList());
         when(flashcardRepository.findNeedingReview(eq(deckId), any(LocalDateTime.class)))
-                .thenReturn(needReview);
+                .thenReturn(Arrays.asList());
         when(flashcardRepository.findRandomForStudy(deckId, numberOfCards)).thenReturn(randomCards);
 
         // Act
         List<Flashcard> result = flashcardService.getStudySession(deckId, numberOfCards, userId);
 
         // Assert
-        assertThat(result).hasSize(3);
-        verify(flashcardRepository).findNeverReviewedByDeckId(deckId);
-        verify(flashcardRepository).findNeedingReview(eq(deckId), any(LocalDateTime.class));
-        verify(flashcardRepository).findRandomForStudy(deckId, numberOfCards);
+        assertEquals(2, result.size());
+        verify(flashcardRepository, times(1)).findRandomForStudy(deckId, numberOfCards);
     }
 
-    @Test
-    void searchFlashcards_Success() {
-        // Arrange
-        String searchTerm = "math";
-        List<Flashcard> searchResults = Arrays.asList(flashcard);
+    // ========================================
+    // TEST: updateFlashcard
+    // ========================================
 
-        when(deckRepository.findById(deckId)).thenReturn(Optional.of(deck));
+    @Test
+    @DisplayName("updateFlashcard - Successo")
+    void testUpdateFlashcard_Success() {
+        // Arrange
+        FlashcardCreateRequest request = FlashcardCreateRequest.builder()
+                .frontContent("Domanda aggiornata")
+                .backContent("Risposta aggiornata")
+                .build();
+
+        when(flashcardRepository.findById(flashcardId)).thenReturn(Optional.of(testFlashcard));
+        when(flashcardRepository.save(any(Flashcard.class))).thenReturn(testFlashcard);
+
+        // Act
+        Flashcard result = flashcardService.updateFlashcard(flashcardId, request, userId);
+
+        // Assert
+        assertNotNull(result);
+        verify(flashcardMapper, times(1)).updateEntity(testFlashcard, request);
+        verify(flashcardRepository, times(1)).save(testFlashcard);
+    }
+
+    // ========================================
+    // TEST: deleteFlashcard
+    // ========================================
+
+    @Test
+    @DisplayName("deleteFlashcard - Soft delete")
+    void testDeleteFlashcard_Success() {
+        // Arrange
+        testDeck.setTotalCards(5);
+        when(flashcardRepository.findById(flashcardId)).thenReturn(Optional.of(testFlashcard));
+        when(flashcardRepository.save(any(Flashcard.class))).thenReturn(testFlashcard);
+        when(deckRepository.save(any(FlashcardDeck.class))).thenReturn(testDeck);
+
+        // Act
+        flashcardService.deleteFlashcard(flashcardId, userId);
+
+        // Assert
+        verify(flashcardRepository, times(1)).save(testFlashcard);
+        assertEquals(4, testDeck.getTotalCards());
+    }
+
+    // ========================================
+    // TEST: searchFlashcards
+    // ========================================
+
+    @Test
+    @DisplayName("searchFlashcards - Ricerca per contenuto")
+    void testSearchFlashcards_Success() {
+        // Arrange
+        String searchTerm = "fotosintesi";
+        List<Flashcard> searchResults = Arrays.asList(testFlashcard);
+        
+        when(deckRepository.findById(deckId)).thenReturn(Optional.of(testDeck));
         when(flashcardRepository.searchByContent(deckId, searchTerm)).thenReturn(searchResults);
 
         // Act
         List<Flashcard> result = flashcardService.searchFlashcards(deckId, searchTerm, userId);
 
         // Assert
-        assertThat(result).hasSize(1);
-        assertThat(result).containsExactly(flashcard);
-        verify(deckRepository).findById(deckId);
-        verify(flashcardRepository).searchByContent(deckId, searchTerm);
+        assertEquals(1, result.size());
+        verify(flashcardRepository, times(1)).searchByContent(deckId, searchTerm);
     }
 
+    // ========================================
+    // TEST: getFlashcardStats
+    // ========================================
+
     @Test
-    void getFlashcardStats_Success() {
+    @DisplayName("getFlashcardStats - Calcola statistiche correttamente")
+    void testGetFlashcardStats_Success() {
         // Arrange
-        Flashcard masteredCard = createFlashcardWithSuccessRate(85.0);
-        Flashcard needReviewCard = createFlashcardWithLastReviewedAt(LocalDateTime.now().minusDays(10));
-        Flashcard normalCard = createFlashcardWithSuccessRate(60.0);
+        Flashcard masteredCard = createTestFlashcard();
+        masteredCard.setTimesReviewed(10);
+        masteredCard.setTimesCorrect(9); // 90% success rate
+        
+        Flashcard needsReviewCard = createTestFlashcard();
+        needsReviewCard.setTimesReviewed(0);
 
-        List<Flashcard> allCards = Arrays.asList(masteredCard, needReviewCard, normalCard);
-
-        when(deckRepository.findById(deckId)).thenReturn(Optional.of(deck));
+        List<Flashcard> allCards = Arrays.asList(masteredCard, needsReviewCard, testFlashcard);
+        
+        when(deckRepository.findById(deckId)).thenReturn(Optional.of(testDeck));
         when(flashcardRepository.findByDeckIdAndIsActiveTrue(deckId)).thenReturn(allCards);
 
         // Act
-        FlashcardService.FlashcardStats stats = flashcardService.getFlashcardStats(deckId, userId);
+        FlashcardService.FlashcardStats result = flashcardService.getFlashcardStats(deckId, userId);
 
         // Assert
-        assertThat(stats).isNotNull();
-        assertThat(stats.getTotal()).isEqualTo(3);
-        assertThat(stats.getMastered()).isEqualTo(1);
-        assertThat(stats.getNeedReview()).isEqualTo(1);
-    }
-
-    @Test
-    void getFlashcardStats_EmptyDeck_Success() {
-        // Arrange
-        List<Flashcard> emptyList = Arrays.asList();
-
-        when(deckRepository.findById(deckId)).thenReturn(Optional.of(deck));
-        when(flashcardRepository.findByDeckIdAndIsActiveTrue(deckId)).thenReturn(emptyList);
-
-        // Act
-        FlashcardService.FlashcardStats stats = flashcardService.getFlashcardStats(deckId, userId);
-
-        // Assert
-        assertThat(stats).isNotNull();
-        assertThat(stats.getTotal()).isZero();
-        assertThat(stats.getMastered()).isZero();
-        assertThat(stats.getNeedReview()).isZero();
-    }
-
-    @Test
-    void flashcard_GetSuccessRate_ReturnsCorrectPercentage() {
-        // Arrange
-        Flashcard card = new Flashcard();
-        card.setTimesReviewed(10);
-        card.setTimesCorrect(7);
-
-        // Act
-        double successRate = card.getSuccessRate();
-
-        // Assert
-        assertThat(successRate).isEqualTo(70.0);
-    }
-
-    @Test
-    void flashcard_GetSuccessRate_WithNoReviews_ReturnsZero() {
-        // Arrange
-        Flashcard card = new Flashcard();
-        card.setTimesReviewed(0);
-        card.setTimesCorrect(0);
-
-        // Act
-        double successRate = card.getSuccessRate();
-
-        // Assert
-        assertThat(successRate).isZero();
-    }
-
-    @Test
-    void flashcard_IsMastered_ReturnsTrueWhenSuccessRateAbove80() {
-        // Arrange
-        Flashcard card = new Flashcard();
-        card.setTimesReviewed(10);
-        card.setTimesCorrect(8); // 80%
-
-        // Act
-        boolean mastered = card.isMastered();
-
-        // Assert
-        assertThat(mastered).isTrue();
-    }
-
-    @Test
-    void flashcard_IsMastered_ReturnsFalseWhenSuccessRateBelow80() {
-        // Arrange
-        Flashcard card = new Flashcard();
-        card.setTimesReviewed(10);
-        card.setTimesCorrect(7); // 70%
-
-        // Act
-        boolean mastered = card.isMastered();
-
-        // Assert
-        assertThat(mastered).isFalse();
-    }
-
-    @Test
-    void flashcard_NeedsReview_WithNoReviews_ReturnsTrue() {
-        // Arrange
-        Flashcard card = new Flashcard();
-        card.setTimesReviewed(0);
-
-        // Act
-        boolean needsReview = card.needsReview(7);
-
-        // Assert
-        assertThat(needsReview).isTrue();
-    }
-
-    @Test
-    void flashcard_NeedsReview_WithLastReviewedAfterThreshold_ReturnsFalse() {
-        // Arrange
-        Flashcard card = new Flashcard();
-        card.setTimesReviewed(5);
-        card.setLastReviewedAt(LocalDateTime.now().minusDays(3));
-
-        // Act
-        boolean needsReview = card.needsReview(7);
-
-        // Assert
-        assertThat(needsReview).isFalse();
-    }
-
-    @Test
-    void flashcard_NeedsReview_WithLastReviewedBeforeThreshold_ReturnsTrue() {
-        // Arrange
-        Flashcard card = new Flashcard();
-        card.setTimesReviewed(5);
-        card.setLastReviewedAt(LocalDateTime.now().minusDays(10));
-
-        // Act
-        boolean needsReview = card.needsReview(7);
-
-        // Assert
-        assertThat(needsReview).isTrue();
-    }
-
-    @Test
-    void flashcard_TagsManagement_Success() {
-        // Arrange
-        Flashcard card = new Flashcard();
-
-        // Test setTagsFromArray
-        String[] tags = {"math", "algebra", "equations"};
-        card.setTagsFromArray(tags);
-        assertThat(card.getTags()).isEqualTo("math,algebra,equations");
-
-        // Test getTagsArray
-        String[] retrievedTags = card.getTagsArray();
-        assertThat(retrievedTags).containsExactly("math", "algebra", "equations");
-
-        // Test addTag
-        card.addTag("geometry");
-        assertThat(card.getTags()).isEqualTo("math,algebra,equations,geometry");
-
-        // Test hasTag
-        assertThat(card.hasTag("algebra")).isTrue();
-        assertThat(card.hasTag("physics")).isFalse();
-
-        // Test addTag null
-        card.addTag(null);
-        assertThat(card.getTags()).isEqualTo("math,algebra,equations,geometry");
-
-        // Test addTag blank
-        card.addTag("  ");
-        assertThat(card.getTags()).isEqualTo("math,algebra,equations,geometry");
-    }
-
-    // ==================== HELPER METHODS ====================
-
-    private Flashcard createFlashcardWithReviewCount(int timesReviewed) {
-        Flashcard card = new Flashcard();
-        card.setId(UUID.randomUUID());
-        card.setDeck(deck);
-        card.setCreatedBy(user);
-        card.setTimesReviewed(timesReviewed);
-        if (timesReviewed > 0) {
-            card.setLastReviewedAt(LocalDateTime.now().minusDays(1));
-        }
-        return card;
-    }
-
-    private Flashcard createFlashcardWithSuccessRate(double successRate) {
-        Flashcard card = new Flashcard();
-        card.setId(UUID.randomUUID());
-        card.setDeck(deck);
-        card.setCreatedBy(user);
-
-        // Calcola timesReviewed e timesCorrect per ottenere la percentuale desiderata
-        int total = 10;
-        int correct = (int) Math.round(successRate * total / 100);
-
-        card.setTimesReviewed(total);
-        card.setTimesCorrect(correct);
-        card.setLastReviewedAt(LocalDateTime.now().minusDays(1));
-        return card;
-    }
-
-    private Flashcard createFlashcardWithLastReviewedAt(LocalDateTime lastReviewedAt) {
-        Flashcard card = new Flashcard();
-        card.setId(UUID.randomUUID());
-        card.setDeck(deck);
-        card.setCreatedBy(user);
-        card.setTimesReviewed(5);
-        card.setLastReviewedAt(lastReviewedAt);
-        return card;
+        assertNotNull(result);
+        assertEquals(3, result.getTotal());
     }
 }

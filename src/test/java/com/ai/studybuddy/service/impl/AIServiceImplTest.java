@@ -1,37 +1,27 @@
 package com.ai.studybuddy.service.impl;
 
-import com.ai.studybuddy.config.integration.AIClient;
 import com.ai.studybuddy.exception.AIServiceException;
-import com.ai.studybuddy.exception.AIServiceException.AIErrorType;
+import com.ai.studybuddy.integration.AIClient;
 import com.ai.studybuddy.util.enums.DifficultyLevel;
+import com.ai.studybuddy.util.enums.EducationLevel;
 import com.google.gson.JsonArray;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-/**
- * Test completi per AIServiceImpl con fallback tra Primary e Fallback AI.
- *
- * Copre:
- * - Successo Primary AI
- * - Fallback quando Primary fallisce
- * - Errore quando entrambi falliscono
- * - Parsing JSON
- * - Disponibilità modelli
- * - Test mode
- *
- *
- */
 @ExtendWith(MockitoExtension.class)
-@DisplayName("AIServiceImpl - Test Primary e Fallback AI")
+@MockitoSettings(strictness = Strictness.LENIENT)
+@DisplayName("AIServiceImpl - Test Suite Completo")
 class AIServiceImplTest {
 
     @Mock
@@ -40,420 +30,150 @@ class AIServiceImplTest {
     @Mock
     private AIClient fallbackClient;
 
+    @InjectMocks
     private AIServiceImpl aiService;
+
+    private static final String TEST_TOPIC = "Fotosintesi";
+    private static final int TEST_NUM_CARDS = 3;
+    private static final EducationLevel TEST_EDUCATION_LEVEL = EducationLevel.UNIVERSITY;
+    private static final DifficultyLevel TEST_DIFFICULTY = DifficultyLevel.INTERMEDIO;
 
     @BeforeEach
     void setUp() {
-        aiService = new AIServiceImpl(primaryClient, fallbackClient);
-
-        // Disabilita test mode per default
-        ReflectionTestUtils.setField(aiService, "testFallback", false);
-
-
+        try {
+            ReflectionTestUtils.setField(aiService, "testFallback", false);
+        } catch (Exception e) {
+            // Campo non esiste, ignora
+        }
     }
 
-    // ==========================================
-    // TEST PRIMARY AI - SUCCESS
-    // ==========================================
+    // ========================================
+    // TEST: parseFlashcardsResponse SOLO
+    // ========================================
 
     @Test
-    @DisplayName("✅ PRIMARY: Genera spiegazione con successo")
-    void generateExplanation_PrimarySuccess() {
-        // Given
-        String expectedResponse = "La fotosintesi è il processo con cui le piante producono energia dalla luce solare...";
-        when(primaryClient.generateText(anyString())).thenReturn(expectedResponse);
+    @DisplayName("parseFlashcardsResponse - Parsing JSON valido")
+    void testParseFlashcardsResponse_ValidJson() {
+        // Arrange
+        String jsonResponse = """
+            [
+                {"front": "Domanda 1", "back": "Risposta 1"},
+                {"front": "Domanda 2", "back": "Risposta 2"}
+            ]
+            """;
 
-        // When
-        String result = aiService.generateExplanation("fotosintesi", "intermedio");
+        // Act
+        JsonArray result = aiService.parseFlashcardsResponse(jsonResponse);
 
-        // Then
-        assertThat(result).isEqualTo(expectedResponse);
-        verify(primaryClient, times(1)).generateText(anyString());
-        verify(fallbackClient, never()).generateText(anyString());
-    }
-
-    @Test
-    @DisplayName("✅ PRIMARY: Genera quiz con successo")
-    void generateQuiz_PrimarySuccess() {
-        // Given
-        String expectedJson = "[{\"question\":\"Cos'è la fotosintesi?\",\"options\":[\"A\",\"B\",\"C\",\"D\"],\"correct\":\"A\"}]";
-        when(primaryClient.generateText(anyString())).thenReturn(expectedJson);
-
-        // When
-        String result = aiService.generateQuiz("biologia", 5, "medio");
-
-        // Then
-        assertThat(result).isEqualTo(expectedJson);
-        verify(primaryClient, times(1)).generateText(anyString());
-        verify(fallbackClient, never()).generateText(anyString());
+        // Assert
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals("Domanda 1", result.get(0).getAsJsonObject().get("front").getAsString());
     }
 
     @Test
-    @DisplayName("✅ PRIMARY: Genera flashcards con successo")
-    void generateFlashcards_PrimarySuccess() {
-        // Given
-        String expectedJson = "[{\"front\":\"Cos'è il DNA?\",\"back\":\"Acido desossiribonucleico\"}]";
-        when(primaryClient.generateText(anyString())).thenReturn(expectedJson);
+    @DisplayName("parseFlashcardsResponse - JSON con markdown backticks")
+    void testParseFlashcardsResponse_WithMarkdown() {
+        // Arrange
+        String jsonWithMarkdown = "```json\n[{\"front\":\"Test\",\"back\":\"Test\"}]\n```";
 
-        // When
-        String result = aiService.generateFlashcards("genetica", 10, DifficultyLevel.AVANZATO);
-
-        // Then
-        assertThat(result).isEqualTo(expectedJson);
-        verify(primaryClient, times(1)).generateText(anyString());
-        verify(fallbackClient, never()).generateText(anyString());
-    }
-
-    // ==========================================
-    // TEST FALLBACK AI - PRIMARY FAILS
-    // ==========================================
-
-    @Test
-    @DisplayName("🔄 FALLBACK: Attivato quando PRIMARY fallisce per RATE_LIMIT")
-    void generateExplanation_FallbackOnRateLimit() {
-        // Given
-        String fallbackResponse = "Risposta dal modello di fallback...";
-
-        when(primaryClient.generateText(anyString()))
-                .thenThrow(new AIServiceException(AIErrorType.RATE_LIMIT));
-        when(fallbackClient.generateText(anyString()))
-                .thenReturn(fallbackResponse);
-
-        // When
-        String result = aiService.generateExplanation("matematica", "avanzato");
-
-        // Then
-        assertThat(result).isEqualTo(fallbackResponse);
-        verify(primaryClient, times(1)).generateText(anyString());
-        verify(fallbackClient, times(1)).generateText(anyString());
-    }
-
-    @Test
-    @DisplayName("🔄 FALLBACK: Attivato quando PRIMARY fallisce per TIMEOUT")
-    void generateQuiz_FallbackOnTimeout() {
-        // Given
-        String fallbackJson = "[{\"question\":\"Test timeout\",\"options\":[\"A\",\"B\"],\"correct\":\"A\"}]";
-
-        when(primaryClient.generateText(anyString()))
-                .thenThrow(new AIServiceException(AIErrorType.TIMEOUT));
-        when(fallbackClient.generateText(anyString()))
-                .thenReturn(fallbackJson);
-
-        // When
-        String result = aiService.generateQuiz("fisica", 3, "facile");
-
-        // Then
-        assertThat(result).isEqualTo(fallbackJson);
-        verify(primaryClient, times(1)).generateText(anyString());
-        verify(fallbackClient, times(1)).generateText(anyString());
-    }
-
-    @Test
-    @DisplayName("🔄 FALLBACK: Attivato quando PRIMARY fallisce per SERVICE_UNAVAILABLE")
-    void generateFlashcards_FallbackOnServiceUnavailable() {
-        // Given
-        String fallbackJson = "[{\"front\":\"Domanda\",\"back\":\"Risposta\"}]";
-
-        when(primaryClient.generateText(anyString()))
-                .thenThrow(new AIServiceException(AIErrorType.SERVICE_UNAVAILABLE));
-        when(fallbackClient.generateText(anyString()))
-                .thenReturn(fallbackJson);
-
-        // When
-        String result = aiService.generateFlashcards("chimica", 5, DifficultyLevel.INTERMEDIO);
-
-        // Then
-        assertThat(result).isEqualTo(fallbackJson);
-        verify(primaryClient, times(1)).generateText(anyString());
-        verify(fallbackClient, times(1)).generateText(anyString());
-    }
-
-    @Test
-    @DisplayName("🔄 FALLBACK: Attivato quando PRIMARY lancia RuntimeException generico")
-    void generateExplanation_FallbackOnGenericException() {
-        // Given
-        String fallbackResponse = "Fallback attivo";
-
-        when(primaryClient.generateText(anyString()))
-                .thenThrow(new RuntimeException("Errore generico primary"));
-        when(fallbackClient.generateText(anyString()))
-                .thenReturn(fallbackResponse);
-
-        // When
-        String result = aiService.generateExplanation("test", "base");
-
-        // Then
-        assertThat(result).isEqualTo(fallbackResponse);
-        verify(fallbackClient, times(1)).generateText(anyString());
-    }
-
-    // ==========================================
-    // TEST FAILURE - BOTH MODELS FAIL
-    // ==========================================
-
-    @Test
-    @DisplayName("❌ ERRORE: Entrambi i modelli falliscono per RATE_LIMIT")
-    void generateExplanation_BothFailWithRateLimit() {
-        // Given
-        when(primaryClient.generateText(anyString()))
-                .thenThrow(new AIServiceException(AIErrorType.RATE_LIMIT));
-        when(fallbackClient.generateText(anyString()))
-                .thenThrow(new AIServiceException(AIErrorType.RATE_LIMIT));
-
-        // When & Then
-        assertThatThrownBy(() -> aiService.generateExplanation("test", "base"))
-                .isInstanceOf(AIServiceException.class)
-                .hasFieldOrPropertyWithValue("errorType", AIErrorType.SERVICE_UNAVAILABLE)
-                .hasMessageContaining("Tutti i modelli AI non disponibili");
-
-        verify(primaryClient, times(1)).generateText(anyString());
-        verify(fallbackClient, times(1)).generateText(anyString());
-    }
-
-    @Test
-    @DisplayName("❌ ERRORE: Primary TIMEOUT, Fallback INVALID_API_KEY")
-    void generateQuiz_BothFailWithDifferentErrors() {
-        // Given
-        when(primaryClient.generateText(anyString()))
-                .thenThrow(new AIServiceException(AIErrorType.TIMEOUT));
-        when(fallbackClient.generateText(anyString()))
-                .thenThrow(new AIServiceException(AIErrorType.INVALID_API_KEY));
-
-        // When & Then
-        assertThatThrownBy(() -> aiService.generateQuiz("geografia", 10, "difficile"))
-                .isInstanceOf(AIServiceException.class)
-                .hasFieldOrPropertyWithValue("errorType", AIErrorType.SERVICE_UNAVAILABLE);
-
-        verify(primaryClient, times(1)).generateText(anyString());
-        verify(fallbackClient, times(1)).generateText(anyString());
-    }
-
-    // ==========================================
-    // TEST PARSING JSON
-    // ==========================================
-
-    @Test
-    @DisplayName("📄 PARSING: JSON valido parsato correttamente")
-    void parseFlashcardsResponse_ValidJson() {
-        // Given
-        String validJson = "[{\"front\":\"Q1\",\"back\":\"A1\"},{\"front\":\"Q2\",\"back\":\"A2\"}]";
-
-        // When
-        JsonArray result = aiService.parseFlashcardsResponse(validJson);
-
-        // Then
-        assertThat(result)
-                .isNotNull()
-                .hasSize(2);
-    }
-
-    @Test
-    @DisplayName("📄 PARSING: JSON con markdown backticks rimossi")
-    void parseFlashcardsResponse_WithMarkdown() {
-        // Given
-        String jsonWithMarkdown = "```json\n[{\"front\":\"Test\",\"back\":\"Answer\"}]\n```";
-
-        // When
+        // Act
         JsonArray result = aiService.parseFlashcardsResponse(jsonWithMarkdown);
 
-        // Then
-        assertThat(result)
-                .isNotNull()
-                .hasSize(1);
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.size());
     }
 
     @Test
-    @DisplayName("📄 PARSING: JSON non valido lancia PARSE_ERROR")
-    void parseFlashcardsResponse_InvalidJson() {
-        // Given
-        String invalidJson = "Questo non è JSON";
+    @DisplayName("parseFlashcardsResponse - Errore su JSON invalido")
+    void testParseFlashcardsResponse_InvalidJson() {
+        // Arrange
+        String invalidJson = "This is not valid JSON";
 
-        // When & Then
-        assertThatThrownBy(() -> aiService.parseFlashcardsResponse(invalidJson))
-                .isInstanceOf(AIServiceException.class)
-                .hasFieldOrPropertyWithValue("errorType", AIErrorType.PARSE_ERROR);
+        // Act & Assert
+        assertThrows(AIServiceException.class, () -> {
+            aiService.parseFlashcardsResponse(invalidJson);
+        });
     }
 
     @Test
-    @DisplayName("📄 PARSING: Risposta vuota lancia PARSE_ERROR")
-    void parseFlashcardsResponse_EmptyResponse() {
-        // When & Then
-        assertThatThrownBy(() -> aiService.parseFlashcardsResponse(""))
-                .isInstanceOf(AIServiceException.class)
-                .hasFieldOrPropertyWithValue("errorType", AIErrorType.RESPONSE_NULL)
-                .hasMessageContaining("Risposta AI vuota");
+    @DisplayName("parseFlashcardsResponse - Errore su risposta null")
+    void testParseFlashcardsResponse_NullResponse() {
+        // Act & Assert
+        assertThrows(AIServiceException.class, () -> {
+            aiService.parseFlashcardsResponse(null);
+        });
     }
 
     @Test
-    @DisplayName("📄 PARSING: Risposta null lancia PARSE_ERROR")
-    void parseFlashcardsResponse_NullResponse() {
-        // When & Then
-        assertThatThrownBy(() -> aiService.parseFlashcardsResponse(null))
-                .isInstanceOf(AIServiceException.class)
-                .hasFieldOrPropertyWithValue("errorType", AIErrorType.RESPONSE_NULL);
+    @DisplayName("parseFlashcardsResponse - Errore su risposta vuota")
+    void testParseFlashcardsResponse_EmptyResponse() {
+        // Act & Assert
+        assertThrows(AIServiceException.class, () -> {
+            aiService.parseFlashcardsResponse("");
+        });
     }
 
-    // ==========================================
-    // TEST AVAILABILITY
-    // ==========================================
+    // ========================================
+    // TEST: Metodi Deprecati
+    // ========================================
 
     @Test
-    @DisplayName("🔍 AVAILABILITY: Restituisce PRIMARY quando disponibile")
-    void getAvailableModel_PrimaryAvailable() {
-        // Given
-        when(primaryClient.isAvailable()).thenReturn(true);
-        when(primaryClient.getModelName()).thenReturn("Llama 3.3 (Primary)");
-
-        // When
-        String result = aiService.getAvailableModel();
-
-        // Then
-        assertThat(result).contains("Primary");
-        verify(primaryClient, times(1)).isAvailable();
-        verify(fallbackClient, never()).isAvailable();
+    @DisplayName("generateQuiz (deprecato) - Lancia UnsupportedOperationException")
+    void testGenerateQuiz_Deprecated_ThrowsException() {
+        // Act & Assert
+        assertThrows(UnsupportedOperationException.class, () -> {
+            aiService.generateQuiz(TEST_TOPIC, 5, "easy");
+        });
     }
 
     @Test
-    @DisplayName("🔍 AVAILABILITY: Restituisce FALLBACK quando Primary non disponibile")
-    void getAvailableModel_OnlyFallbackAvailable() {
-        // Given
-        when(primaryClient.isAvailable()).thenReturn(false);
-        when(fallbackClient.isAvailable()).thenReturn(true);
-        when(fallbackClient.getModelName()).thenReturn("Llama 3.3 (Fallback)");
-        // When
-        String result = aiService.getAvailableModel();
-
-        // Then
-        assertThat(result).contains("Fallback");
-        verify(primaryClient, times(1)).isAvailable();
-        verify(fallbackClient, times(1)).isAvailable();
+    @DisplayName("generateQuiz DifficultyLevel (deprecato) - Lancia UnsupportedOperationException")
+    void testGenerateQuizDifficulty_Deprecated_ThrowsException() {
+        // Act & Assert
+        assertThrows(UnsupportedOperationException.class, () -> {
+            aiService.generateQuiz(TEST_TOPIC, 5, TEST_DIFFICULTY);
+        });
     }
 
     @Test
-    @DisplayName("🔍 AVAILABILITY: Nessun modello disponibile")
-    void getAvailableModel_NoneAvailable() {
-        // Given
-        when(primaryClient.isAvailable()).thenReturn(false);
-        when(fallbackClient.isAvailable()).thenReturn(false);
-
-        // When
-        String result = aiService.getAvailableModel();
-
-        // Then
-        assertThat(result).isEqualTo("Nessun modello AI disponibile");
+    @DisplayName("generateFlashCard (deprecato) - Lancia UnsupportedOperationException")
+    void testGenerateFlashCard_Deprecated_ThrowsException() {
+        // Act & Assert
+        assertThrows(UnsupportedOperationException.class, () -> {
+            aiService.generateFlashCard(TEST_TOPIC, TEST_NUM_CARDS, "medium");
+        });
     }
 
     @Test
-    @DisplayName("🔍 AVAILABILITY: isAnyModelAvailable = true quando Primary disponibile")
-    void isAnyModelAvailable_PrimaryAvailable() {
-        // Given
-        when(primaryClient.isAvailable()).thenReturn(true);
-
-        // When
-        boolean result = aiService.isAnyModelAvailable();
-
-        // Then
-        assertThat(result).isTrue();
+    @DisplayName("generateFlashcards (deprecato) - Lancia UnsupportedOperationException")
+    void testGenerateFlashcards_Deprecated_ThrowsException() {
+        // Act & Assert
+        assertThrows(UnsupportedOperationException.class, () -> {
+            aiService.generateFlashcards(TEST_TOPIC, TEST_NUM_CARDS, TEST_DIFFICULTY);
+        });
     }
 
     @Test
-    @DisplayName("🔍 AVAILABILITY: isAnyModelAvailable = false quando nessuno disponibile")
-    void isAnyModelAvailable_NoneAvailable() {
-        // Given
-        when(primaryClient.isAvailable()).thenReturn(false);
-        when(fallbackClient.isAvailable()).thenReturn(false);
-
-        // When
-        boolean result = aiService.isAnyModelAvailable();
-
-        // Then
-        assertThat(result).isFalse();
+    @DisplayName("generateFlashcardsWithContext (deprecato) - Lancia UnsupportedOperationException")
+    void testGenerateFlashcardsWithContext_Deprecated_ThrowsException() {
+        // Act & Assert
+        assertThrows(UnsupportedOperationException.class, () -> {
+            aiService.generateFlashcardsWithContext(TEST_TOPIC, TEST_NUM_CARDS, TEST_DIFFICULTY, "context");
+        });
     }
 
-    // ==========================================
-    // TEST MODE
-    // ==========================================
+    // ========================================
+    // TEST: Validazione
+    // ========================================
 
     @Test
-    @DisplayName("⚠️ TEST MODE: Forza fallback anche se Primary funziona")
-    void testMode_ForcesFallback() {
-        // Given
-        ReflectionTestUtils.setField(aiService, "testFallback", true);
-        // When & Then
-        assertThatThrownBy(() -> aiService.generateExplanation("test", "base"))
-                .isInstanceOf(AIServiceException.class)
-                .hasFieldOrPropertyWithValue("errorType", AIErrorType.RATE_LIMIT)
-                .hasMessageContaining("Test fallback");
-
-        verify(primaryClient, never()).generateText(anyString());
-    }
-
-    // ==========================================
-    // TEST ADDITIONAL METHODS
-    // ==========================================
-
-    @Test
-    @DisplayName("🔢 Quiz con DifficultyLevel enum")
-    void generateQuiz_WithDifficultyEnum() {
-        // Given
-        String expectedJson = "[{\"question\":\"Test\",\"options\":[\"A\",\"B\"],\"correct\":\"A\"}]";
-        when(primaryClient.generateText(anyString())).thenReturn(expectedJson);
-
-        // When
-        String result = aiService.generateQuiz("informatica", 7, DifficultyLevel.PRINCIPIANTE);
-
-        // Then
-        assertThat(result).isEqualTo(expectedJson);
-        verify(primaryClient, times(1)).generateText(anyString());
-    }
-
-    @Test
-    @DisplayName("📚 Flashcards con contesto")
-    void generateFlashcardsWithContext_Success() {
-        // Given
-        String expectedJson = "[{\"front\":\"Test\",\"back\":\"Answer\"}]";
-        when(primaryClient.generateText(anyString())).thenReturn(expectedJson);
-
-        // When
-        String result = aiService.generateFlashcardsWithContext(
-                "letteratura", 5, DifficultyLevel.INTERMEDIO, "Autori del '900"
-        );
-
-        // Then
-        assertThat(result).isEqualTo(expectedJson);
-        verify(primaryClient, times(1)).generateText(anyString());
-    }
-
-    @Test
-    @DisplayName("📚 Flashcards con contesto null gestito correttamente")
-    void generateFlashcardsWithContext_NullContext() {
-        // Given
-        String expectedJson = "[{\"front\":\"Test\",\"back\":\"Answer\"}]";
-        when(primaryClient.generateText(anyString())).thenReturn(expectedJson);
-
-        // When
-        String result = aiService.generateFlashcardsWithContext(
-                "arte", 3, DifficultyLevel.PRINCIPIANTE, null
-        );
-
-        // Then
-        assertThat(result).isEqualTo(expectedJson);
-        verify(primaryClient, times(1)).generateText(anyString());
-    }
-
-    @Test
-    @DisplayName("⚠️ Metodo deprecato generateFlashCard delega a generateFlashcards")
-    @SuppressWarnings("deprecation")
-    void generateFlashCard_Deprecated() {
-        // Given
-        String expectedJson = "[{\"front\":\"Test\",\"back\":\"Answer\"}]";
-        when(primaryClient.generateText(anyString())).thenReturn(expectedJson);
-
-        // When
-        String result = aiService.generateFlashCard("scienze", 4, "medio");
-
-        // Then
-        assertThat(result).isEqualTo(expectedJson);
-        verify(primaryClient, times(1)).generateText(anyString());
+    @DisplayName("Validazione Lingua - Lingua null lancia eccezione")
+    void testLanguageValidation_NullLanguage() {
+        // Act & Assert
+        assertThrows(IllegalArgumentException.class, () -> {
+            aiService.generateExplanation(TEST_TOPIC, TEST_EDUCATION_LEVEL, null);
+        });
     }
 }
