@@ -114,19 +114,6 @@ Il progetto segue un'architettura a layer con separazione delle responsabilità:
 └─────────────────────────────────────────────────────┘
 ```
 
-### Design Pattern Utilizzati
-
-| Pattern | Applicazione |
-|---------|-------------|
-| **Strategy** | `AIClient` interface con `GroqPrimaryClient` e `GroqFallbackClient` |
-| **Chain of Responsibility** | `callAIWithFallback` per gestione fallback tra modelli AI |
-| **Template Method** | Struttura base dei client Groq |
-| **Adapter** | Controller che convertono JSON in oggetti Java |
-| **Mapper** | Conversione bidirezionale tra entità JPA e DTO |
-| **DTO** | Data Transfer Objects per separazione tra layer |
-| **Repository** | Spring Data JPA repositories per accesso dati |
-| **Dependency Injection** | Constructor Injection con IoC container di Spring |
-
 ---
 
 ## 🛠 Tech Stack
@@ -186,7 +173,7 @@ Il progetto segue un'architettura a layer con separazione delle responsabilità:
 ### 1. Clona il repository
 
 ```bash
-git clone https://github.com/your-username/studybuddy.git
+git clone https://github.com/Software-Engineering-Unimib/calipari-celestino-giugovaz-ai-study-buddy-scrum2milly-2-0
 cd studybuddy
 ```
 
@@ -231,7 +218,7 @@ L'applicazione sarà disponibile su `http://localhost:8080`
 curl http://localhost:8080/api/ai/health
 # Output atteso: OK
 ```
-
+Sito web dell'applicazione https://studybuddy-test.onrender.com
 ---
 
 ## 📡 API Endpoints
